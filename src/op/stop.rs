@@ -4,6 +4,7 @@ pub use iters::Iterations;
 mod optimum;
 pub use optimum::Optimum;
 
+// NOTE: We don't bound `E: Eval<S, P>` for the same reasons as described in `Operator`.
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
 pub trait Stop<S, P, E> {
     #[must_use]
