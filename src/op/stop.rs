@@ -1,3 +1,9 @@
+mod iters;
+pub use iters::Iterations;
+
+mod optimum;
+pub use optimum::Optimum;
+
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
 pub trait Stop<S, P, E> {
     #[must_use]
