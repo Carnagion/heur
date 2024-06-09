@@ -3,4 +3,9 @@ name = "heur"
 version = "0.1.0"
 edition = "2021"
 
+[package.metadata.docs.rs]
+all-features = true
+cargo-args = ["-Z", "unstable-options", "-Z", "rustdoc-scrape-examples"]
+rustdoc-args = ["--generate-link-to-definition", "--cfg", "docsrs"]
+
 [dependencies]
