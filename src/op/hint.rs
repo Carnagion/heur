@@ -5,7 +5,7 @@ use super::{init::Init, mutate::Mutate, search::Search, Operator};
 // TODO: Manually impl common traits
 pub struct Hint<T, S, P, E, In> {
     pub(super) op: T,
-    pub(super) _marker: PhantomData<(S, P, E, In)>,
+    pub(super) _marker: PhantomData<fn() -> (S, P, E, In)>,
 }
 
 impl<T, S, P, E, In> Operator<S, P, E, In> for Hint<T, S, P, E, In>

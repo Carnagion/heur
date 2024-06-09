@@ -4,7 +4,7 @@ use super::{init::Init, mutate::Mutate, search::Search, Operator};
 
 // TODO: Manually impl common traits
 pub struct Todo<S, P, E, In = (), Out = (), Err = Infallible>(
-    pub(super) PhantomData<(S, P, E, In, Out, Err)>,
+    pub(super) PhantomData<fn() -> (S, P, E, In, Out, Err)>,
 );
 
 impl<S, P, E, In, Out, Err> Operator<S, P, E, In> for Todo<S, P, E, In, Out, Err>
