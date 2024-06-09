@@ -6,3 +6,5 @@
 pub mod op;
 
 pub mod eval;
+
+pub mod solve;
