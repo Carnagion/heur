@@ -1,10 +1,10 @@
 use std::{convert::Infallible, error::Error};
 
-mod init;
+pub mod init;
 
-mod mutate;
+pub mod mutate;
 
-mod search;
+pub mod search;
 
 // NOTE: We don't bound `E: Eval<S, P>` for a couple of reasons:
 //       1. Some operators don't use the evaluation function.
