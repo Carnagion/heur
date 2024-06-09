@@ -1,3 +1,9 @@
+mod unconditional;
+pub use unconditional::{Always, Never};
+
+mod improving;
+pub use improving::{Improving, NonWorsening};
+
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
 pub trait Accept<S, P, E> {
     #[must_use]
