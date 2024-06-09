@@ -4,3 +4,5 @@
 // #![warn(missing_docs)] // TODO: Enable once finished
 
 pub mod op;
+
+pub mod eval;
