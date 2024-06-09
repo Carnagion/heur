@@ -1,5 +1,7 @@
 use std::{convert::Infallible, error::Error};
 
+mod init;
+
 // NOTE: We don't bound `E: Eval<S, P>` for a couple of reasons:
 //       1. Some operators don't use the evaluation function.
 //       2. Population-based operators use `Population<T>` as their solution, and having `E: Eval<S, P>` would mean that
