@@ -1,4 +1,7 @@
-use std::{convert::Infallible, error::Error};
+use std::{convert::Infallible, error::Error, marker::PhantomData};
+
+mod todo;
+pub use todo::Todo;
 
 pub mod init;
 
@@ -132,4 +135,13 @@ where
             .map(|op| op.apply(solution, problem, eval, input))
             .transpose()
     }
+}
+
+#[inline]
+#[must_use]
+pub fn todo<S, P, E, In, Out, Err>() -> Todo<S, P, E, In, Out, Err>
+where
+    Err: Error,
+{
+    Todo(PhantomData)
 }
