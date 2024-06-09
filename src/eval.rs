@@ -1,3 +1,6 @@
+mod from_fn;
+pub use from_fn::FromFn;
+
 // NOTE: We need this extra trait because without it, a plain old bound of `PartialOrd` on `Eval::Objective`
 //       results in `Eval` losing its object safety. However, putting a bound of `Objective` is perfectly OK
 //       somehow. There is a potential fix for this behaviour - see https://github.com/rust-lang/rust/pull/122804.
@@ -53,4 +56,14 @@ where
             Self::Right(right) => right.eval(solution, problem),
         }
     }
+}
+
+#[inline]
+#[must_use]
+pub fn from_fn<F, S, P, O>(f: F) -> FromFn<F>
+where
+    F: FnMut(&S, &P) -> O,
+    O: Objective,
+{
+    FromFn(f)
 }
