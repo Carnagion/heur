@@ -1,5 +1,8 @@
 use std::{convert::Infallible, error::Error, marker::PhantomData};
 
+mod hint;
+pub use hint::Hint;
+
 mod todo;
 pub use todo::Todo;
 
@@ -134,6 +137,18 @@ where
         self.as_mut()
             .map(|op| op.apply(solution, problem, eval, input))
             .transpose()
+    }
+}
+
+#[inline]
+#[must_use]
+pub fn hint<S, P, E, In, T>(op: T) -> Hint<T, S, P, E, In>
+where
+    T: Operator<S, P, E, In>,
+{
+    Hint {
+        op,
+        _marker: PhantomData,
     }
 }
 
