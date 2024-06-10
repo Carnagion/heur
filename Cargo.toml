@@ -14,3 +14,7 @@ rand = "0.8.5"                                   # TODO: Should we gate default 
 
 [features]
 either = ["dep:either"]
+
+[[example]]
+name = "knapsack"
+doc-scrape-examples = true
