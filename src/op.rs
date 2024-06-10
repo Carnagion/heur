@@ -177,6 +177,26 @@ pub trait Operator<S, P, E, In = ()> {
     {
         Unwrapped(self)
     }
+
+    #[inline]
+    #[must_use]
+    fn by_ref(&mut self) -> &mut Self
+    where
+        Self: Sized,
+    {
+        self
+    }
+
+    #[inline]
+    #[must_use]
+    fn boxed<'a>(
+        self,
+    ) -> Box<dyn Operator<S, P, E, In, Output = Self::Output, Error = Self::Error> + 'a>
+    where
+        Self: Sized + 'a,
+    {
+        Box::new(self)
+    }
 }
 
 impl<T, S, P, E, In> Operator<S, P, E, In> for &mut T
