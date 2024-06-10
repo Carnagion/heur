@@ -1,9 +1,14 @@
 use std::marker::PhantomData;
 
+use crate::solve::Solve;
+
 use super::Operator;
 
 mod from_value;
 pub use from_value::{FromDefault, FromValue};
+
+mod from_solver;
+pub use from_solver::FromSolver;
 
 // NOTE: We don't bound `E: Eval<S, P>` for the same reasons as described in `Operator`.
 // TODO: Add `#[diagnostic::on_unimplemented]`
@@ -106,4 +111,13 @@ where
     S: Default,
 {
     FromDefault(PhantomData)
+}
+
+#[inline]
+#[must_use]
+pub fn from_solver<S, P, E, T>(solver: T) -> FromSolver<T>
+where
+    T: Solve<S, P, E>,
+{
+    FromSolver(solver)
 }
