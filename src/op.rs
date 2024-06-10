@@ -1,5 +1,8 @@
 use std::{convert::Infallible, error::Error, marker::PhantomData};
 
+mod then;
+pub use then::Then;
+
 mod hint;
 pub use hint::Hint;
 
@@ -38,6 +41,19 @@ pub trait Operator<S, P, E, In = ()> {
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error>;
+
+    #[inline]
+    #[must_use]
+    fn then<U>(self, op: U) -> Then<Self, U>
+    where
+        Self: Operator<S, P, E> + Sized,
+        U: Operator<S, P, E, Error = <Self as Operator<S, P, E>>::Error>,
+    {
+        Then {
+            first: self,
+            second: op,
+        }
+    }
 }
 
 impl<T, S, P, E, In> Operator<S, P, E, In> for &mut T
