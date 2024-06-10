@@ -9,6 +9,9 @@ pub use pipe::Pipe;
 mod ignore;
 pub use ignore::Ignore;
 
+mod map;
+pub use map::{Map, MapErr, TryMap};
+
 mod hint;
 pub use hint::Hint;
 
@@ -78,6 +81,37 @@ pub trait Operator<S, P, E, In = ()> {
         Self: Sized,
     {
         Ignore(self)
+    }
+
+    #[inline]
+    #[must_use]
+    fn map<Out, F>(self, f: F) -> Map<Self, F>
+    where
+        Self: Sized,
+        F: FnMut(Self::Output) -> Out,
+    {
+        Map { op: self, f }
+    }
+
+    #[inline]
+    #[must_use]
+    fn map_err<Err, F>(self, f: F) -> MapErr<Self, F>
+    where
+        Self: Sized,
+        F: FnMut(Self::Error) -> Err,
+        Err: Error,
+    {
+        MapErr { op: self, f }
+    }
+
+    #[inline]
+    #[must_use]
+    fn try_map<Out, F>(self, f: F) -> TryMap<Self, F>
+    where
+        Self: Sized,
+        F: FnMut(Self::Output) -> Result<Out, Self::Error>,
+    {
+        TryMap { op: self, f }
     }
 }
 
