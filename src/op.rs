@@ -12,6 +12,9 @@ pub use ignore::Ignore;
 mod map;
 pub use map::{Map, MapErr, TryMap};
 
+mod once;
+pub use once::Once;
+
 mod hint;
 pub use hint::Hint;
 
@@ -112,6 +115,15 @@ pub trait Operator<S, P, E, In = ()> {
         F: FnMut(Self::Output) -> Result<Out, Self::Error>,
     {
         TryMap { op: self, f }
+    }
+
+    #[inline]
+    #[must_use]
+    fn once(self) -> Once<Self>
+    where
+        Self: Sized,
+    {
+        Once(Some(self))
     }
 }
 
