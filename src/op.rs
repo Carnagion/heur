@@ -2,6 +2,8 @@ use std::{convert::Infallible, error::Error, marker::PhantomData};
 
 use accept::Accept;
 
+use stop::Stop;
+
 mod then;
 pub use then::Then;
 
@@ -17,14 +19,17 @@ pub use map::{Map, MapErr, TryMap};
 mod once;
 pub use once::Once;
 
+mod accept_if;
+pub use accept_if::AcceptIf;
+
+mod repeat;
+pub use repeat::{Repeat, RepeatUntil};
+
 mod hint;
 pub use hint::Hint;
 
 mod todo;
 pub use todo::Todo;
-
-mod accept_if;
-pub use accept_if::AcceptIf;
 
 pub mod accept;
 
@@ -140,6 +145,25 @@ pub trait Operator<S, P, E, In = ()> {
         S: Clone,
     {
         AcceptIf { op: self, cond }
+    }
+
+    #[inline]
+    #[must_use]
+    fn repeat(self, times: usize) -> Repeat<Self>
+    where
+        Self: Operator<S, P, E, In, Output = In> + Sized,
+    {
+        Repeat { op: self, times }
+    }
+
+    #[inline]
+    #[must_use]
+    fn repeat_until<F>(self, cond: F) -> RepeatUntil<Self, F>
+    where
+        Self: Operator<S, P, E, In, Output = In> + Sized,
+        F: Stop<S, P, E>,
+    {
+        RepeatUntil { op: self, cond }
     }
 }
 
