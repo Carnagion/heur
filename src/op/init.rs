@@ -1,4 +1,9 @@
+use std::marker::PhantomData;
+
 use super::Operator;
+
+mod from_value;
+pub use from_value::{FromDefault, FromValue};
 
 // NOTE: We don't bound `E: Eval<S, P>` for the same reasons as described in `Operator`.
 // TODO: Add `#[diagnostic::on_unimplemented]`
@@ -83,4 +88,22 @@ where
             Self::Right(right) => right.init_into(solution, problem, eval),
         }
     }
+}
+
+#[inline]
+#[must_use]
+pub fn from_value<S>(value: S) -> FromValue<S>
+where
+    S: Clone,
+{
+    FromValue(value)
+}
+
+#[inline]
+#[must_use]
+pub fn from_default<S>() -> FromDefault<S>
+where
+    S: Default,
+{
+    FromDefault(PhantomData)
 }
