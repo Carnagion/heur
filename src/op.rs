@@ -1,5 +1,7 @@
 use std::{convert::Infallible, error::Error, marker::PhantomData};
 
+use accept::Accept;
+
 mod then;
 pub use then::Then;
 
@@ -20,6 +22,9 @@ pub use hint::Hint;
 
 mod todo;
 pub use todo::Todo;
+
+mod accept_if;
+pub use accept_if::AcceptIf;
 
 pub mod accept;
 
@@ -124,6 +129,17 @@ pub trait Operator<S, P, E, In = ()> {
         Self: Sized,
     {
         Once(Some(self))
+    }
+
+    #[inline]
+    #[must_use]
+    fn accept_if<F>(self, cond: F) -> AcceptIf<Self, F>
+    where
+        Self: Sized,
+        F: Accept<S, P, E>,
+        S: Clone,
+    {
+        AcceptIf { op: self, cond }
     }
 }
 
