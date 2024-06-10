@@ -6,6 +6,9 @@ pub use then::Then;
 mod pipe;
 pub use pipe::Pipe;
 
+mod ignore;
+pub use ignore::Ignore;
+
 mod hint;
 pub use hint::Hint;
 
@@ -66,6 +69,15 @@ pub trait Operator<S, P, E, In = ()> {
         U: Operator<S, P, E, Self::Output, Error = Self::Error>,
     {
         Pipe { from: self, to }
+    }
+
+    #[inline]
+    #[must_use]
+    fn ignore(self) -> Ignore<Self>
+    where
+        Self: Sized,
+    {
+        Ignore(self)
     }
 }
 
