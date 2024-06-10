@@ -1,5 +1,8 @@
 use super::Operator;
 
+mod bit_flip;
+pub use bit_flip::{FlipAllBits, FlipBit};
+
 // NOTE: We don't bound `E: Eval<S, P>` for the same reasons as described in `Operator`.
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Mutate<S, P, E>: Operator<S, P, E> {
