@@ -25,6 +25,9 @@ pub use accept_if::AcceptIf;
 mod repeat;
 pub use repeat::{Repeat, RepeatUntil};
 
+mod unwrapped;
+pub use unwrapped::Unwrapped;
+
 mod hint;
 pub use hint::Hint;
 
@@ -164,6 +167,15 @@ pub trait Operator<S, P, E, In = ()> {
         F: Stop<S, P, E>,
     {
         RepeatUntil { op: self, cond }
+    }
+
+    #[inline]
+    #[must_use]
+    fn unwrapped(self) -> Unwrapped<Self>
+    where
+        Self: Sized,
+    {
+        Unwrapped(self)
     }
 }
 
