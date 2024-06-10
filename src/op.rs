@@ -3,6 +3,9 @@ use std::{convert::Infallible, error::Error, marker::PhantomData};
 mod then;
 pub use then::Then;
 
+mod pipe;
+pub use pipe::Pipe;
+
 mod hint;
 pub use hint::Hint;
 
@@ -53,6 +56,16 @@ pub trait Operator<S, P, E, In = ()> {
             first: self,
             second: op,
         }
+    }
+
+    #[inline]
+    #[must_use]
+    fn pipe<U>(self, to: U) -> Pipe<Self, U>
+    where
+        Self: Sized,
+        U: Operator<S, P, E, Self::Output, Error = Self::Error>,
+    {
+        Pipe { from: self, to }
     }
 }
 
