@@ -25,6 +25,12 @@ impl FlipBit<ThreadRng> {
     }
 }
 
+impl Default for FlipBit<ThreadRng> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<R> FlipBit<R>
 where
     R: Rng,
@@ -118,12 +124,17 @@ impl FlipAllBits<ThreadRng> {
     }
 }
 
+impl Default for FlipAllBits<ThreadRng> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<R> FlipAllBits<R>
 where
     R: Rng,
 {
     #[inline]
-    #[must_use]
     pub fn with_prob_and_rng(prob: f64, rng: R) -> Result<Self, BernoulliError> {
         let dist = Bernoulli::new(prob)?;
         Ok(Self { rng, dist })

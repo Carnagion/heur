@@ -2,7 +2,7 @@ use crate::eval::Eval;
 
 use super::Accept;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Improving;
 
 impl Improving {
@@ -24,7 +24,7 @@ where
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct NonWorsening;
 
 impl NonWorsening {

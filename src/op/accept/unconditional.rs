@@ -1,6 +1,6 @@
 use super::Accept;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Always;
 
 impl Always {
@@ -19,7 +19,7 @@ impl<S, P, E> Accept<S, P, E> for Always {
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Never;
 
 impl Never {

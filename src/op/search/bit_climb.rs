@@ -4,7 +4,7 @@ use crate::{eval::Eval, op::Operator};
 
 use super::Search;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct FirstDescentBitClimb;
 
 impl FirstDescentBitClimb {
@@ -90,7 +90,7 @@ where
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct SteepestDescentBitClimb;
 
 impl SteepestDescentBitClimb {
