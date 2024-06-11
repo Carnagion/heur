@@ -5,6 +5,7 @@ use super::{init::Init, mutate::Mutate, search::Search, Operator};
 // TODO: Manually impl common traits
 pub struct Hint<T, S, P, E, In> {
     pub(super) op: T,
+    #[allow(clippy::type_complexity)]
     pub(super) _marker: PhantomData<fn() -> (S, P, E, In)>,
 }
 
