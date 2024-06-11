@@ -12,7 +12,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        toolchain: [stable] # TODO: Do we want to run CI on other toolchains as well?
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
@@ -20,9 +19,9 @@ jobs:
       
       - name: Update Rust toolchain
         run: |
-          rustup update ${{ matrix.toolchain }}
-          rustup default ${{ matrix.toolchain }}
-          rustup component add cargo
+          rustup update stable
+          rustup update nightly
+          rustup default stable
       
       - name: Check code with all features
         run: |
@@ -41,7 +40,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        toolchain: [stable] # TODO: Do we want to run CI on other toolchains as well?
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
@@ -49,11 +47,10 @@ jobs:
       
       - name: Update Rust toolchain
         run: |
-          rustup update ${{ matrix.toolchain }}
-          rustup default ${{ matrix.toolchain }}
-          rustup component add cargo
-          rustup component add clippy
-          rustup component add rustfmt
+          rustup update stable
+          rustup update nightly
+          rustup default stable
+          rustup component add rustfmt --toolchain nightly
 
       - name: Lint code
         run: |
@@ -68,7 +65,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        toolchain: [stable] # TODO: Do we want to run CI on other toolchains as well?
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
@@ -76,9 +72,8 @@ jobs:
 
       - name: Update Rust toolchain
         run: |
-          rustup update ${{ matrix.toolchain }}
-          rustup default ${{ matrix.toolchain }}
-          rustup component add cargo
+          rustup update stable
+          rustup default stable
       
       - name: Run tests
         run: |
