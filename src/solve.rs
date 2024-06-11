@@ -8,3 +8,44 @@ pub trait Solve<S, P, E> {
 
     fn solve(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error>;
 }
+
+impl<T, S, P, E> Solve<S, P, E> for &mut T
+where
+    T: Solve<S, P, E> + ?Sized,
+{
+    type Error = T::Error;
+
+    #[inline]
+    fn solve(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
+        T::solve(self, problem, eval)
+    }
+}
+
+impl<T, S, P, E> Solve<S, P, E> for Box<T>
+where
+    T: Solve<S, P, E> + ?Sized,
+{
+    type Error = T::Error;
+
+    #[inline]
+    fn solve(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
+        T::solve(self, problem, eval)
+    }
+}
+
+#[cfg(feature = "either")]
+impl<L, R, S, P, E> Solve<S, P, E> for either::Either<L, R>
+where
+    L: Solve<S, P, E>,
+    R: Solve<S, P, E, Error = L::Error>,
+{
+    type Error = L::Error;
+
+    #[inline]
+    fn solve(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
+        match self {
+            Self::Left(left) => left.solve(problem, eval),
+            Self::Right(right) => right.solve(problem, eval),
+        }
+    }
+}
