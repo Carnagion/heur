@@ -34,15 +34,17 @@ pub use hint::Hint;
 mod todo;
 pub use todo::Todo;
 
-pub mod accept;
-
-pub mod stop;
-
 pub mod init;
 
 pub mod mutate;
 
 pub mod search;
+
+pub mod population;
+
+pub mod accept;
+
+pub mod stop;
 
 // NOTE: We don't bound `E: Eval<S, P>` for a couple of reasons:
 //       1. Some operators don't use the evaluation function.
