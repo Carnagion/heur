@@ -28,6 +28,9 @@ pub use repeat::{Repeat, RepeatUntil};
 mod unwrapped;
 pub use unwrapped::Unwrapped;
 
+mod from_fn;
+pub use from_fn::FromFn;
+
 mod hint;
 pub use hint::Hint;
 
@@ -303,6 +306,16 @@ where
             .map(|op| op.apply(solution, problem, eval, input))
             .transpose()
     }
+}
+
+#[inline]
+#[must_use]
+pub fn from_fn<S, P, E, In, Out, Err, F>(f: F) -> FromFn<F>
+where
+    F: FnMut(&mut S, &P, &mut E, In) -> Result<Out, Err>,
+    Err: Error,
+{
+    FromFn(f)
 }
 
 #[inline]
