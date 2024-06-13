@@ -5,16 +5,16 @@ use crate::{eval::Eval, op::Operator};
 use super::Search;
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct FirstDescentBitClimb;
+pub struct FirstAscentBitClimb;
 
-impl FirstDescentBitClimb {
+impl FirstAscentBitClimb {
     #[inline]
     #[must_use]
     pub fn new() -> Self {
         Self
     }
 
-    fn descend_first<S, P, E>(&mut self, len: usize, solution: &mut S, problem: &P, eval: &mut E)
+    fn ascend_first<S, P, E>(&mut self, len: usize, solution: &mut S, problem: &P, eval: &mut E)
     where
         S: IndexMut<usize, Output = bool>,
         E: Eval<S, P>,
@@ -37,7 +37,7 @@ impl FirstDescentBitClimb {
     }
 }
 
-impl<P, E> Operator<Vec<bool>, P, E> for FirstDescentBitClimb
+impl<P, E> Operator<Vec<bool>, P, E> for FirstAscentBitClimb
 where
     E: Eval<Vec<bool>, P>,
 {
@@ -53,12 +53,12 @@ where
         eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {
-        self.descend_first(solution.len(), solution, problem, eval);
+        self.ascend_first(solution.len(), solution, problem, eval);
         Ok(())
     }
 }
 
-impl<P, E, const N: usize> Operator<[bool; N], P, E> for FirstDescentBitClimb
+impl<P, E, const N: usize> Operator<[bool; N], P, E> for FirstAscentBitClimb
 where
     E: Eval<[bool; N], P>,
 {
@@ -74,12 +74,12 @@ where
         eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {
-        self.descend_first(solution.len(), solution, problem, eval);
+        self.ascend_first(solution.len(), solution, problem, eval);
         Ok(())
     }
 }
 
-impl<S, P, E> Search<S, P, E> for FirstDescentBitClimb
+impl<S, P, E> Search<S, P, E> for FirstAscentBitClimb
 where
     Self: Operator<S, P, E>,
 {
@@ -91,23 +91,23 @@ where
 }
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct SteepestDescentBitClimb;
+pub struct SteepestAscentBitClimb;
 
-impl SteepestDescentBitClimb {
+impl SteepestAscentBitClimb {
     #[inline]
     #[must_use]
     pub fn new() -> Self {
         Self
     }
 
-    fn descend_steepest<S, P, E>(&mut self, len: usize, solution: &mut S, problem: &P, eval: &mut E)
+    fn ascend_steepest<S, P, E>(&mut self, len: usize, solution: &mut S, problem: &P, eval: &mut E)
     where
         S: IndexMut<usize, Output = bool>,
         E: Eval<S, P>,
     {
-        // NOTE: This could theoretically be done using a `min_by_key`, except `E::Objective` does not necessarily
+        // NOTE: This could theoretically be done using a `max_by_key`, except `E::Objective` does not necessarily
         //       impl `Ord` (because we support `f32` and `f64` as objective types). Also see the note above (in
-        //       first descent) regarding iteration over indices.
+        //       first ascent) regarding iteration over indices.
         let mut best = None;
         for idx in 0..len {
             let bit = solution[idx];
@@ -129,7 +129,7 @@ impl SteepestDescentBitClimb {
     }
 }
 
-impl<P, E> Operator<Vec<bool>, P, E> for SteepestDescentBitClimb
+impl<P, E> Operator<Vec<bool>, P, E> for SteepestAscentBitClimb
 where
     E: Eval<Vec<bool>, P>,
 {
@@ -145,12 +145,12 @@ where
         eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {
-        self.descend_steepest(solution.len(), solution, problem, eval);
+        self.ascend_steepest(solution.len(), solution, problem, eval);
         Ok(())
     }
 }
 
-impl<P, E, const N: usize> Operator<[bool; N], P, E> for SteepestDescentBitClimb
+impl<P, E, const N: usize> Operator<[bool; N], P, E> for SteepestAscentBitClimb
 where
     E: Eval<[bool; N], P>,
 {
@@ -166,12 +166,12 @@ where
         eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {
-        self.descend_steepest(solution.len(), solution, problem, eval);
+        self.ascend_steepest(solution.len(), solution, problem, eval);
         Ok(())
     }
 }
 
-impl<S, P, E> Search<S, P, E> for SteepestDescentBitClimb
+impl<S, P, E> Search<S, P, E> for SteepestAscentBitClimb
 where
     Self: Operator<S, P, E>,
 {

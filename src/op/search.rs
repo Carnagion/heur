@@ -1,7 +1,7 @@
 use super::Operator;
 
 mod bit_climb;
-pub use bit_climb::{FirstDescentBitClimb, SteepestDescentBitClimb};
+pub use bit_climb::{FirstAscentBitClimb, SteepestAscentBitClimb};
 
 // NOTE: We don't bound `E: Eval<S, P>` for the same reasons as described in `Operator`.
 // TODO: Add `#[diagnostic::on_unimplemented]`

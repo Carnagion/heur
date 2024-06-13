@@ -5,7 +5,7 @@ use heur::{
         accept::NonWorsening,
         init,
         mutate::FlipAllBits,
-        search::SteepestDescentBitClimb,
+        search::SteepestAscentBitClimb,
         stop::Iterations,
         Operator,
     },
@@ -84,13 +84,13 @@ fn ils(knapsack: &Knapsack) {
     // using an all-zeros bitstring (i.e. no items are included at the start).
     //
     // We use a bit-flipping operator as the mutation (aka perturbation) operator, with a 0.002 (0.2%) probability of flipping
-    // each bit, and a steepest descent hill climb as the local search operator.
+    // each bit, and a steepest ascent hill climb as the local search operator.
     //
     // Any changes made by the mutation and local search operators are only accepted if they are non-worsening (i.e. produce an
     // objective value that is no worse than the previous known value), and we stop when we get to 1000 iterations.
     let init = init::from_value(vec![false; knapsack.items.len()]);
     let mutate = FlipAllBits::with_prob_and_rng(0.002, rand::thread_rng()).unwrap();
-    let local_search = SteepestDescentBitClimb::new();
+    let local_search = SteepestAscentBitClimb::new();
     let accept = NonWorsening::new();
     let stop = Iterations::new(1000);
 
