@@ -2,6 +2,9 @@ use crate::op::Operator;
 
 use super::Population;
 
+mod tournament;
+pub use tournament::Tournament;
+
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Select<S, P, E>: Operator<S, P, E, Output = Vec<S::Individual>>
 where
