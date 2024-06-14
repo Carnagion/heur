@@ -16,7 +16,7 @@ use super::Select;
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Tournament<R> {
     tournament_size: usize,
-    selection_count: usize,
+    selection_size: usize,
     rng: R,
 }
 
@@ -26,10 +26,10 @@ where
 {
     #[inline]
     #[must_use]
-    pub fn new(tournament_size: usize, selection_count: usize, rng: R) -> Self {
+    pub fn new(tournament_size: usize, selection_size: usize, rng: R) -> Self {
         Self {
             tournament_size,
-            selection_count,
+            selection_size,
             rng,
         }
     }
@@ -70,7 +70,7 @@ where
         problem: &P,
         eval: &mut E,
     ) -> Result<Vec<S::Individual>, Self::Error> {
-        let mut selected = Vec::with_capacity(self.selection_count);
+        let mut selected = Vec::with_capacity(self.selection_size);
         self.select_into(population, problem, eval, &mut selected)?;
         Ok(selected)
     }
@@ -92,9 +92,9 @@ where
             });
         }
 
-        // Run tournaments `selection_count` times and select the best individual from each
+        // Run tournaments `selection_size` times and select the best individual from each
         selected.clear();
-        for _ in 0..self.selection_count {
+        for _ in 0..self.selection_size {
             let winner = population
                 .choose_multiple(&mut self.rng, self.tournament_size)
                 .max_by_key(|solution| eval.eval(solution, problem))
