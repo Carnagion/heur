@@ -16,7 +16,7 @@ impl<O> Optimum<O> {
 impl<S, P, E, O> Stop<S, P, E> for Optimum<O>
 where
     E: Eval<S, P, Objective = O>,
-    O: PartialOrd,
+    O: Ord,
 {
     #[inline]
     #[must_use]

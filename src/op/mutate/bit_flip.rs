@@ -15,19 +15,9 @@ pub struct FlipBit<R> {
     rng: R,
 }
 
-impl FlipBit<ThreadRng> {
-    #[inline]
-    #[must_use]
-    pub fn new() -> Self {
-        Self {
-            rng: rand::thread_rng(),
-        }
-    }
-}
-
 impl Default for FlipBit<ThreadRng> {
     fn default() -> Self {
-        Self::new()
+        Self::new(rand::thread_rng())
     }
 }
 
@@ -37,7 +27,7 @@ where
 {
     #[inline]
     #[must_use]
-    pub fn with_rng(rng: R) -> Self {
+    pub fn new(rng: R) -> Self {
         Self { rng }
     }
 
@@ -113,20 +103,9 @@ pub struct FlipAllBits<R> {
     dist: Bernoulli,
 }
 
-impl FlipAllBits<ThreadRng> {
-    #[inline]
-    #[must_use]
-    pub fn new() -> Self {
-        Self {
-            rng: rand::thread_rng(),
-            dist: Bernoulli::new(0.5).unwrap(), // PANICS: 0.5 is a valid probability
-        }
-    }
-}
-
 impl Default for FlipAllBits<ThreadRng> {
     fn default() -> Self {
-        Self::new()
+        Self::new(0.5, rand::thread_rng()).unwrap() // PANICS: 0.5 is a valid probability
     }
 }
 
@@ -135,7 +114,7 @@ where
     R: Rng,
 {
     #[inline]
-    pub fn with_prob_and_rng(prob: f64, rng: R) -> Result<Self, BernoulliError> {
+    pub fn new(prob: f64, rng: R) -> Result<Self, BernoulliError> {
         let dist = Bernoulli::new(prob)?;
         Ok(Self { rng, dist })
     }

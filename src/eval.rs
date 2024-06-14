@@ -1,18 +1,9 @@
 mod from_fn;
 pub use from_fn::FromFn;
 
-// NOTE: We need this extra trait because without it, a plain old bound of `PartialOrd` on `Eval::Objective`
-//       results in `Eval` losing its object safety. However, putting a bound of `Objective` is perfectly OK
-//       somehow. There is a potential fix for this behaviour - see https://github.com/rust-lang/rust/pull/122804.
-//       However, until that fix lands, we are stuck with this workaround.
-pub trait Objective: PartialOrd {}
-
-impl<T> Objective for T where T: PartialOrd {}
-
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
 pub trait Eval<S, P> {
-    // NOTE: See the note on `Objective` above.
-    type Objective: Objective;
+    type Objective: Ord;
 
     fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective;
 }
@@ -63,7 +54,7 @@ where
 pub fn from_fn<F, S, P, O>(f: F) -> FromFn<F>
 where
     F: FnMut(&S, &P) -> O,
-    O: Objective,
+    O: Ord,
 {
     FromFn(f)
 }

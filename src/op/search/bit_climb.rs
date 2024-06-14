@@ -105,26 +105,17 @@ impl SteepestAscentBitClimb {
         S: IndexMut<usize, Output = bool>,
         E: Eval<S, P>,
     {
-        // NOTE: This could theoretically be done using a `max_by_key`, except `E::Objective` does not necessarily
-        //       impl `Ord` (because we support `f32` and `f64` as objective types). Also see the note above (in
-        //       first ascent) regarding iteration over indices.
-        let mut best = None;
-        for idx in 0..len {
+        // NOTE: See the note above regarding iteration over indices.
+        let best = (0..len).max_by_key(|&idx| {
             let bit = solution[idx];
             solution[idx] = !bit;
             let objective = eval.eval(solution, problem);
-            match &best {
-                None => best = Some((objective, idx)),
-                Some((best_objective, _)) if &objective > best_objective => {
-                    best = Some((objective, idx));
-                },
-                Some(_) => {},
-            }
             solution[idx] = bit;
-        }
+            objective
+        });
 
-        if let Some((_, best_idx)) = best {
-            solution[best_idx] = !solution[best_idx];
+        if let Some(idx) = best {
+            solution[idx] = !solution[idx];
         }
     }
 }

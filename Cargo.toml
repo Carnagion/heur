@@ -18,3 +18,6 @@ either = ["dep:either"]
 [[example]]
 name = "knapsack"
 doc-scrape-examples = true
+
+[dev-dependencies]
+ordered-float = "4.2.0" # TODO: Do we need the default `std` feature?

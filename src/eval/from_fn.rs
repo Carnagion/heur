@@ -1,6 +1,6 @@
 use std::fmt::{self, Debug, Formatter};
 
-use super::{Eval, Objective};
+use super::Eval;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub struct FromFn<F>(pub(super) F);
@@ -8,7 +8,7 @@ pub struct FromFn<F>(pub(super) F);
 impl<F, S, P, O> Eval<S, P> for FromFn<F>
 where
     F: FnMut(&S, &P) -> O,
-    O: Objective,
+    O: Ord,
 {
     type Objective = O;
 

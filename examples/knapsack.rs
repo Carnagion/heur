@@ -12,6 +12,8 @@ use heur::{
     solve::Solve,
 };
 
+use ordered_float::NotNan;
+
 fn main() {
     // Load and parse the knapsack problem instance. The problem instance at `../instances/knapsack.in` is taken from
     // a collection of hard 0-1 knapsack problem instances here: https://github.com/JorikJooken/knapsackProblemInstances.
@@ -42,7 +44,7 @@ type Solution = Vec<bool>;
 
 // An objective function that calculates the cost, or objective value, of a given solution (`Vec<bool>`) to a knapsack problem
 // instance (`Knapsack`).
-fn cost(solution: &Solution, knapsack: &Knapsack) -> f64 {
+fn cost(solution: &Solution, knapsack: &Knapsack) -> NotNan<f64> {
     // Calculate the total weight and value of the items in the knapsack by summing them up together. Only the items
     // that are included (i.e. whose bits in the solution are `true`) are counted.
     let (value, weight) = solution
@@ -59,11 +61,13 @@ fn cost(solution: &Solution, knapsack: &Knapsack) -> f64 {
     // solution is always going to be worse than a feasible one, since feasible solutions will only have positive values.
     // Infeasible solutions can also be ordered - one infeasible solution is "less bad" than another if it has a lower included
     // weight.
-    if weight > knapsack.capacity {
+    let cost = if weight > knapsack.capacity {
         -weight
     } else {
         value
-    }
+    };
+
+    NotNan::new(cost).unwrap()
 }
 
 fn ils(knapsack: &Knapsack) {
@@ -89,7 +93,7 @@ fn ils(knapsack: &Knapsack) {
     // Any changes made by the mutation and local search operators are only accepted if they are non-worsening (i.e. produce an
     // objective value that is no worse than the previous known value), and we stop when we get to 1000 iterations.
     let init = init::from_value(vec![false; knapsack.items.len()]);
-    let mutate = FlipAllBits::with_prob_and_rng(0.002, rand::thread_rng()).unwrap();
+    let mutate = FlipAllBits::new(0.002, rand::thread_rng()).unwrap();
     let local_search = SteepestAscentBitClimb::new();
     let accept = NonWorsening::new();
     let stop = Iterations::new(1000);
@@ -147,8 +151,8 @@ fn ils(knapsack: &Knapsack) {
 fn parse_knapsack(instance: &str) -> Knapsack {
     let mut lines = instance.lines();
 
-    let len = lines.next().unwrap().parse::<usize>().unwrap();
-    let capacity = lines.next_back().unwrap().parse::<f64>().unwrap();
+    let len = lines.next().unwrap().parse().unwrap();
+    let capacity = lines.next_back().unwrap().parse().unwrap();
 
     let mut items = Vec::with_capacity(len);
     items.extend(lines.map(|line| {
