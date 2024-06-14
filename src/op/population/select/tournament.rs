@@ -15,6 +15,7 @@ use super::Select;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Tournament<R> {
+    // TODO: Should these be `NonZeroUsize`?
     tournament_size: usize,
     selection_size: usize,
     rng: R,
@@ -92,6 +93,12 @@ where
             });
         }
 
+        // Ensure that we can actually select individuals
+        // NOTE: We early return here so that the compiler can remove bounds checks from each iteration below.
+        if population.is_empty() || self.tournament_size == 0 {
+            return Err(TournamentError::NoSelection);
+        }
+
         // Run tournaments `selection_size` times and select the best individual from each
         selected.clear();
         for _ in 0..self.selection_size {
@@ -99,7 +106,7 @@ where
                 .choose_multiple(&mut self.rng, self.tournament_size)
                 .max_by_key(|solution| eval.eval(solution, problem))
                 .cloned()
-                .ok_or(TournamentError::NoSelection)?;
+                .unwrap(); // PANICS: We have checked above that the population is not empty and `tournament_size > 0`.
             selected.push(winner);
         }
 
