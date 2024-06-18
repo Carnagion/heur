@@ -2,6 +2,9 @@ use std::{convert::Infallible, error::Error, marker::PhantomData};
 
 use crate::{eval::Eval, solution::Solution};
 
+mod then;
+pub use then::Then;
+
 mod unwrapped;
 pub use unwrapped::Unwrapped;
 
@@ -43,6 +46,18 @@ where
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error>;
+
+    #[inline]
+    fn then<U>(self, op: U) -> Then<Self, U>
+    where
+        Self: Operator<P, S, E, Output = ()> + Sized,
+        U: Operator<P, S, E, Output = (), Error = <Self as Operator<P, S, E>>::Error>,
+    {
+        Then {
+            first: self,
+            second: op,
+        }
+    }
 
     #[inline]
     fn unwrapped(self) -> Unwrapped<Self>
