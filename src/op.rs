@@ -2,6 +2,8 @@ use std::{convert::Infallible, error::Error, marker::PhantomData};
 
 use crate::{eval::Eval, solution::Solution};
 
+use accept::Accept;
+
 mod then;
 pub use then::Then;
 
@@ -16,6 +18,9 @@ pub use map::{Map, MapErr, TryMap};
 
 mod once;
 pub use once::Once;
+
+mod accept_if;
+pub use accept_if::AcceptIf;
 
 mod unwrapped;
 pub use unwrapped::Unwrapped;
@@ -124,6 +129,16 @@ where
         Self: Sized,
     {
         Once(Some(self))
+    }
+
+    #[inline]
+    fn accept_if<F>(self, cond: F) -> AcceptIf<Self, F>
+    where
+        Self: Sized,
+        F: Accept<P, S, E>,
+        S: Clone,
+    {
+        AcceptIf { op: self, cond }
     }
 
     #[inline]

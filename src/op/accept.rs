@@ -3,7 +3,9 @@ use crate::{eval::Eval, solution::Solution};
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
 pub trait Accept<P, S, E>
 where
-    S: Solution + ?Sized,
+    // NOTE: We don't bound `S: ?Sized` here, since this trait is intended to be used along with `AcceptIf<T, F>` - which
+    //       requires `S: Clone`, and `Sized` is a supertrait of `Clone`.
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     #[must_use]
@@ -13,7 +15,7 @@ where
 impl<T, P, S, E> Accept<P, S, E> for &mut T
 where
     T: Accept<P, S, E> + ?Sized,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     #[inline]
@@ -25,7 +27,7 @@ where
 impl<T, P, S, E> Accept<P, S, E> for Box<T>
 where
     T: Accept<P, S, E> + ?Sized,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     #[inline]
@@ -39,7 +41,7 @@ impl<L, R, P, S, E> Accept<P, S, E> for either::Either<L, R>
 where
     L: Accept<P, S, E>,
     R: Accept<P, S, E>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     #[inline]
