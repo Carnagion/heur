@@ -6,16 +6,19 @@ use super::{init::Init, mutate::Mutate, search::Search, Operator};
 
 // TODO: Manually impl common traits
 #[must_use]
-pub struct Hint<T, P, S, E, In = ()> {
+pub struct Hint<T, P, S, E, In = ()>
+where
+    S: ?Sized,
+{
     pub(super) op: T,
     #[allow(clippy::type_complexity)]
-    pub(super) _marker: PhantomData<fn() -> (P, S, E, In)>,
+    pub(super) _marker: PhantomData<fn() -> (P, Box<S>, E, In)>,
 }
 
 impl<T, P, S, E, In> Operator<P, S, E, In> for Hint<T, P, S, E, In>
 where
     T: Operator<P, S, E, In>,
-    S: Solution,
+    S: Solution + ?Sized,
     E: Eval<P, S::Individual>,
 {
     type Output = T::Output;
@@ -59,7 +62,7 @@ where
 impl<T, P, S, E> Mutate<P, S, E> for Hint<T, P, S, E, ()>
 where
     T: Mutate<P, S, E>,
-    S: Solution,
+    S: Solution + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]
@@ -71,7 +74,7 @@ where
 impl<T, P, S, E> Search<P, S, E> for Hint<T, P, S, E, ()>
 where
     T: Search<P, S, E>,
-    S: Solution,
+    S: Solution + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]

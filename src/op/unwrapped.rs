@@ -11,7 +11,7 @@ pub struct Unwrapped<T>(pub(super) T);
 impl<T, P, S, E, In> Operator<P, S, E, In> for Unwrapped<T>
 where
     T: Operator<P, S, E, In>,
-    S: Solution,
+    S: Solution + ?Sized,
     E: Eval<P, S::Individual>,
 {
     type Output = T::Output;
@@ -57,7 +57,7 @@ where
 impl<T, P, S, E> Mutate<P, S, E> for Unwrapped<T>
 where
     T: Mutate<P, S, E>,
-    S: Solution,
+    S: Solution + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]
@@ -70,7 +70,7 @@ where
 impl<T, P, S, E> Search<P, S, E> for Unwrapped<T>
 where
     T: Search<P, S, E>,
-    S: Solution,
+    S: Solution + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]

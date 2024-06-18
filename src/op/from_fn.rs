@@ -14,7 +14,7 @@ pub struct FromFn<F>(pub(super) F);
 impl<F, P, S, E, In, Out, Err> Operator<P, S, E, In> for FromFn<F>
 where
     F: FnMut(&P, &mut S, &mut E, In) -> Result<Out, Err>,
-    S: Solution,
+    S: Solution + ?Sized,
     E: Eval<P, S::Individual>,
     Err: Error,
 {

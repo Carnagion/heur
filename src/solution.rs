@@ -72,7 +72,8 @@ impl<T, const N: usize> Population for [T; N] {}
 
 // NOTE: While it wouldn't be possible to produce `[T]` as the output of a metaheuristic or `Solve` type, this impl still
 //       allows passing a `&mut [T]` as a population type to population operators. This can be useful if eg. applying operators
-//       in isolation or to an already-initialised population without having to `Init`.
+//       in isolation or to an already-initialised population without having to `Init`. See the note on `Operator` regarding
+//       solutions that are `?Sized`.
 impl<T> Solution for [T] {
     type Individual = T;
 }
@@ -81,7 +82,7 @@ impl<T> Population for [T] {}
 
 impl<S> Solution for Box<S>
 where
-    S: Solution,
+    S: Solution + ?Sized,
 {
     type Individual = S::Individual;
 }

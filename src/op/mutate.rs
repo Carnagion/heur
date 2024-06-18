@@ -5,7 +5,7 @@ use super::Operator;
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Mutate<P, S, E>: Operator<P, S, E>
 where
-    S: Solution,
+    S: Solution + ?Sized,
     E: Eval<P, S::Individual>,
 {
     fn mutate(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error>;
@@ -13,7 +13,7 @@ where
 
 impl<P, S, E> Mutate<P, S, E> for ()
 where
-    S: Solution,
+    S: Solution + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]
@@ -30,7 +30,7 @@ where
 impl<T, P, S, E> Mutate<P, S, E> for &mut T
 where
     T: Mutate<P, S, E> + ?Sized,
-    S: Solution,
+    S: Solution + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]
@@ -42,7 +42,7 @@ where
 impl<T, P, S, E> Mutate<P, S, E> for Box<T>
 where
     T: Mutate<P, S, E> + ?Sized,
-    S: Solution,
+    S: Solution + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]
@@ -54,7 +54,7 @@ where
 impl<T, P, S, E> Mutate<P, S, E> for Option<T>
 where
     T: Mutate<P, S, E>,
-    S: Solution,
+    S: Solution + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]
@@ -71,7 +71,7 @@ impl<L, R, P, S, E> Mutate<P, S, E> for either::Either<L, R>
 where
     L: Mutate<P, S, E>,
     R: Mutate<P, S, E, Output = L::Output, Error = L::Error>,
-    S: Solution,
+    S: Solution + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]
