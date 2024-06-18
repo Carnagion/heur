@@ -8,6 +8,9 @@ pub use then::Then;
 mod pipe;
 pub use pipe::Pipe;
 
+mod ignore;
+pub use ignore::Ignore;
+
 mod unwrapped;
 pub use unwrapped::Unwrapped;
 
@@ -69,6 +72,14 @@ where
         U: Operator<P, S, E, Self::Output, Error = Self::Error>,
     {
         Pipe { from: self, to }
+    }
+
+    #[inline]
+    fn ignore(self) -> Ignore<Self>
+    where
+        Self: Sized,
+    {
+        Ignore(self)
     }
 
     #[inline]
