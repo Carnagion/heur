@@ -14,6 +14,12 @@ pub use hint::Hint;
 mod todo;
 pub use todo::Todo;
 
+pub mod init;
+
+pub mod mutate;
+
+pub mod search;
+
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
 pub trait Operator<P, S, E, In = ()>
 where
