@@ -5,6 +5,9 @@ use crate::{eval::Eval, solution::Solution};
 mod then;
 pub use then::Then;
 
+mod pipe;
+pub use pipe::Pipe;
+
 mod unwrapped;
 pub use unwrapped::Unwrapped;
 
@@ -57,6 +60,15 @@ where
             first: self,
             second: op,
         }
+    }
+
+    #[inline]
+    fn pipe<U>(self, to: U) -> Pipe<Self, U>
+    where
+        Self: Sized,
+        U: Operator<P, S, E, Self::Output, Error = Self::Error>,
+    {
+        Pipe { from: self, to }
     }
 
     #[inline]
