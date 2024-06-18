@@ -3,14 +3,19 @@ use std::{
     fmt::{self, Debug, Formatter},
 };
 
+use crate::{eval::Eval, solution::Solution};
+
 use super::Operator;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct FromFn<F>(pub(super) F);
 
-impl<F, S, P, E, In, Out, Err> Operator<S, P, E, In> for FromFn<F>
+impl<F, P, S, E, In, Out, Err> Operator<P, S, E, In> for FromFn<F>
 where
-    F: FnMut(&mut S, &P, &mut E, In) -> Result<Out, Err>,
+    F: FnMut(&P, &mut S, &mut E, In) -> Result<Out, Err>,
+    S: Solution,
+    E: Eval<P, S::Individual>,
     Err: Error,
 {
     type Output = Out;
@@ -20,12 +25,12 @@ where
     #[inline]
     fn apply(
         &mut self,
-        solution: &mut S,
         problem: &P,
+        solution: &mut S,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
-        (self.0)(solution, problem, eval, input)
+        (self.0)(problem, solution, eval, input)
     }
 }
 

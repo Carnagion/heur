@@ -1,25 +1,20 @@
-use std::marker::PhantomData;
-
-use crate::solve::Solve;
+use crate::{eval::Eval, solution::Solution};
 
 use super::Operator;
 
-mod from_value;
-pub use from_value::{FromDefault, FromValue};
-
-mod from_solver;
-pub use from_solver::FromSolver;
-
-// NOTE: We don't bound `E: Eval<S, P>` for the same reasons as described in `Operator`.
 // TODO: Add `#[diagnostic::on_unimplemented]`
-pub trait Init<S, P, E>: Operator<S, P, E> {
+pub trait Init<P, S, E>: Operator<P, S, E>
+where
+    S: Solution,
+    E: Eval<P, S::Individual>,
+{
     fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error>;
 
     #[inline]
     fn init_into(
         &mut self,
-        solution: &mut S,
         problem: &P,
+        solution: &mut S,
         eval: &mut E,
     ) -> Result<(), Self::Error> {
         *solution = self.init(problem, eval)?;
@@ -27,9 +22,11 @@ pub trait Init<S, P, E>: Operator<S, P, E> {
     }
 }
 
-impl<T, S, P, E> Init<S, P, E> for &mut T
+impl<T, P, S, E> Init<P, S, E> for &mut T
 where
-    T: Init<S, P, E> + ?Sized,
+    T: Init<P, S, E> + ?Sized,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     #[inline]
     fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
@@ -39,17 +36,19 @@ where
     #[inline]
     fn init_into(
         &mut self,
-        solution: &mut S,
         problem: &P,
+        solution: &mut S,
         eval: &mut E,
     ) -> Result<(), Self::Error> {
-        T::init_into(self, solution, problem, eval)
+        T::init_into(self, problem, solution, eval)
     }
 }
 
-impl<T, S, P, E> Init<S, P, E> for Box<T>
+impl<T, P, S, E> Init<P, S, E> for Box<T>
 where
-    T: Init<S, P, E> + ?Sized,
+    T: Init<P, S, E> + ?Sized,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     #[inline]
     fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
@@ -59,19 +58,21 @@ where
     #[inline]
     fn init_into(
         &mut self,
-        solution: &mut S,
         problem: &P,
+        solution: &mut S,
         eval: &mut E,
     ) -> Result<(), Self::Error> {
-        T::init_into(self, solution, problem, eval)
+        T::init_into(self, problem, solution, eval)
     }
 }
 
 #[cfg(feature = "either")]
-impl<L, R, S, P, E> Init<S, P, E> for either::Either<L, R>
+impl<L, R, P, S, E> Init<P, S, E> for either::Either<L, R>
 where
-    L: Init<S, P, E>,
-    R: Init<S, P, E, Output = L::Output, Error = L::Error>,
+    L: Init<P, S, E>,
+    R: Init<P, S, E, Output = L::Output, Error = L::Error>,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     #[inline]
     fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
@@ -84,40 +85,13 @@ where
     #[inline]
     fn init_into(
         &mut self,
-        solution: &mut S,
         problem: &P,
+        solution: &mut S,
         eval: &mut E,
     ) -> Result<(), Self::Error> {
         match self {
-            Self::Left(left) => left.init_into(solution, problem, eval),
-            Self::Right(right) => right.init_into(solution, problem, eval),
+            Self::Left(left) => left.init_into(problem, solution, eval),
+            Self::Right(right) => right.init_into(problem, solution, eval),
         }
     }
-}
-
-#[inline]
-#[must_use]
-pub fn from_value<S>(value: S) -> FromValue<S>
-where
-    S: Clone,
-{
-    FromValue(value)
-}
-
-#[inline]
-#[must_use]
-pub fn from_default<S>() -> FromDefault<S>
-where
-    S: Default,
-{
-    FromDefault(PhantomData)
-}
-
-#[inline]
-#[must_use]
-pub fn from_solver<S, P, E, T>(solver: T) -> FromSolver<T>
-where
-    T: Solve<S, P, E>,
-{
-    FromSolver(solver)
 }

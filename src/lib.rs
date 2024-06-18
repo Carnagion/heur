@@ -2,9 +2,12 @@
 #![deny(rust_2018_idioms)]
 #![deny(unsafe_code)]
 // #![warn(missing_docs)] // TODO: Enable once finished
+#![deny(rustdoc::broken_intra_doc_links)]
 
-pub mod op;
+pub mod solution;
 
 pub mod eval;
+
+pub mod op;
 
 pub mod solve;

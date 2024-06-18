@@ -3,18 +3,19 @@ use std::fmt::{self, Debug, Formatter};
 use super::Eval;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct FromFn<F>(pub(super) F);
 
-impl<F, S, P, O> Eval<S, P> for FromFn<F>
+impl<F, P, S, O> Eval<P, S> for FromFn<F>
 where
-    F: FnMut(&S, &P) -> O,
+    F: FnMut(&P, &S) -> O,
     O: Ord,
 {
     type Objective = O;
 
     #[inline]
-    fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective {
-        (self.0)(solution, problem)
+    fn eval(&mut self, problem: &P, solution: &S) -> Self::Objective {
+        (self.0)(problem, solution)
     }
 }
 

@@ -1,59 +1,66 @@
 mod from_fn;
 pub use from_fn::FromFn;
 
-// TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
-pub trait Eval<S, P> {
+// NOTE: We could have written `S: Solution` and accepted a `&S::Individual` in `eval`, but this would needlessly worsen
+//       type inference. It also makes more sense to tie `Eval<P, S>` to the solution (individual) being evaluated directly,
+//       rather than the container type (`Individual<T>` or some population type). Furthermore, that would require us to impl
+//       `Eval` repeatedly for each different population type, which is just stupid.
+pub trait Eval<P, S> {
+    // NOTE: In theory, having `Objective: PartialOrd` would be "enough" and allow using types like `f32` or `f64` as
+    //       objective values. However, many operators rely on a total order existing in the objective value type. Plus, it
+    //       is often incorrect to use `PartialOrd` in this manner - eg. it would be nonsensical to have an objective value
+    //       of `NaN`. As such, we restrict `Objective` to `Ord` types only.
     type Objective: Ord;
 
-    fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective;
+    #[must_use]
+    fn eval(&mut self, problem: &P, solution: &S) -> Self::Objective;
 }
 
-impl<T, S, P> Eval<S, P> for &mut T
+impl<T, P, S> Eval<P, S> for &mut T
 where
-    T: Eval<S, P> + ?Sized,
+    T: Eval<P, S> + ?Sized,
 {
     type Objective = T::Objective;
 
     #[inline]
-    fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective {
-        T::eval(self, solution, problem)
+    fn eval(&mut self, problem: &P, solution: &S) -> Self::Objective {
+        T::eval(self, problem, solution)
     }
 }
 
-impl<T, S, P> Eval<S, P> for Box<T>
+impl<T, P, S> Eval<P, S> for Box<T>
 where
-    T: Eval<S, P> + ?Sized,
+    T: Eval<P, S> + ?Sized,
 {
     type Objective = T::Objective;
 
     #[inline]
-    fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective {
-        T::eval(self, solution, problem)
+    fn eval(&mut self, problem: &P, solution: &S) -> Self::Objective {
+        T::eval(self, problem, solution)
     }
 }
 
 #[cfg(feature = "either")]
-impl<L, R, S, P> Eval<S, P> for either::Either<L, R>
+impl<L, R, P, S> Eval<P, S> for either::Either<L, R>
 where
-    L: Eval<S, P>,
-    R: Eval<S, P, Objective = L::Objective>,
+    L: Eval<P, S>,
+    R: Eval<P, S, Objective = L::Objective>,
 {
     type Objective = L::Objective;
 
     #[inline]
-    fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective {
+    fn eval(&mut self, problem: &P, solution: &S) -> Self::Objective {
         match self {
-            Self::Left(left) => left.eval(solution, problem),
-            Self::Right(right) => right.eval(solution, problem),
+            Self::Left(left) => left.eval(problem, solution),
+            Self::Right(right) => right.eval(problem, solution),
         }
     }
 }
 
 #[inline]
-#[must_use]
-pub fn from_fn<F, S, P, O>(f: F) -> FromFn<F>
+pub fn from_fn<F, P, S, O>(f: F) -> FromFn<F>
 where
-    F: FnMut(&S, &P) -> O,
+    F: FnMut(&P, &S) -> O,
     O: Ord,
 {
     FromFn(f)

@@ -1,17 +1,24 @@
 use std::error::Error;
 
-// NOTE: We don't bound `E: Eval<S, P>` for the same reasons as described in `Operator`.
+use crate::{eval::Eval, solution::Solution};
+
 // TODO: Add `#[diagnostic::on_unimplemented]`
-pub trait Solve<S, P, E> {
+pub trait Solve<P, S, E>
+where
+    S: Solution,
+    E: Eval<P, S::Individual>,
+{
     // TODO: Do we really need to bound on `Error`?
     type Error: Error;
 
     fn solve(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error>;
 }
 
-impl<T, S, P, E> Solve<S, P, E> for &mut T
+impl<T, P, S, E> Solve<P, S, E> for &mut T
 where
-    T: Solve<S, P, E> + ?Sized,
+    T: Solve<P, S, E> + ?Sized,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     type Error = T::Error;
 
@@ -21,9 +28,11 @@ where
     }
 }
 
-impl<T, S, P, E> Solve<S, P, E> for Box<T>
+impl<T, P, S, E> Solve<P, S, E> for Box<T>
 where
-    T: Solve<S, P, E> + ?Sized,
+    T: Solve<P, S, E> + ?Sized,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     type Error = T::Error;
 
@@ -34,10 +43,12 @@ where
 }
 
 #[cfg(feature = "either")]
-impl<L, R, S, P, E> Solve<S, P, E> for either::Either<L, R>
+impl<L, R, P, S, E> Solve<P, S, E> for either::Either<L, R>
 where
-    L: Solve<S, P, E>,
-    R: Solve<S, P, E, Error = L::Error>,
+    L: Solve<P, S, E>,
+    R: Solve<P, S, E, Error = L::Error>,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     type Error = L::Error;
 

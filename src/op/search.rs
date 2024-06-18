@@ -1,70 +1,84 @@
+use crate::{eval::Eval, solution::Solution};
+
 use super::Operator;
 
-mod bit_climb;
-pub use bit_climb::{FirstAscentBitClimb, SteepestAscentBitClimb};
-
-// NOTE: We don't bound `E: Eval<S, P>` for the same reasons as described in `Operator`.
 // TODO: Add `#[diagnostic::on_unimplemented]`
-pub trait Search<S, P, E>: Operator<S, P, E> {
-    fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error>;
+pub trait Search<P, S, E>: Operator<P, S, E>
+where
+    S: Solution,
+    E: Eval<P, S::Individual>,
+{
+    fn search(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error>;
 }
 
-impl<S, P, E> Search<S, P, E> for () {
+impl<P, S, E> Search<P, S, E> for ()
+where
+    S: Solution,
+    E: Eval<P, S::Individual>,
+{
     #[inline]
     fn search(
         &mut self,
-        _solution: &mut S,
         _problem: &P,
+        _solution: &mut S,
         _eval: &mut E,
     ) -> Result<(), Self::Error> {
         Ok(())
     }
 }
 
-impl<T, S, P, E> Search<S, P, E> for &mut T
+impl<T, P, S, E> Search<P, S, E> for &mut T
 where
-    T: Search<S, P, E> + ?Sized,
+    T: Search<P, S, E> + ?Sized,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
-        T::search(self, solution, problem, eval)
+    fn search(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
+        T::search(self, problem, solution, eval)
     }
 }
 
-impl<T, S, P, E> Search<S, P, E> for Box<T>
+impl<T, P, S, E> Search<P, S, E> for Box<T>
 where
-    T: Search<S, P, E> + ?Sized,
+    T: Search<P, S, E> + ?Sized,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
-        T::search(self, solution, problem, eval)
+    fn search(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
+        T::search(self, problem, solution, eval)
     }
 }
 
-impl<T, S, P, E> Search<S, P, E> for Option<T>
+impl<T, P, S, E> Search<P, S, E> for Option<T>
 where
-    T: Search<S, P, E>,
+    T: Search<P, S, E>,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
+    fn search(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
         if let Some(op) = self {
-            op.search(solution, problem, eval)?;
+            op.search(problem, solution, eval)?;
         }
         Ok(())
     }
 }
 
 #[cfg(feature = "either")]
-impl<L, R, S, P, E> Search<S, P, E> for either::Either<L, R>
+impl<L, R, P, S, E> Search<P, S, E> for either::Either<L, R>
 where
-    L: Search<S, P, E>,
-    R: Search<S, P, E, Output = L::Output, Error = L::Error>,
+    L: Search<P, S, E>,
+    R: Search<P, S, E, Output = L::Output, Error = L::Error>,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
+    fn search(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
         match self {
-            Self::Left(left) => left.search(solution, problem, eval),
-            Self::Right(right) => right.search(solution, problem, eval),
+            Self::Left(left) => left.search(problem, solution, eval),
+            Self::Right(right) => right.search(problem, solution, eval),
         }
     }
 }

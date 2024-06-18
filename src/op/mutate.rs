@@ -1,70 +1,84 @@
+use crate::{eval::Eval, solution::Solution};
+
 use super::Operator;
 
-mod bit_flip;
-pub use bit_flip::{FlipAllBits, FlipBit};
-
-// NOTE: We don't bound `E: Eval<S, P>` for the same reasons as described in `Operator`.
 // TODO: Add `#[diagnostic::on_unimplemented]`
-pub trait Mutate<S, P, E>: Operator<S, P, E> {
-    fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error>;
+pub trait Mutate<P, S, E>: Operator<P, S, E>
+where
+    S: Solution,
+    E: Eval<P, S::Individual>,
+{
+    fn mutate(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error>;
 }
 
-impl<S, P, E> Mutate<S, P, E> for () {
+impl<P, S, E> Mutate<P, S, E> for ()
+where
+    S: Solution,
+    E: Eval<P, S::Individual>,
+{
     #[inline]
     fn mutate(
         &mut self,
-        _solution: &mut S,
         _problem: &P,
+        _solution: &mut S,
         _eval: &mut E,
     ) -> Result<(), Self::Error> {
         Ok(())
     }
 }
 
-impl<T, S, P, E> Mutate<S, P, E> for &mut T
+impl<T, P, S, E> Mutate<P, S, E> for &mut T
 where
-    T: Mutate<S, P, E> + ?Sized,
+    T: Mutate<P, S, E> + ?Sized,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
-        T::mutate(self, solution, problem, eval)
+    fn mutate(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
+        T::mutate(self, problem, solution, eval)
     }
 }
 
-impl<T, S, P, E> Mutate<S, P, E> for Box<T>
+impl<T, P, S, E> Mutate<P, S, E> for Box<T>
 where
-    T: Mutate<S, P, E> + ?Sized,
+    T: Mutate<P, S, E> + ?Sized,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
-        T::mutate(self, solution, problem, eval)
+    fn mutate(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
+        T::mutate(self, problem, solution, eval)
     }
 }
 
-impl<T, S, P, E> Mutate<S, P, E> for Option<T>
+impl<T, P, S, E> Mutate<P, S, E> for Option<T>
 where
-    T: Mutate<S, P, E>,
+    T: Mutate<P, S, E>,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
+    fn mutate(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
         if let Some(op) = self {
-            op.mutate(solution, problem, eval)?;
+            op.mutate(problem, solution, eval)?;
         }
         Ok(())
     }
 }
 
 #[cfg(feature = "either")]
-impl<L, R, S, P, E> Mutate<S, P, E> for either::Either<L, R>
+impl<L, R, P, S, E> Mutate<P, S, E> for either::Either<L, R>
 where
-    L: Mutate<S, P, E>,
-    R: Mutate<S, P, E, Output = L::Output, Error = L::Error>,
+    L: Mutate<P, S, E>,
+    R: Mutate<P, S, E, Output = L::Output, Error = L::Error>,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
+    fn mutate(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
         match self {
-            Self::Left(left) => left.mutate(solution, problem, eval),
-            Self::Right(right) => right.mutate(solution, problem, eval),
+            Self::Left(left) => left.mutate(problem, solution, eval),
+            Self::Right(right) => right.mutate(problem, solution, eval),
         }
     }
 }

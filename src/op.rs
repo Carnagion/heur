@@ -1,29 +1,6 @@
 use std::{convert::Infallible, error::Error, marker::PhantomData};
 
-use accept::Accept;
-
-use stop::Stop;
-
-mod then;
-pub use then::Then;
-
-mod pipe;
-pub use pipe::Pipe;
-
-mod ignore;
-pub use ignore::Ignore;
-
-mod map;
-pub use map::{Map, MapErr, TryMap};
-
-mod once;
-pub use once::Once;
-
-mod accept_if;
-pub use accept_if::AcceptIf;
-
-mod repeat;
-pub use repeat::{Repeat, RepeatUntil};
+use crate::{eval::Eval, solution::Solution};
 
 mod unwrapped;
 pub use unwrapped::Unwrapped;
@@ -37,26 +14,12 @@ pub use hint::Hint;
 mod todo;
 pub use todo::Todo;
 
-pub mod init;
-
-pub mod mutate;
-
-pub mod search;
-
-pub mod population;
-
-pub mod accept;
-
-pub mod stop;
-
-// NOTE: We don't bound `E: Eval<S, P>` for a couple of reasons:
-//       1. Some operators don't use the evaluation function.
-//       2. Population-based operators use `Population<T>` as their solution, and having `E: Eval<S, P>` would mean that
-//          it's an evaluation function over `Population<T>`. This doesn't really make sense, as we want to evaluate
-//          individuals, not populations. We may get eg. the average or best individual in a population and use that for
-//          decisions (eg. move acceptance), but that's not the same as evaluating a population as a whole.
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
-pub trait Operator<S, P, E, In = ()> {
+pub trait Operator<P, S, E, In = ()>
+where
+    S: Solution,
+    E: Eval<P, S::Individual>,
+{
     // TODO: Should this be set to a default `()` once defaults for associated types lands?
     //       See https://github.com/rust-lang/rust/issues/29661.
     type Output;
@@ -66,116 +29,13 @@ pub trait Operator<S, P, E, In = ()> {
 
     fn apply(
         &mut self,
-        solution: &mut S,
         problem: &P,
+        solution: &mut S,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error>;
 
     #[inline]
-    #[must_use]
-    fn then<U>(self, op: U) -> Then<Self, U>
-    where
-        Self: Operator<S, P, E> + Sized,
-        U: Operator<S, P, E, Error = <Self as Operator<S, P, E>>::Error>,
-    {
-        Then {
-            first: self,
-            second: op,
-        }
-    }
-
-    #[inline]
-    #[must_use]
-    fn pipe<U>(self, to: U) -> Pipe<Self, U>
-    where
-        Self: Sized,
-        U: Operator<S, P, E, Self::Output, Error = Self::Error>,
-    {
-        Pipe { from: self, to }
-    }
-
-    #[inline]
-    #[must_use]
-    fn ignore(self) -> Ignore<Self>
-    where
-        Self: Sized,
-    {
-        Ignore(self)
-    }
-
-    #[inline]
-    #[must_use]
-    fn map<Out, F>(self, f: F) -> Map<Self, F>
-    where
-        Self: Sized,
-        F: FnMut(Self::Output) -> Out,
-    {
-        Map { op: self, f }
-    }
-
-    #[inline]
-    #[must_use]
-    fn map_err<Err, F>(self, f: F) -> MapErr<Self, F>
-    where
-        Self: Sized,
-        F: FnMut(Self::Error) -> Err,
-        Err: Error,
-    {
-        MapErr { op: self, f }
-    }
-
-    #[inline]
-    #[must_use]
-    fn try_map<Out, F>(self, f: F) -> TryMap<Self, F>
-    where
-        Self: Sized,
-        F: FnMut(Self::Output) -> Result<Out, Self::Error>,
-    {
-        TryMap { op: self, f }
-    }
-
-    #[inline]
-    #[must_use]
-    fn once(self) -> Once<Self>
-    where
-        Self: Sized,
-    {
-        Once(Some(self))
-    }
-
-    #[inline]
-    #[must_use]
-    fn accept_if<F>(self, cond: F) -> AcceptIf<Self, F>
-    where
-        Self: Sized,
-        F: Accept<S, P, E>,
-        S: Clone,
-    {
-        AcceptIf { op: self, cond }
-    }
-
-    #[inline]
-    #[must_use]
-    fn repeat(self, times: usize) -> Repeat<Self>
-    where
-        Self: Operator<S, P, E, In, Output = In> + Sized,
-    {
-        Repeat { op: self, times }
-    }
-
-    #[inline]
-    #[must_use]
-    fn repeat_until<F>(self, cond: F) -> RepeatUntil<Self, F>
-    where
-        Self: Operator<S, P, E, In, Output = In> + Sized,
-        F: Stop<S, P, E>,
-    {
-        RepeatUntil { op: self, cond }
-    }
-
-    #[inline]
-    #[must_use]
     fn unwrapped(self) -> Unwrapped<Self>
     where
         Self: Sized,
@@ -196,7 +56,7 @@ pub trait Operator<S, P, E, In = ()> {
     #[must_use]
     fn boxed<'a>(
         self,
-    ) -> Box<dyn Operator<S, P, E, In, Output = Self::Output, Error = Self::Error> + 'a>
+    ) -> Box<dyn Operator<P, S, E, In, Output = Self::Output, Error = Self::Error> + 'a>
     where
         Self: Sized + 'a,
     {
@@ -204,9 +64,11 @@ pub trait Operator<S, P, E, In = ()> {
     }
 }
 
-impl<T, S, P, E, In> Operator<S, P, E, In> for &mut T
+impl<T, P, S, E, In> Operator<P, S, E, In> for &mut T
 where
-    T: Operator<S, P, E, In> + ?Sized,
+    T: Operator<P, S, E, In> + ?Sized,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     type Output = T::Output;
 
@@ -215,18 +77,20 @@ where
     #[inline]
     fn apply(
         &mut self,
-        solution: &mut S,
         problem: &P,
+        solution: &mut S,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
-        T::apply(self, solution, problem, eval, input)
+        T::apply(self, problem, solution, eval, input)
     }
 }
 
-impl<T, S, P, E, In> Operator<S, P, E, In> for Box<T>
+impl<T, P, S, E, In> Operator<P, S, E, In> for Box<T>
 where
-    T: Operator<S, P, E, In> + ?Sized,
+    T: Operator<P, S, E, In> + ?Sized,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     type Output = T::Output;
 
@@ -235,20 +99,22 @@ where
     #[inline]
     fn apply(
         &mut self,
-        solution: &mut S,
         problem: &P,
+        solution: &mut S,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
-        T::apply(self, solution, problem, eval, input)
+        T::apply(self, problem, solution, eval, input)
     }
 }
 
 #[cfg(feature = "either")]
-impl<L, R, S, P, E, In> Operator<S, P, E, In> for either::Either<L, R>
+impl<L, R, P, S, E, In> Operator<P, S, E, In> for either::Either<L, R>
 where
-    L: Operator<S, P, E, In>,
-    R: Operator<S, P, E, In, Output = L::Output, Error = L::Error>,
+    L: Operator<P, S, E, In>,
+    R: Operator<P, S, E, In, Output = L::Output, Error = L::Error>,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     type Output = L::Output;
 
@@ -257,19 +123,23 @@ where
     #[inline]
     fn apply(
         &mut self,
-        solution: &mut S,
         problem: &P,
+        solution: &mut S,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
         match self {
-            Self::Left(left) => left.apply(solution, problem, eval, input),
-            Self::Right(right) => right.apply(solution, problem, eval, input),
+            Self::Left(left) => left.apply(problem, solution, eval, input),
+            Self::Right(right) => right.apply(problem, solution, eval, input),
         }
     }
 }
 
-impl<S, P, E> Operator<S, P, E> for () {
+impl<P, S, E> Operator<P, S, E> for ()
+where
+    S: Solution,
+    E: Eval<P, S::Individual>,
+{
     type Output = ();
 
     type Error = Infallible;
@@ -277,8 +147,8 @@ impl<S, P, E> Operator<S, P, E> for () {
     #[inline]
     fn apply(
         &mut self,
-        _solution: &mut S,
         _problem: &P,
+        _solution: &mut S,
         _eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {
@@ -286,9 +156,11 @@ impl<S, P, E> Operator<S, P, E> for () {
     }
 }
 
-impl<T, S, P, E, In> Operator<S, P, E, In> for Option<T>
+impl<T, P, S, E, In> Operator<P, S, E, In> for Option<T>
 where
-    T: Operator<S, P, E, In>,
+    T: Operator<P, S, E, In>,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     type Output = Option<T::Output>;
 
@@ -297,32 +169,34 @@ where
     #[inline]
     fn apply(
         &mut self,
-        solution: &mut S,
         problem: &P,
+        solution: &mut S,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
         self.as_mut()
-            .map(|op| op.apply(solution, problem, eval, input))
+            .map(|op| op.apply(problem, solution, eval, input))
             .transpose()
     }
 }
 
 #[inline]
-#[must_use]
-pub fn from_fn<S, P, E, In, Out, Err, F>(f: F) -> FromFn<F>
+pub fn from_fn<P, S, E, In, Out, Err, F>(f: F) -> FromFn<F>
 where
-    F: FnMut(&mut S, &P, &mut E, In) -> Result<Out, Err>,
+    F: FnMut(&P, &mut S, &mut E, In) -> Result<Out, Err>,
+    S: Solution,
+    E: Eval<P, S::Individual>,
     Err: Error,
 {
     FromFn(f)
 }
 
 #[inline]
-#[must_use]
-pub fn hint<S, P, E, In, T>(op: T) -> Hint<T, S, P, E, In>
+pub fn hint<P, S, E, In, T>(op: T) -> Hint<T, P, S, E, In>
 where
-    T: Operator<S, P, E, In>,
+    T: Operator<P, S, E, In>,
+    S: Solution,
+    E: Eval<P, S::Individual>,
 {
     Hint {
         op,
@@ -331,9 +205,10 @@ where
 }
 
 #[inline]
-#[must_use]
-pub fn todo<S, P, E, In, Out, Err>() -> Todo<S, P, E, In, Out, Err>
+pub fn todo<P, S, E, In, Out, Err>() -> Todo<P, S, E, In, Out, Err>
 where
+    S: Solution,
+    E: Eval<P, S::Individual>,
     Err: Error,
 {
     Todo(PhantomData)
