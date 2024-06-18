@@ -4,6 +4,8 @@ use crate::{eval::Eval, solution::Solution};
 
 use accept::Accept;
 
+use stop::Stop;
+
 mod then;
 pub use then::Then;
 
@@ -21,6 +23,9 @@ pub use once::Once;
 
 mod accept_if;
 pub use accept_if::AcceptIf;
+
+mod repeat;
+pub use repeat::{Repeat, RepeatUntil};
 
 mod unwrapped;
 pub use unwrapped::Unwrapped;
@@ -41,6 +46,8 @@ pub mod mutate;
 pub mod search;
 
 pub mod accept;
+
+pub mod stop;
 
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
 pub trait Operator<P, S, E, In = ()>
@@ -139,6 +146,23 @@ where
         S: Clone,
     {
         AcceptIf { op: self, cond }
+    }
+
+    #[inline]
+    fn repeat(self, times: usize) -> Repeat<Self>
+    where
+        Self: Operator<P, S, E, In, Output = In> + Sized,
+    {
+        Repeat { op: self, times }
+    }
+
+    #[inline]
+    fn repeat_until<F>(self, cond: F) -> RepeatUntil<Self, F>
+    where
+        Self: Operator<P, S, E, In, Output = In> + Sized,
+        F: Stop<P, S, E>,
+    {
+        RepeatUntil { op: self, cond }
     }
 
     #[inline]
