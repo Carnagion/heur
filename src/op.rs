@@ -11,6 +11,9 @@ pub use pipe::Pipe;
 mod ignore;
 pub use ignore::Ignore;
 
+mod map;
+pub use map::{Map, MapErr, TryMap};
+
 mod unwrapped;
 pub use unwrapped::Unwrapped;
 
@@ -80,6 +83,34 @@ where
         Self: Sized,
     {
         Ignore(self)
+    }
+
+    #[inline]
+    fn map<Out, F>(self, f: F) -> Map<Self, F>
+    where
+        Self: Sized,
+        F: FnMut(Self::Output) -> Out,
+    {
+        Map { op: self, f }
+    }
+
+    #[inline]
+    fn map_err<Err, F>(self, f: F) -> MapErr<Self, F>
+    where
+        Self: Sized,
+        F: FnMut(Self::Error) -> Err,
+        Err: Error,
+    {
+        MapErr { op: self, f }
+    }
+
+    #[inline]
+    fn try_map<Out, F>(self, f: F) -> TryMap<Self, F>
+    where
+        Self: Sized,
+        F: FnMut(Self::Output) -> Result<Out, Self::Error>,
+    {
+        TryMap { op: self, f }
     }
 
     #[inline]
