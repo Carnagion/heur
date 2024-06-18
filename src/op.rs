@@ -14,6 +14,9 @@ pub use ignore::Ignore;
 mod map;
 pub use map::{Map, MapErr, TryMap};
 
+mod once;
+pub use once::Once;
+
 mod unwrapped;
 pub use unwrapped::Unwrapped;
 
@@ -111,6 +114,14 @@ where
         F: FnMut(Self::Output) -> Result<Out, Self::Error>,
     {
         TryMap { op: self, f }
+    }
+
+    #[inline]
+    fn once(self) -> Once<Self>
+    where
+        Self: Sized,
+    {
+        Once(Some(self))
     }
 
     #[inline]
