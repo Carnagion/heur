@@ -45,6 +45,8 @@ pub mod mutate;
 
 pub mod search;
 
+pub mod population;
+
 pub mod accept;
 
 pub mod stop;
