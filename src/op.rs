@@ -35,6 +35,8 @@ pub mod mutate;
 
 pub mod search;
 
+pub mod accept;
+
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
 pub trait Operator<P, S, E, In = ()>
 where
