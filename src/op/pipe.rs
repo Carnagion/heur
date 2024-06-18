@@ -2,6 +2,7 @@ use crate::{eval::Eval, solution::Solution};
 
 use super::Operator;
 
+// TODO: Should this impl `Init`, `Mutate`, and/or `Search`?
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct Pipe<T, U> {
