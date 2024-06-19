@@ -1,6 +1,18 @@
-use crate::{eval::Eval, solution::Solution};
+use std::marker::PhantomData;
+
+use crate::{
+    eval::Eval,
+    solution::{Population, Solution},
+    solve::Solve,
+};
 
 use super::Operator;
+
+mod from_value;
+pub use from_value::{FromDefault, FromIndividual, FromPopulation};
+
+mod from_solver;
+pub use from_solver::FromSolver;
 
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Init<P, S, E>: Operator<P, S, E>
@@ -94,4 +106,38 @@ where
             Self::Right(right) => right.init_into(problem, solution, eval),
         }
     }
+}
+
+#[inline]
+pub fn from_individual<S>(individual: S) -> FromIndividual<S>
+where
+    S: Clone,
+{
+    FromIndividual(individual)
+}
+
+#[inline]
+pub fn from_population<S>(population: S) -> FromPopulation<S>
+where
+    S: Population + Clone,
+{
+    FromPopulation(population)
+}
+
+#[inline]
+pub fn from_default<S>() -> FromDefault<S>
+where
+    S: Solution + Default,
+{
+    FromDefault(PhantomData)
+}
+
+#[inline]
+pub fn from_solver<P, S, E, T>(solver: T) -> FromSolver<T>
+where
+    T: Solve<P, S, E>,
+    S: Solution,
+    E: Eval<P, S::Individual>,
+{
+    FromSolver(solver)
 }
