@@ -5,6 +5,7 @@ pub use from_fn::FromFn;
 //       type inference. It also makes more sense to tie `Eval<P, S>` to the solution (individual) being evaluated directly,
 //       rather than the container type (`Individual<T>` or some population type). Furthermore, that would require us to impl
 //       `Eval` repeatedly for each different population type, which is just stupid.
+// TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
 pub trait Eval<P, S> {
     // NOTE: In theory, having `Objective: PartialOrd` would be "enough" and allow using types like `f32` or `f64` as
     //       objective values. However, many operators rely on a total order existing in the objective value type. Plus, it
