@@ -18,6 +18,22 @@ impl<T> Individual<T> {
         Self(value)
     }
 
+    #[inline]
+    #[must_use]
+    pub fn from_ref(ptr: &T) -> &Self {
+        // SAFETY: `Individual<T>` is `repr(transparent)` and only contains a `T`, so their layouts are identical.
+        let ptr = ptr as *const T as *const Individual<T>;
+        unsafe { &*ptr }
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn from_mut(ptr: &mut T) -> &mut Self {
+        // SAFETY: `Individual<T>` is `repr(transparent)` and only contains a `T`, so their layouts are identical.
+        let ptr = ptr as *mut T as *mut Individual<T>;
+        unsafe { &mut *ptr }
+    }
+
     // NOTE: This is an associated function and not a method to prevent confusion with any methods named `into_inner` on `T`
     //       (since `Individual<T>` derefs to `T`).
     #[inline]
@@ -34,6 +50,20 @@ impl<T> From<T> for Individual<T> {
     }
 }
 
+impl<'a, T> From<&'a T> for &'a Individual<T> {
+    #[inline]
+    fn from(ptr: &'a T) -> Self {
+        Individual::from_ref(ptr)
+    }
+}
+
+impl<'a, T> From<&'a mut T> for &'a mut Individual<T> {
+    #[inline]
+    fn from(ptr: &'a mut T) -> Self {
+        Individual::from_mut(ptr)
+    }
+}
+
 impl<T> Deref for Individual<T> {
     type Target = T;
 
@@ -44,6 +74,20 @@ impl<T> Deref for Individual<T> {
 
 impl<T> DerefMut for Individual<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl<T> AsRef<T> for Individual<T> {
+    #[inline]
+    fn as_ref(&self) -> &T {
+        &self.0
+    }
+}
+
+impl<T> AsMut<T> for Individual<T> {
+    #[inline]
+    fn as_mut(&mut self) -> &mut T {
         &mut self.0
     }
 }
