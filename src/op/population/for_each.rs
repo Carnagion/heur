@@ -1,6 +1,6 @@
 use crate::{
     eval::Eval,
-    op::Operator,
+    op::{mutate::Mutate, search::Search, Operator},
     solution::{Individual, Population},
 };
 
@@ -34,5 +34,39 @@ where
             input = self.0.apply(problem, solution, eval, input)?;
         }
         Ok(input)
+    }
+}
+
+impl<T, P, S, E> Mutate<P, S, E> for ForEach<T>
+where
+    T: Mutate<P, Individual<S::Individual>, E, Output = ()>,
+    S: Population + ?Sized,
+    for<'a> &'a mut S: IntoIterator<Item = &'a mut S::Individual>,
+    E: Eval<P, S::Individual>,
+{
+    #[inline]
+    fn mutate(&mut self, problem: &P, population: &mut S, eval: &mut E) -> Result<(), Self::Error> {
+        for solution in population {
+            let solution = Individual::from_mut(solution);
+            self.0.mutate(problem, solution, eval)?;
+        }
+        Ok(())
+    }
+}
+
+impl<T, P, S, E> Search<P, S, E> for ForEach<T>
+where
+    T: Search<P, Individual<S::Individual>, E, Output = ()>,
+    S: Population + ?Sized,
+    for<'a> &'a mut S: IntoIterator<Item = &'a mut S::Individual>,
+    E: Eval<P, S::Individual>,
+{
+    #[inline]
+    fn search(&mut self, problem: &P, population: &mut S, eval: &mut E) -> Result<(), Self::Error> {
+        for solution in population {
+            let solution = Individual::from_mut(solution);
+            self.0.search(problem, solution, eval)?;
+        }
+        Ok(())
     }
 }
