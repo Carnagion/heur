@@ -1,5 +1,11 @@
 use crate::{eval::Eval, solution::Solution};
 
+mod unconditional;
+pub use unconditional::{Always, Never};
+
+mod improving;
+pub use improving::{Improving, NonWorsening};
+
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
 pub trait Accept<P, S, E>
 where
