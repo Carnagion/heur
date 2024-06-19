@@ -1,5 +1,11 @@
 use crate::{eval::Eval, solution::Solution};
 
+mod iters;
+pub use iters::Iterations;
+
+mod optimum;
+pub use optimum::Optimum;
+
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
 pub trait Stop<P, S, E>
 where
