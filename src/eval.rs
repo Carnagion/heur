@@ -6,7 +6,10 @@ pub use from_fn::FromFn;
 //       rather than the container type (`Individual<T>` or some population type). Furthermore, that would require us to impl
 //       `Eval` repeatedly for each different population type, which is just stupid.
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
-pub trait Eval<P, S> {
+pub trait Eval<P, S>
+where
+    S: ?Sized,
+{
     // NOTE: In theory, having `Objective: PartialOrd` would be "enough" and allow using types like `f32` or `f64` as
     //       objective values. However, many operators rely on a total order existing in the objective value type. Plus, it
     //       is often incorrect to use `PartialOrd` in this manner - eg. it would be nonsensical to have an objective value

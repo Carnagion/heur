@@ -3,7 +3,7 @@ use crate::{eval::Eval, op::Operator, solution::Population};
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Select<P, S, E>: Operator<P, S, E, Output = Vec<S::Individual>>
 where
-    S: Population + ?Sized,
+    S: Population<Individual: Sized> + ?Sized,
     E: Eval<P, S::Individual>,
 {
     fn select(
@@ -29,7 +29,7 @@ where
 impl<T, P, S, E> Select<P, S, E> for &mut T
 where
     T: Select<P, S, E> + ?Sized,
-    S: Population + ?Sized,
+    S: Population<Individual: Sized> + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]
@@ -57,7 +57,7 @@ where
 impl<T, P, S, E> Select<P, S, E> for Box<T>
 where
     T: Select<P, S, E> + ?Sized,
-    S: Population + ?Sized,
+    S: Population<Individual: Sized> + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]
@@ -87,7 +87,7 @@ impl<L, R, P, S, E> Select<P, S, E> for either::Either<L, R>
 where
     L: Select<P, S, E>,
     R: Select<P, S, E, Error = L::Error>,
-    S: Population + ?Sized,
+    S: Population<Individual: Sized> + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]

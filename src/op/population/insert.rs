@@ -3,7 +3,7 @@ use crate::{eval::Eval, op::Operator, solution::Population};
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Insert<P, S, E>: Operator<P, S, E, Vec<S::Individual>>
 where
-    S: Population + ?Sized,
+    S: Population<Individual: Sized> + ?Sized,
     E: Eval<P, S::Individual>,
 {
     fn insert(
@@ -18,7 +18,7 @@ where
 impl<T, P, S, E> Insert<P, S, E> for &mut T
 where
     T: Insert<P, S, E> + ?Sized,
-    S: Population + ?Sized,
+    S: Population<Individual: Sized> + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]
@@ -36,7 +36,7 @@ where
 impl<T, P, S, E> Insert<P, S, E> for Box<T>
 where
     T: Insert<P, S, E> + ?Sized,
-    S: Population + ?Sized,
+    S: Population<Individual: Sized> + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]
@@ -56,7 +56,7 @@ impl<L, R, P, S, E> Insert<P, S, E> for either::Either<L, R>
 where
     L: Insert<P, S, E>,
     R: Insert<P, S, E, Output = L::Output, Error = L::Error>,
-    S: Population + ?Sized,
+    S: Population<Individual: Sized> + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]

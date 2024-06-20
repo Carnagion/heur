@@ -5,7 +5,7 @@ use crate::{eval::Eval, op::Operator, solution::Population};
 pub trait Combine<P, S, E>:
     Operator<P, S, E, Vec<S::Individual>, Output = Vec<S::Individual>>
 where
-    S: Population + ?Sized,
+    S: Population<Individual: Sized> + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[doc(alias = "crossover")]
@@ -21,7 +21,7 @@ where
 impl<T, P, S, E> Combine<P, S, E> for &mut T
 where
     T: Combine<P, S, E> + ?Sized,
-    S: Population + ?Sized,
+    S: Population<Individual: Sized> + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]
@@ -39,7 +39,7 @@ where
 impl<T, P, S, E> Combine<P, S, E> for Box<T>
 where
     T: Combine<P, S, E> + ?Sized,
-    S: Population + ?Sized,
+    S: Population<Individual: Sized> + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]
@@ -59,7 +59,7 @@ impl<L, R, P, S, E> Combine<P, S, E> for either::Either<L, R>
 where
     L: Combine<P, S, E>,
     R: Combine<P, S, E, Error = L::Error>,
-    S: Population + ?Sized,
+    S: Population<Individual: Sized> + ?Sized,
     E: Eval<P, S::Individual>,
 {
     #[inline]
