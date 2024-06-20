@@ -1,5 +1,8 @@
 use crate::{eval::Eval, op::Operator, solution::Population};
 
+mod tournament;
+pub use tournament::Tournament;
+
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Select<P, S, E>: Operator<P, S, E, Output = Vec<S::Individual>>
 where
