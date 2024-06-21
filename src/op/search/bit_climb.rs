@@ -1,9 +1,10 @@
+use std::{collections::VecDeque, convert::Infallible};
+
 use crate::{eval::Eval, op::Operator, solution::Individual};
 
 use super::Search;
 
-// TODO: Impl `Operator` and `Search` for other bitstring types like `[bool]`, `Box<[bool]>`, `Box<[bool; N]>`, types
-//       from `bitvec`, and `im::Vector<bool>`
+// TODO: Impl `Operator` and `Search` for bitstring types from crate like `bitvec` and `im::Vector<bool>`
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct FirstAscentBitClimb;
 
@@ -25,7 +26,7 @@ macro_rules! make_first_ascent_bit_climb_operator {
         {
             type Output = ();
 
-            type Error = ::core::convert::Infallible;
+            type Error = Infallible;
 
             #[inline]
             fn apply(
@@ -34,7 +35,7 @@ macro_rules! make_first_ascent_bit_climb_operator {
                 solution: &mut $s,
                 eval: &mut $e,
                 _input: (),
-            ) -> ::core::result::Result<Self::Output, Self::Error> {
+            ) -> Result<Self::Output, Self::Error> {
                 let solution = &mut **solution;
 
                 let objective = eval.eval(problem, solution);
@@ -91,8 +92,19 @@ make_first_ascent_bit_climb_operator! {
         E: Eval<P, [bool]>,
 }
 
-// TODO: Impl `Operator` and `Search` for other bitstring types like `[bool]`, `Box<[bool]>`, `Box<[bool; N]>`, types
-//       from `bitvec`, and `im::Vector<bool>`
+make_first_ascent_bit_climb_operator! {
+    {P, E} Operator<P, Individual<Box<[bool]>>, E> for FirstAscentBitClimb
+    where
+        E: Eval<P, Box<[bool]>>,
+}
+
+make_first_ascent_bit_climb_operator! {
+    {P, E} Operator<P, Individual<VecDeque<bool>>, E> for FirstAscentBitClimb
+    where
+        E: Eval<P, VecDeque<bool>>,
+}
+
+// TODO: Impl `Operator` and `Search` for bitstring types from crate like `bitvec` and `im::Vector<bool>`
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct SteepestAscentBitClimb;
 
@@ -114,7 +126,7 @@ macro_rules! make_steepest_ascent_bit_climb_operator {
         {
             type Output = ();
 
-            type Error = ::core::convert::Infallible;
+            type Error = Infallible;
 
             #[inline]
             fn apply(
@@ -123,7 +135,7 @@ macro_rules! make_steepest_ascent_bit_climb_operator {
                 solution: &mut $s,
                 eval: &mut $e,
                 _input: (),
-            ) -> ::core::result::Result<Self::Output, Self::Error> {
+            ) -> Result<Self::Output, Self::Error> {
                 let solution = &mut **solution;
 
                 // NOTE: See the note above regarding iteration over indices.
@@ -175,4 +187,16 @@ make_steepest_ascent_bit_climb_operator! {
     {P, E} Operator<P, Individual<[bool]>, E> for SteepestAscentBitClimb
     where
         E: Eval<P, [bool]>,
+}
+
+make_steepest_ascent_bit_climb_operator! {
+    {P, E} Operator<P, Individual<Box<[bool]>>, E> for SteepestAscentBitClimb
+    where
+        E: Eval<P, Box<[bool]>>,
+}
+
+make_steepest_ascent_bit_climb_operator! {
+    {P, E} Operator<P, Individual<VecDeque<bool>>, E> for SteepestAscentBitClimb
+    where
+        E: Eval<P, VecDeque<bool>>,
 }

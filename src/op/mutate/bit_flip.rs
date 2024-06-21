@@ -1,3 +1,5 @@
+use std::{collections::VecDeque, convert::Infallible};
+
 use rand::{
     distributions::{Bernoulli, Distribution},
     Rng,
@@ -7,8 +9,7 @@ use crate::{eval::Eval, op::Operator, solution::Individual};
 
 use super::Mutate;
 
-// TODO: Impl `Operator` and `Mutate` for other bitstring types like `[bool]`, `Box<[bool]>`, `Box<[bool; N]>`, types
-//       from `bitvec`, and `im::Vector<bool>`
+// TODO: Impl `Operator` and `Mutate` for bitstring types from crate like `bitvec` and `im::Vector<bool>`
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct FlipBit<R> {
     rng: R,
@@ -30,7 +31,7 @@ macro_rules! make_flip_bit_operator {
         {
             type Output = ();
 
-            type Error = ::core::convert::Infallible;
+            type Error = Infallible;
 
             #[inline]
             fn apply(
@@ -39,7 +40,7 @@ macro_rules! make_flip_bit_operator {
                 solution: &mut $s,
                 _eval: &mut $e,
                 _input: (),
-            ) -> ::core::result::Result<Self::Output, Self::Error> {
+            ) -> Result<Self::Output, Self::Error> {
                 // NOTE: We need to check that the solution is not empty, because `Rng::gen_range` panics on empty ranges.
                 if !solution.is_empty() {
                     let idx = self.rng.gen_range(0..solution.len());
@@ -86,8 +87,21 @@ make_flip_bit_operator! {
         R: Rng,
 }
 
-// TODO: Impl `Operator` and `Mutate` for other bitstring types like `[bool]`, `Box<[bool]>`, `Box<[bool; N]>`, types
-//       from `bitvec`, and `im::Vector<bool>`
+make_flip_bit_operator! {
+    {P, E, R} Operator<P, Individual<Box<[bool]>>, E> for FlipBit<R>
+    where
+        E: Eval<P, Box<[bool]>>,
+        R: Rng,
+}
+
+make_flip_bit_operator! {
+    {P, E, R} Operator<P, Individual<VecDeque<bool>>, E> for FlipBit<R>
+    where
+        E: Eval<P, VecDeque<bool>>,
+        R: Rng,
+}
+
+// TODO: Impl `Operator` and `Mutate` for bitstring types from crate like `bitvec` and `im::Vector<bool>`
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct FlipAllBits<R> {
     dist: Bernoulli,
@@ -120,7 +134,7 @@ macro_rules! make_flip_all_bits_operator {
         {
             type Output = ();
 
-            type Error = ::core::convert::Infallible;
+            type Error = Infallible;
 
             #[inline]
             fn apply(
@@ -129,8 +143,8 @@ macro_rules! make_flip_all_bits_operator {
                 solution: &mut $s,
                 _eval: &mut $e,
                 _input: (),
-            ) -> ::core::result::Result<Self::Output, Self::Error> {
-                for bit in &mut **solution {
+            ) -> Result<Self::Output, Self::Error> {
+                for bit in solution.iter_mut() {
                     if self.dist.sample(&mut self.rng) {
                         *bit = !*bit;
                     }
@@ -173,5 +187,19 @@ make_flip_all_bits_operator! {
     {P, E, R} Operator<P, Individual<[bool]>, E> for FlipAllBits<R>
     where
         E: Eval<P, [bool]>,
+        R: Rng,
+}
+
+make_flip_all_bits_operator! {
+    {P, E, R} Operator<P, Individual<Box<[bool]>>, E> for FlipAllBits<R>
+    where
+        E: Eval<P, Box<[bool]>>,
+        R: Rng,
+}
+
+make_flip_all_bits_operator! {
+    {P, E, R} Operator<P, Individual<VecDeque<bool>>, E> for FlipAllBits<R>
+    where
+        E: Eval<P, VecDeque<bool>>,
         R: Rng,
 }
