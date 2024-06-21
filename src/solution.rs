@@ -1,4 +1,7 @@
-use std::ops::{Deref, DerefMut};
+use std::{
+    collections::VecDeque,
+    ops::{Deref, DerefMut},
+};
 
 // TODO: Add `#[diagnostic::on_unimplemented]` and impl `Solution` for types from `smallvec`, `arrayvec`, `im`,
 //       `heapless`, and maybe `tinyvec`
@@ -151,6 +154,12 @@ impl<T> Solution for [T] {
 }
 
 impl<T> Population for [T] {}
+
+impl<T> Solution for VecDeque<T> {
+    type Individual = T;
+}
+
+impl<T> Population for VecDeque<T> {}
 
 impl<S> Solution for Box<S>
 where
