@@ -79,10 +79,10 @@ fn ils(knapsack: &Knapsack) {
     // ```rs
     // struct Cost;
     //
-    // impl Eval<Vec<bool>, Knapsack> for Cost {
+    // impl Eval<Knapsack, Vec<bool>> for Cost {
     //     type Objective = f64;
     //
-    //     fn eval(&mut self, solution: &Vec<bool>, knapsack: &Knapsack) -> f64 { ... }
+    //     fn eval(&mut self, knapsack: &Knapsack, solution: &Vec<bool>) -> f64 { ... }
     // }
     // ```
     let mut eval = eval::from_fn(cost);
@@ -112,13 +112,13 @@ fn ils(knapsack: &Knapsack) {
     // ```rs
     // let mut solution = init.init(knapsack, &mut eval).unwrap();
     //
-    // while !stop.stop(&solution, knapsack, &mut eval) {
+    // while !stop.stop(knapsack, &solution, &mut eval) {
     //     let prev_solution = solution.clone();
     //
-    //     mutate.mutate(&mut solution, knapsack, &mut eval).unwrap();
-    //     local_search.search(&mut solution, knapsack, &mut eval).unwrap();
+    //     mutate.mutate(knapsack, &mut solution, &mut eval).unwrap();
+    //     local_search.search(knapsack, &mut solution, &mut eval).unwrap();
     //
-    //     if !accept.accept(&solution, &prev_solution, knapsack, &mut eval) {
+    //     if !accept.accept(knapsack, &solution, &prev_solution, &mut eval) {
     //         solution = prev_solution;
     //     }
     // }
