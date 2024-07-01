@@ -10,14 +10,14 @@ use crate::{eval::Eval, op::Operator, solution::Population};
 use super::Select;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct Tournament<R> {
+pub struct TournamentSelector<R> {
     // TODO: Should these be `NonZeroUsize`?
     tournament_size: usize,
     selection_size: usize,
     rng: R,
 }
 
-impl<R> Tournament<R> {
+impl<R> TournamentSelector<R> {
     #[inline]
     #[must_use]
     pub fn new(tournament_size: usize, selection_size: usize, rng: R) -> Self {
@@ -29,7 +29,7 @@ impl<R> Tournament<R> {
     }
 }
 
-impl<P, S, E, R> Operator<P, S, E> for Tournament<R>
+impl<P, S, E, R> Operator<P, S, E> for TournamentSelector<R>
 where
     S: Population<Individual: Clone> + AsRef<[S::Individual]>,
     E: Eval<P, S::Individual>,
@@ -37,7 +37,7 @@ where
 {
     type Output = Vec<S::Individual>;
 
-    type Error = TournamentError;
+    type Error = TournamentSelectError;
 
     #[inline]
     fn apply(
@@ -51,7 +51,7 @@ where
     }
 }
 
-impl<P, S, E, R> Select<P, S, E> for Tournament<R>
+impl<P, S, E, R> Select<P, S, E> for TournamentSelector<R>
 where
     S: Population<Individual: Clone> + AsRef<[S::Individual]>,
     E: Eval<P, S::Individual>,
@@ -80,7 +80,7 @@ where
 
         // Ensure that we can run tournaments with `tournament_size` individuals
         if self.tournament_size > population.len() {
-            return Err(TournamentError::InvalidSize {
+            return Err(TournamentSelectError::InvalidSize {
                 tournament_size: self.tournament_size,
                 population_size: population.len(),
             });
@@ -89,7 +89,7 @@ where
         // Ensure that we can actually select individuals
         // NOTE: We early return here so that the compiler can remove bounds checks from each iteration below.
         if population.is_empty() || self.tournament_size == 0 {
-            return Err(TournamentError::NoSelection);
+            return Err(TournamentSelectError::NoSelection);
         }
 
         // Run tournaments `selection_size` times and select the best individual from each
@@ -109,7 +109,7 @@ where
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub enum TournamentError {
+pub enum TournamentSelectError {
     InvalidSize {
         tournament_size: usize,
         population_size: usize,
@@ -117,7 +117,7 @@ pub enum TournamentError {
     NoSelection,
 }
 
-impl Display for TournamentError {
+impl Display for TournamentSelectError {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidSize {
@@ -126,14 +126,14 @@ impl Display for TournamentError {
             } => write!(
                 formatter,
                 "cannot select since tournament size ({}) is bigger than population size ({})",
-                tournament_size, population_size
+                tournament_size, population_size,
             ),
             Self::NoSelection => write!(
                 formatter,
-                "cannot select since tournament size or population size is 0"
+                "cannot select since tournament size or population size is 0",
             ),
         }
     }
 }
 
-impl Error for TournamentError {}
+impl Error for TournamentSelectError {}

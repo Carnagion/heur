@@ -1,10 +1,10 @@
 use crate::{eval::Eval, op::Operator, solution::Population};
 
-mod tournament;
-pub use tournament::Tournament;
-
 mod on_selected;
 pub use on_selected::OnSelected;
+
+mod tournament;
+pub use tournament::{TournamentSelectError, TournamentSelector};
 
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Select<P, S, E>: Operator<P, S, E, Output = Vec<S::Individual>>
