@@ -19,7 +19,7 @@ where
     E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn accept(&mut self, _problem: &P, _solution: &S, _prev_solution: &S, _eval: &mut E) -> bool {
+    fn accept(&mut self, _solution: &S, _prev_solution: &S, _problem: &P, _eval: &mut E) -> bool {
         true
     }
 }
@@ -41,7 +41,7 @@ where
     E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn accept(&mut self, _problem: &P, _solution: &S, _prev_solution: &S, _eval: &mut E) -> bool {
+    fn accept(&mut self, _solution: &S, _prev_solution: &S, _problem: &P, _eval: &mut E) -> bool {
         false
     }
 }

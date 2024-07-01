@@ -47,6 +47,8 @@ pub mod search;
 
 pub mod population;
 
+pub mod genetic;
+
 pub mod accept;
 
 pub mod stop;
@@ -54,10 +56,7 @@ pub mod stop;
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
 pub trait Operator<P, S, E, In = ()>
 where
-    // NOTE: The solution type `S` does not necessarily have to be `Sized`, since we could apply operators in isolation to
-    //       already-initialised solutions. This allows eg. applying an operator to `[T]` as a solution type, where the
-    //       `&mut [T]` already exists and does not have to be initialised by an initialisation operator.
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     // TODO: Should this be set to a default `()` once defaults for associated types lands?
@@ -69,8 +68,8 @@ where
 
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error>;
@@ -199,7 +198,7 @@ where
 impl<T, P, S, E, In> Operator<P, S, E, In> for &mut T
 where
     T: Operator<P, S, E, In> + ?Sized,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     type Output = T::Output;
@@ -209,19 +208,19 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
-        T::apply(self, problem, solution, eval, input)
+        T::apply(self, solution, problem, eval, input)
     }
 }
 
 impl<T, P, S, E, In> Operator<P, S, E, In> for Box<T>
 where
     T: Operator<P, S, E, In> + ?Sized,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     type Output = T::Output;
@@ -231,12 +230,12 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
-        T::apply(self, problem, solution, eval, input)
+        T::apply(self, solution, problem, eval, input)
     }
 }
 
@@ -245,7 +244,7 @@ impl<L, R, P, S, E, In> Operator<P, S, E, In> for either::Either<L, R>
 where
     L: Operator<P, S, E, In>,
     R: Operator<P, S, E, In, Output = L::Output, Error = L::Error>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     type Output = L::Output;
@@ -255,21 +254,21 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
         match self {
-            Self::Left(left) => left.apply(problem, solution, eval, input),
-            Self::Right(right) => right.apply(problem, solution, eval, input),
+            Self::Left(left) => left.apply(solution, problem, eval, input),
+            Self::Right(right) => right.apply(solution, problem, eval, input),
         }
     }
 }
 
 impl<P, S, E> Operator<P, S, E> for ()
 where
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     type Output = ();
@@ -279,8 +278,8 @@ where
     #[inline]
     fn apply(
         &mut self,
-        _problem: &P,
         _solution: &mut S,
+        _problem: &P,
         _eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {
@@ -291,7 +290,7 @@ where
 impl<T, P, S, E, In> Operator<P, S, E, In> for Option<T>
 where
     T: Operator<P, S, E, In>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     type Output = Option<T::Output>;
@@ -301,13 +300,13 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
         self.as_mut()
-            .map(|op| op.apply(problem, solution, eval, input))
+            .map(|op| op.apply(solution, problem, eval, input))
             .transpose()
     }
 }
@@ -315,8 +314,8 @@ where
 #[inline]
 pub fn from_fn<P, S, E, In, Out, Err, F>(f: F) -> FromFn<F>
 where
-    F: FnMut(&P, &mut S, &mut E, In) -> Result<Out, Err>,
-    S: Solution + ?Sized,
+    F: FnMut(&mut S, &P, &mut E, In) -> Result<Out, Err>,
+    S: Solution,
     E: Eval<P, S::Individual>,
     Err: Error,
 {
@@ -327,7 +326,7 @@ where
 pub fn hint<P, S, E, In, T>(op: T) -> Hint<T, P, S, E, In>
 where
     T: Operator<P, S, E, In>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     Hint {
@@ -339,7 +338,7 @@ where
 #[inline]
 pub fn todo<P, S, E, In, Out, Err>() -> Todo<P, S, E, In, Out, Err>
 where
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
     Err: Error,
 {

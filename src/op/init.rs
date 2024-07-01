@@ -2,8 +2,7 @@ use std::marker::PhantomData;
 
 use crate::{
     eval::Eval,
-    solution::{Population, Solution},
-    solve::Solve,
+    solution::{Population, Solution, Solve},
 };
 
 use super::Operator;
@@ -25,8 +24,8 @@ where
     #[inline]
     fn init_into(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
     ) -> Result<(), Self::Error> {
         *solution = self.init(problem, eval)?;
@@ -48,11 +47,11 @@ where
     #[inline]
     fn init_into(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
     ) -> Result<(), Self::Error> {
-        T::init_into(self, problem, solution, eval)
+        T::init_into(self, solution, problem, eval)
     }
 }
 
@@ -70,11 +69,11 @@ where
     #[inline]
     fn init_into(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
     ) -> Result<(), Self::Error> {
-        T::init_into(self, problem, solution, eval)
+        T::init_into(self, solution, problem, eval)
     }
 }
 
@@ -97,13 +96,13 @@ where
     #[inline]
     fn init_into(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
     ) -> Result<(), Self::Error> {
         match self {
-            Self::Left(left) => left.init_into(problem, solution, eval),
-            Self::Right(right) => right.init_into(problem, solution, eval),
+            Self::Left(left) => left.init_into(solution, problem, eval),
+            Self::Right(right) => right.init_into(solution, problem, eval),
         }
     }
 }

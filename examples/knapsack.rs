@@ -9,8 +9,7 @@ use heur::{
         stop::Iterations,
         Operator,
     },
-    solution::Individual,
-    solve::Solve,
+    solution::{Individual, Solve},
 };
 
 use ordered_float::NotNan;
@@ -47,7 +46,7 @@ type Solution = Vec<bool>;
 
 // An objective function that calculates the cost, or objective value, of a given solution (`Vec<bool>`) to a knapsack problem
 // instance (`Knapsack`).
-fn cost(knapsack: &Knapsack, solution: &Solution) -> NotNan<f64> {
+fn cost(solution: &Solution, knapsack: &Knapsack) -> NotNan<f64> {
     // Calculate the total weight and value of the items in the knapsack by summing them up together. Only the items
     // that are included (i.e. whose bits in the solution are `true`) are counted.
     let (value, weight) = solution
@@ -82,7 +81,7 @@ fn ils(knapsack: &Knapsack) {
     // impl Eval<Knapsack, Vec<bool>> for Cost {
     //     type Objective = f64;
     //
-    //     fn eval(&mut self, knapsack: &Knapsack, solution: &Vec<bool>) -> f64 { ... }
+    //     fn eval(&mut self, solution: &Vec<bool>, knapsack: &Knapsack) -> f64 { ... }
     // }
     // ```
     let mut eval = eval::from_fn(cost);
@@ -112,13 +111,13 @@ fn ils(knapsack: &Knapsack) {
     // ```rs
     // let mut solution = init.init(knapsack, &mut eval).unwrap();
     //
-    // while !stop.stop(knapsack, &solution, &mut eval) {
+    // while !stop.stop(&solution, knapsack, &mut eval) {
     //     let prev_solution = solution.clone();
     //
-    //     mutate.mutate(knapsack, &mut solution, &mut eval).unwrap();
-    //     local_search.search(knapsack, &mut solution, &mut eval).unwrap();
+    //     mutate.mutate(&mut solution, knapsack, &mut eval).unwrap();
+    //     local_search.search(&mut solution, knapsack, &mut eval).unwrap();
     //
-    //     if !accept.accept(knapsack, &solution, &prev_solution, &mut eval) {
+    //     if !accept.accept(&solution, &prev_solution, knapsack, &mut eval) {
     //         solution = prev_solution;
     //     }
     // }
@@ -135,7 +134,7 @@ fn ils(knapsack: &Knapsack) {
     );
 
     // These combined operators now impl `Solve`, so we can pass it a problem instance and an objective function (anything that
-    // impls `Eval<S, P>` where `S` is the solution type and `P` is the problem type), and we get back a solution (or an error
+    // impls `Eval<P, S>` where `S` is the solution type and `P` is the problem type), and we get back a solution (or an error
     // if something went wrong during solving).
     //
     // In this case, all operators chosen above have an error type of `Infallible`, so the error type of their combination is
@@ -146,7 +145,7 @@ fn ils(knapsack: &Knapsack) {
     // Evaluate the solution and print it. Note that since we only ran the metaheuristic for 1000 iterations (see the `stop`
     // operator above), we will likely not get an optimal objective value - but it is very likely that we get a near-optimal
     // value around ~1% away from the global optimum.
-    let objective = eval.eval(knapsack, &solution);
+    let objective = eval.eval(&solution, knapsack);
     println!("found solution with objective value of {}", objective);
 }
 

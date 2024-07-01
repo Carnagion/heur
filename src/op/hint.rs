@@ -6,19 +6,16 @@ use super::{init::Init, mutate::Mutate, search::Search, Operator};
 
 // TODO: Manually impl common traits
 #[must_use]
-pub struct Hint<T, P, S, E, In = ()>
-where
-    S: ?Sized,
-{
+pub struct Hint<T, P, S, E, In = ()> {
     pub(super) op: T,
     #[allow(clippy::type_complexity)]
-    pub(super) _marker: PhantomData<fn() -> (P, Box<S>, E, In)>,
+    pub(super) _marker: PhantomData<fn() -> (P, S, E, In)>,
 }
 
 impl<T, P, S, E, In> Operator<P, S, E, In> for Hint<T, P, S, E, In>
 where
     T: Operator<P, S, E, In>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     type Output = T::Output;
@@ -28,12 +25,12 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
-        self.op.apply(problem, solution, eval, input)
+        self.op.apply(solution, problem, eval, input)
     }
 }
 
@@ -51,34 +48,34 @@ where
     #[inline]
     fn init_into(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
     ) -> Result<(), Self::Error> {
-        self.op.init_into(problem, solution, eval)
+        self.op.init_into(solution, problem, eval)
     }
 }
 
-impl<T, P, S, E> Mutate<P, S, E> for Hint<T, P, S, E, ()>
+impl<T, P, S, E> Mutate<P, S, E> for Hint<T, P, S, E>
 where
     T: Mutate<P, S, E>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn mutate(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
-        self.op.mutate(problem, solution, eval)
+    fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
+        self.op.mutate(solution, problem, eval)
     }
 }
 
-impl<T, P, S, E> Search<P, S, E> for Hint<T, P, S, E, ()>
+impl<T, P, S, E> Search<P, S, E> for Hint<T, P, S, E>
 where
     T: Search<P, S, E>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn search(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
-        self.op.search(problem, solution, eval)
+    fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
+        self.op.search(solution, problem, eval)
     }
 }

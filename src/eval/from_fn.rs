@@ -8,14 +8,14 @@ pub struct FromFn<F>(pub(super) F);
 
 impl<F, P, S, O> Eval<P, S> for FromFn<F>
 where
-    F: FnMut(&P, &S) -> O,
+    F: FnMut(&S, &P) -> O,
     O: Ord,
 {
     type Objective = O;
 
     #[inline]
-    fn eval(&mut self, problem: &P, solution: &S) -> Self::Objective {
-        (self.0)(problem, solution)
+    fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective {
+        (self.0)(solution, problem)
     }
 }
 

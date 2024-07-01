@@ -17,11 +17,11 @@ impl Iterations {
 
 impl<P, S, E> Stop<P, S, E> for Iterations
 where
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn stop(&mut self, _problem: &P, _solution: &S, _eval: &mut E) -> bool {
+    fn stop(&mut self, _solution: &S, _problem: &P, _eval: &mut E) -> bool {
         let remaining_iters = self.0.saturating_sub(1);
         let iters = mem::replace(&mut self.0, remaining_iters);
         iters == 0

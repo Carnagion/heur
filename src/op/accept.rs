@@ -9,13 +9,11 @@ pub use improving::{Improving, NonWorsening};
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
 pub trait Accept<P, S, E>
 where
-    // NOTE: We don't bound `S: ?Sized` here, since this trait is intended to be used along with `AcceptIf<T, F>` - which
-    //       requires `S: Clone`, and `Sized` is a supertrait of `Clone`.
     S: Solution,
     E: Eval<P, S::Individual>,
 {
     #[must_use]
-    fn accept(&mut self, problem: &P, solution: &S, prev_solution: &S, eval: &mut E) -> bool;
+    fn accept(&mut self, solution: &S, prev_solution: &S, problem: &P, eval: &mut E) -> bool;
 }
 
 impl<T, P, S, E> Accept<P, S, E> for &mut T
@@ -25,8 +23,8 @@ where
     E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn accept(&mut self, problem: &P, solution: &S, prev_solution: &S, eval: &mut E) -> bool {
-        T::accept(self, problem, solution, prev_solution, eval)
+    fn accept(&mut self, solution: &S, prev_solution: &S, problem: &P, eval: &mut E) -> bool {
+        T::accept(self, solution, prev_solution, problem, eval)
     }
 }
 
@@ -37,8 +35,8 @@ where
     E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn accept(&mut self, problem: &P, solution: &S, prev_solution: &S, eval: &mut E) -> bool {
-        T::accept(self, problem, solution, prev_solution, eval)
+    fn accept(&mut self, solution: &S, prev_solution: &S, problem: &P, eval: &mut E) -> bool {
+        T::accept(self, solution, prev_solution, problem, eval)
     }
 }
 
@@ -51,10 +49,10 @@ where
     E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn accept(&mut self, problem: &P, solution: &S, prev_solution: &S, eval: &mut E) -> bool {
+    fn accept(&mut self, solution: &S, prev_solution: &S, problem: &P, eval: &mut E) -> bool {
         match self {
-            Self::Left(left) => left.accept(problem, solution, prev_solution, eval),
-            Self::Right(right) => right.accept(problem, solution, prev_solution, eval),
+            Self::Left(left) => left.accept(solution, prev_solution, problem, eval),
+            Self::Right(right) => right.accept(solution, prev_solution, problem, eval),
         }
     }
 }

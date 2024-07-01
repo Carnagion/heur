@@ -1,4 +1,7 @@
-use crate::{eval::Eval, solution::Solution, solve::Solve};
+use crate::{
+    eval::Eval,
+    solution::{Solution, Solve},
+};
 
 use super::{init::Init, mutate::Mutate, search::Search, Operator};
 
@@ -13,7 +16,7 @@ impl<T, U, P, S, E> Operator<P, S, E> for Then<T, U>
 where
     T: Operator<P, S, E, Output = ()>,
     U: Operator<P, S, E, Output = (), Error = T::Error>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     type Output = ();
@@ -23,13 +26,13 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {
-        self.first.apply(problem, solution, eval, ())?;
-        self.second.apply(problem, solution, eval, ())?;
+        self.first.apply(solution, problem, eval, ())?;
+        self.second.apply(solution, problem, eval, ())?;
         Ok(())
     }
 }
@@ -44,19 +47,19 @@ where
     #[inline]
     fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
         let mut solution = self.first.init(problem, eval)?;
-        self.second.apply(problem, &mut solution, eval, ())?;
+        self.second.apply(&mut solution, problem, eval, ())?;
         Ok(solution)
     }
 
     #[inline]
     fn init_into(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
     ) -> Result<(), Self::Error> {
-        self.first.init_into(problem, solution, eval)?;
-        self.second.apply(problem, solution, eval, ())?;
+        self.first.init_into(solution, problem, eval)?;
+        self.second.apply(solution, problem, eval, ())?;
         Ok(())
     }
 }
@@ -65,13 +68,13 @@ impl<T, U, P, S, E> Mutate<P, S, E> for Then<T, U>
 where
     T: Mutate<P, S, E, Output = ()>,
     U: Mutate<P, S, E, Output = (), Error = T::Error>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn mutate(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
-        self.first.mutate(problem, solution, eval)?;
-        self.second.mutate(problem, solution, eval)?;
+    fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
+        self.first.mutate(solution, problem, eval)?;
+        self.second.mutate(solution, problem, eval)?;
         Ok(())
     }
 }
@@ -80,13 +83,13 @@ impl<T, U, P, S, E> Search<P, S, E> for Then<T, U>
 where
     T: Search<P, S, E, Output = ()>,
     U: Search<P, S, E, Output = (), Error = T::Error>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn search(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
-        self.first.search(problem, solution, eval)?;
-        self.second.search(problem, solution, eval)?;
+    fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
+        self.first.search(solution, problem, eval)?;
+        self.second.search(solution, problem, eval)?;
         Ok(())
     }
 }

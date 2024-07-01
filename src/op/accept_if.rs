@@ -23,15 +23,15 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
         let prev_solution = solution.clone();
 
-        let output = self.op.apply(problem, solution, eval, input)?;
-        if self.cond.accept(problem, solution, &prev_solution, eval) {
+        let output = self.op.apply(solution, problem, eval, input)?;
+        if self.cond.accept(solution, &prev_solution, problem, eval) {
             Ok(Some(output))
         } else {
             *solution = prev_solution;
@@ -48,11 +48,11 @@ where
     E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn mutate(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
+    fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         let prev_solution = solution.clone();
 
-        self.op.mutate(problem, solution, eval)?;
-        if !self.cond.accept(problem, solution, &prev_solution, eval) {
+        self.op.mutate(solution, problem, eval)?;
+        if !self.cond.accept(solution, &prev_solution, problem, eval) {
             *solution = prev_solution;
         }
 
@@ -68,11 +68,11 @@ where
     E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn search(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
+    fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         let prev_solution = solution.clone();
 
-        self.op.search(problem, solution, eval)?;
-        if !self.cond.accept(problem, solution, &prev_solution, eval) {
+        self.op.search(solution, problem, eval)?;
+        if !self.cond.accept(solution, &prev_solution, problem, eval) {
             *solution = prev_solution;
         }
 

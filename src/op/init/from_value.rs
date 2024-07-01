@@ -24,12 +24,12 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut Individual<S>,
+        problem: &P,
         eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {
-        self.init_into(problem, solution, eval)
+        self.init_into(solution, problem, eval)
     }
 }
 
@@ -46,8 +46,8 @@ where
     #[inline]
     fn init_into(
         &mut self,
-        _problem: &P,
         solution: &mut Individual<S>,
+        _problem: &P,
         _eval: &mut E,
     ) -> Result<(), Self::Error> {
         solution.clone_from(Individual::from_ref(&self.0));
@@ -71,12 +71,12 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {
-        self.init_into(problem, solution, eval)
+        self.init_into(solution, problem, eval)
     }
 }
 
@@ -93,8 +93,8 @@ where
     #[inline]
     fn init_into(
         &mut self,
-        _problem: &P,
         solution: &mut S,
+        _problem: &P,
         _eval: &mut E,
     ) -> Result<(), Self::Error> {
         solution.clone_from(&self.0);
@@ -118,8 +118,8 @@ where
     #[inline]
     fn apply(
         &mut self,
-        _problem: &P,
         solution: &mut S,
+        _problem: &P,
         _eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {

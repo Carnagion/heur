@@ -1,4 +1,8 @@
-use crate::{eval::Eval, op::Operator, solution::Solution, solve::Solve};
+use crate::{
+    eval::Eval,
+    op::Operator,
+    solution::{Solution, Solve},
+};
 
 use super::Init;
 
@@ -19,13 +23,12 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {
-        *solution = self.0.solve(problem, eval)?;
-        Ok(())
+        self.init_into(solution, problem, eval)
     }
 }
 

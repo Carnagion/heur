@@ -19,7 +19,7 @@ where
     O: Ord,
 {
     #[inline]
-    fn stop(&mut self, problem: &P, solution: &Individual<S>, eval: &mut E) -> bool {
-        eval.eval(problem, solution) >= self.0
+    fn stop(&mut self, solution: &Individual<S>, problem: &P, eval: &mut E) -> bool {
+        eval.eval(solution, problem) >= self.0
     }
 }

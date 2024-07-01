@@ -14,7 +14,7 @@ impl<T, U, P, S, E, In> Operator<P, S, E, In> for Pipe<T, U>
 where
     T: Operator<P, S, E, In>,
     U: Operator<P, S, E, T::Output, Error = T::Error>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     type Output = U::Output;
@@ -24,13 +24,13 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
-        let intermediate = self.from.apply(problem, solution, eval, input)?;
-        let output = self.to.apply(problem, solution, eval, intermediate)?;
+        let intermediate = self.from.apply(solution, problem, eval, input)?;
+        let output = self.to.apply(solution, problem, eval, intermediate)?;
         Ok(output)
     }
 }

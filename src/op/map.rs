@@ -19,7 +19,7 @@ impl<T, F, P, S, E, In, Out> Operator<P, S, E, In> for Map<T, F>
 where
     T: Operator<P, S, E, In>,
     F: FnMut(T::Output) -> Out,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     type Output = Out;
@@ -29,13 +29,13 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
         self.op
-            .apply(problem, solution, eval, input)
+            .apply(solution, problem, eval, input)
             .map(&mut self.f)
     }
 }
@@ -63,7 +63,7 @@ impl<T, F, P, S, E, In, Err> Operator<P, S, E, In> for MapErr<T, F>
 where
     T: Operator<P, S, E, In>,
     F: FnMut(T::Error) -> Err,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
     Err: Error,
 {
@@ -74,13 +74,13 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
         self.op
-            .apply(problem, solution, eval, input)
+            .apply(solution, problem, eval, input)
             .map_err(&mut self.f)
     }
 }
@@ -101,12 +101,12 @@ where
     #[inline]
     fn init_into(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
     ) -> Result<(), Self::Error> {
         self.op
-            .init_into(problem, solution, eval)
+            .init_into(solution, problem, eval)
             .map_err(&mut self.f)
     }
 }
@@ -115,13 +115,13 @@ impl<T, F, P, S, E, Err> Mutate<P, S, E> for MapErr<T, F>
 where
     T: Mutate<P, S, E>,
     F: FnMut(T::Error) -> Err,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
     Err: Error,
 {
     #[inline]
-    fn mutate(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
-        self.op.mutate(problem, solution, eval).map_err(&mut self.f)
+    fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
+        self.op.mutate(solution, problem, eval).map_err(&mut self.f)
     }
 }
 
@@ -129,13 +129,13 @@ impl<T, F, P, S, E, Err> Search<P, S, E> for MapErr<T, F>
 where
     T: Search<P, S, E>,
     F: FnMut(T::Error) -> Err,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
     Err: Error,
 {
     #[inline]
-    fn search(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
-        self.op.search(problem, solution, eval).map_err(&mut self.f)
+    fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
+        self.op.search(solution, problem, eval).map_err(&mut self.f)
     }
 }
 
@@ -163,7 +163,7 @@ impl<T, F, P, S, E, In, Out> Operator<P, S, E, In> for TryMap<T, F>
 where
     T: Operator<P, S, E, In>,
     F: FnMut(T::Output) -> Result<Out, T::Error>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     type Output = Out;
@@ -173,13 +173,13 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
         self.op
-            .apply(problem, solution, eval, input)
+            .apply(solution, problem, eval, input)
             .and_then(&mut self.f)
     }
 }

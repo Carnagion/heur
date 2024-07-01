@@ -11,7 +11,7 @@ pub struct Unwrapped<T>(pub(super) T);
 impl<T, P, S, E, In> Operator<P, S, E, In> for Unwrapped<T>
 where
     T: Operator<P, S, E, In>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     type Output = T::Output;
@@ -21,12 +21,12 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
-        let output = self.0.apply(problem, solution, eval, input).unwrap();
+        let output = self.0.apply(solution, problem, eval, input).unwrap();
         Ok(output)
     }
 }
@@ -45,11 +45,11 @@ where
     #[inline]
     fn init_into(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
     ) -> Result<(), Self::Error> {
-        self.0.init_into(problem, solution, eval).unwrap();
+        self.0.init_into(solution, problem, eval).unwrap();
         Ok(())
     }
 }
@@ -57,12 +57,12 @@ where
 impl<T, P, S, E> Mutate<P, S, E> for Unwrapped<T>
 where
     T: Mutate<P, S, E>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn mutate(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
-        self.0.mutate(problem, solution, eval).unwrap();
+    fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
+        self.0.mutate(solution, problem, eval).unwrap();
         Ok(())
     }
 }
@@ -70,12 +70,12 @@ where
 impl<T, P, S, E> Search<P, S, E> for Unwrapped<T>
 where
     T: Search<P, S, E>,
-    S: Solution + ?Sized,
+    S: Solution,
     E: Eval<P, S::Individual>,
 {
     #[inline]
-    fn search(&mut self, problem: &P, solution: &mut S, eval: &mut E) -> Result<(), Self::Error> {
-        self.0.search(problem, solution, eval).unwrap();
+    fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
+        self.0.search(solution, problem, eval).unwrap();
         Ok(())
     }
 }

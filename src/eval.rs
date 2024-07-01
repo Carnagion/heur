@@ -6,10 +6,7 @@ pub use from_fn::FromFn;
 //       rather than the container type (`Individual<T>` or some population type). Furthermore, that would require us to impl
 //       `Eval` repeatedly for each different population type, which is just stupid.
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
-pub trait Eval<P, S>
-where
-    S: ?Sized,
-{
+pub trait Eval<P, S> {
     // NOTE: In theory, having `Objective: PartialOrd` would be "enough" and allow using types like `f32` or `f64` as
     //       objective values. However, many operators rely on a total order existing in the objective value type. Plus, it
     //       is often incorrect to use `PartialOrd` in this manner - eg. it would be nonsensical to have an objective value
@@ -17,7 +14,7 @@ where
     type Objective: Ord;
 
     #[must_use]
-    fn eval(&mut self, problem: &P, solution: &S) -> Self::Objective;
+    fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective;
 }
 
 impl<T, P, S> Eval<P, S> for &mut T
@@ -27,8 +24,8 @@ where
     type Objective = T::Objective;
 
     #[inline]
-    fn eval(&mut self, problem: &P, solution: &S) -> Self::Objective {
-        T::eval(self, problem, solution)
+    fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective {
+        T::eval(self, solution, problem)
     }
 }
 
@@ -39,8 +36,8 @@ where
     type Objective = T::Objective;
 
     #[inline]
-    fn eval(&mut self, problem: &P, solution: &S) -> Self::Objective {
-        T::eval(self, problem, solution)
+    fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective {
+        T::eval(self, solution, problem)
     }
 }
 
@@ -53,10 +50,10 @@ where
     type Objective = L::Objective;
 
     #[inline]
-    fn eval(&mut self, problem: &P, solution: &S) -> Self::Objective {
+    fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective {
         match self {
-            Self::Left(left) => left.eval(problem, solution),
-            Self::Right(right) => right.eval(problem, solution),
+            Self::Left(left) => left.eval(solution, problem),
+            Self::Right(right) => right.eval(solution, problem),
         }
     }
 }
@@ -64,7 +61,7 @@ where
 #[inline]
 pub fn from_fn<F, P, S, O>(f: F) -> FromFn<F>
 where
-    F: FnMut(&P, &S) -> O,
+    F: FnMut(&S, &P) -> O,
     O: Ord,
 {
     FromFn(f)

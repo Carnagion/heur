@@ -8,5 +8,3 @@ pub mod solution;
 pub mod eval;
 
 pub mod op;
-
-pub mod solve;

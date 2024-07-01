@@ -1,7 +1,6 @@
 use std::{
     error::Error,
     fmt::{self, Display, Formatter},
-    ops::Deref,
 };
 
 use rand::{seq::SliceRandom, Rng};
@@ -32,7 +31,7 @@ impl<R> Tournament<R> {
 
 impl<P, S, E, R> Operator<P, S, E> for Tournament<R>
 where
-    S: Population<Individual: Clone> + Deref<Target = [S::Individual]> + ?Sized,
+    S: Population<Individual: Clone> + AsRef<[S::Individual]>,
     E: Eval<P, S::Individual>,
     R: Rng,
 {
@@ -43,41 +42,41 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         population: &mut S,
+        problem: &P,
         eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {
-        self.select(problem, population, eval)
+        self.select(population, problem, eval)
     }
 }
 
 impl<P, S, E, R> Select<P, S, E> for Tournament<R>
 where
-    S: Population<Individual: Clone> + Deref<Target = [S::Individual]> + ?Sized,
+    S: Population<Individual: Clone> + AsRef<[S::Individual]>,
     E: Eval<P, S::Individual>,
     R: Rng,
 {
     #[inline]
     fn select(
         &mut self,
-        problem: &P,
         population: &S,
+        problem: &P,
         eval: &mut E,
     ) -> Result<Vec<S::Individual>, Self::Error> {
         let mut selected = Vec::with_capacity(self.selection_size);
-        self.select_into(problem, population, eval, &mut selected)?;
+        self.select_into(population, problem, eval, &mut selected)?;
         Ok(selected)
     }
 
     fn select_into(
         &mut self,
-        problem: &P,
         population: &S,
+        problem: &P,
         eval: &mut E,
-        selected: &mut Vec<<S>::Individual>,
+        selected: &mut Vec<S::Individual>,
     ) -> Result<(), Self::Error> {
-        let population = &**population;
+        let population = population.as_ref();
 
         // Ensure that we can run tournaments with `tournament_size` individuals
         if self.tournament_size > population.len() {
@@ -95,10 +94,11 @@ where
 
         // Run tournaments `selection_size` times and select the best individual from each
         selected.clear();
+        selected.reserve(self.selection_size);
         for _ in 0..self.selection_size {
             let winner = population
                 .choose_multiple(&mut self.rng, self.tournament_size)
-                .max_by_key(|solution| eval.eval(problem, solution))
+                .max_by_key(|solution| eval.eval(solution, problem))
                 .cloned()
                 .unwrap(); // PANICS: We have checked above that the population is not empty and `tournament_size > 0`.
             selected.push(winner);
@@ -125,10 +125,13 @@ impl Display for TournamentError {
                 population_size,
             } => write!(
                 formatter,
-                "tournament size ({}) is bigger than population size ({})",
+                "cannot select since tournament size ({}) is bigger than population size ({})",
                 tournament_size, population_size
             ),
-            Self::NoSelection => write!(formatter, "population contains no individuals to select"),
+            Self::NoSelection => write!(
+                formatter,
+                "cannot select since tournament size or population size is 0"
+            ),
         }
     }
 }

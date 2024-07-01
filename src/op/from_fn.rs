@@ -13,8 +13,8 @@ pub struct FromFn<F>(pub(super) F);
 
 impl<F, P, S, E, In, Out, Err> Operator<P, S, E, In> for FromFn<F>
 where
-    F: FnMut(&P, &mut S, &mut E, In) -> Result<Out, Err>,
-    S: Solution + ?Sized,
+    F: FnMut(&mut S, &P, &mut E, In) -> Result<Out, Err>,
+    S: Solution,
     E: Eval<P, S::Individual>,
     Err: Error,
 {
@@ -25,12 +25,12 @@ where
     #[inline]
     fn apply(
         &mut self,
-        problem: &P,
         solution: &mut S,
+        problem: &P,
         eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
-        (self.0)(problem, solution, eval, input)
+        (self.0)(solution, problem, eval, input)
     }
 }
 

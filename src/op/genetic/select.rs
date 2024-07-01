@@ -6,25 +6,25 @@ pub use tournament::Tournament;
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Select<P, S, E>: Operator<P, S, E, Output = Vec<S::Individual>>
 where
-    S: Population<Individual: Sized> + ?Sized,
+    S: Population,
     E: Eval<P, S::Individual>,
 {
     fn select(
         &mut self,
-        problem: &P,
         population: &S,
+        problem: &P,
         eval: &mut E,
     ) -> Result<Vec<S::Individual>, Self::Error>;
 
     #[inline]
     fn select_into(
         &mut self,
-        problem: &P,
         population: &S,
+        problem: &P,
         eval: &mut E,
         selected: &mut Vec<S::Individual>,
     ) -> Result<(), Self::Error> {
-        *selected = self.select(problem, population, eval)?;
+        *selected = self.select(population, problem, eval)?;
         Ok(())
     }
 }
@@ -32,56 +32,56 @@ where
 impl<T, P, S, E> Select<P, S, E> for &mut T
 where
     T: Select<P, S, E> + ?Sized,
-    S: Population<Individual: Sized> + ?Sized,
+    S: Population,
     E: Eval<P, S::Individual>,
 {
     #[inline]
     fn select(
         &mut self,
-        problem: &P,
         population: &S,
+        problem: &P,
         eval: &mut E,
-    ) -> Result<Vec<<S>::Individual>, Self::Error> {
-        T::select(self, problem, population, eval)
+    ) -> Result<Vec<S::Individual>, Self::Error> {
+        T::select(self, population, problem, eval)
     }
 
     #[inline]
     fn select_into(
         &mut self,
-        problem: &P,
         population: &S,
+        problem: &P,
         eval: &mut E,
-        selected: &mut Vec<<S>::Individual>,
+        selected: &mut Vec<S::Individual>,
     ) -> Result<(), Self::Error> {
-        T::select_into(self, problem, population, eval, selected)
+        T::select_into(self, population, problem, eval, selected)
     }
 }
 
 impl<T, P, S, E> Select<P, S, E> for Box<T>
 where
     T: Select<P, S, E> + ?Sized,
-    S: Population<Individual: Sized> + ?Sized,
+    S: Population,
     E: Eval<P, S::Individual>,
 {
     #[inline]
     fn select(
         &mut self,
-        problem: &P,
         population: &S,
+        problem: &P,
         eval: &mut E,
-    ) -> Result<Vec<<S>::Individual>, Self::Error> {
-        T::select(self, problem, population, eval)
+    ) -> Result<Vec<S::Individual>, Self::Error> {
+        T::select(self, population, problem, eval)
     }
 
     #[inline]
     fn select_into(
         &mut self,
-        problem: &P,
         population: &S,
+        problem: &P,
         eval: &mut E,
-        selected: &mut Vec<<S>::Individual>,
+        selected: &mut Vec<S::Individual>,
     ) -> Result<(), Self::Error> {
-        T::select_into(self, problem, population, eval, selected)
+        T::select_into(self, population, problem, eval, selected)
     }
 }
 
@@ -90,33 +90,33 @@ impl<L, R, P, S, E> Select<P, S, E> for either::Either<L, R>
 where
     L: Select<P, S, E>,
     R: Select<P, S, E, Error = L::Error>,
-    S: Population<Individual: Sized> + ?Sized,
+    S: Population,
     E: Eval<P, S::Individual>,
 {
     #[inline]
     fn select(
         &mut self,
-        problem: &P,
         population: &S,
+        problem: &P,
         eval: &mut E,
     ) -> Result<Vec<S::Individual>, Self::Error> {
         match self {
-            Self::Left(left) => left.select(problem, population, eval),
-            Self::Right(right) => right.select(problem, population, eval),
+            Self::Left(left) => left.select(population, problem, eval),
+            Self::Right(right) => right.select(population, problem, eval),
         }
     }
 
     #[inline]
     fn select_into(
         &mut self,
-        problem: &P,
         population: &S,
+        problem: &P,
         eval: &mut E,
         selected: &mut Vec<S::Individual>,
     ) -> Result<(), Self::Error> {
         match self {
-            Self::Left(left) => left.select_into(problem, population, eval, selected),
-            Self::Right(right) => right.select_into(problem, population, eval, selected),
+            Self::Left(left) => left.select_into(population, problem, eval, selected),
+            Self::Right(right) => right.select_into(population, problem, eval, selected),
         }
     }
 }

@@ -20,12 +20,12 @@ where
     #[inline]
     fn accept(
         &mut self,
-        problem: &P,
         solution: &Individual<S>,
         prev_solution: &Individual<S>,
+        problem: &P,
         eval: &mut E,
     ) -> bool {
-        eval.eval(problem, solution) > eval.eval(problem, prev_solution)
+        eval.eval(solution, problem) > eval.eval(prev_solution, problem)
     }
 }
 
@@ -47,11 +47,11 @@ where
     #[inline]
     fn accept(
         &mut self,
-        problem: &P,
         solution: &Individual<S>,
         prev_solution: &Individual<S>,
+        problem: &P,
         eval: &mut E,
     ) -> bool {
-        eval.eval(problem, solution) >= eval.eval(problem, prev_solution)
+        eval.eval(solution, problem) >= eval.eval(prev_solution, problem)
     }
 }
