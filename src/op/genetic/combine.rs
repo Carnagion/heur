@@ -3,6 +3,9 @@ use crate::{eval::Eval, op::Operator, solution::Population};
 mod on_combined;
 pub use on_combined::OnCombined;
 
+mod uniform;
+pub use uniform::{UniformCrossover, UniformCrossoverError};
+
 // TODO: Add `#[diagnostic::on_unimplemented]`
 #[doc(alias = "Crossover")]
 pub trait Combine<P, S, E>:
