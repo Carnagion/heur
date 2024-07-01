@@ -1,5 +1,8 @@
 use crate::{eval::Eval, op::Operator, solution::Population};
 
+mod on_combined;
+pub use on_combined::OnCombined;
+
 // TODO: Add `#[diagnostic::on_unimplemented]`
 #[doc(alias = "Crossover")]
 pub trait Combine<P, S, E>:
@@ -75,4 +78,14 @@ where
             Self::Right(right) => right.combine(population, problem, eval, selected),
         }
     }
+}
+
+#[inline]
+pub fn on_combined<P, S, E, T>(op: T) -> OnCombined<T>
+where
+    T: Operator<P, Vec<S::Individual>, E, Output = ()>,
+    S: Population,
+    E: Eval<P, S::Individual>,
+{
+    OnCombined(op)
 }

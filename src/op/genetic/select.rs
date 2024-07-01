@@ -3,6 +3,9 @@ use crate::{eval::Eval, op::Operator, solution::Population};
 mod tournament;
 pub use tournament::Tournament;
 
+mod on_selected;
+pub use on_selected::OnSelected;
+
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Select<P, S, E>: Operator<P, S, E, Output = Vec<S::Individual>>
 where
@@ -119,4 +122,14 @@ where
             Self::Right(right) => right.select_into(population, problem, eval, selected),
         }
     }
+}
+
+#[inline]
+pub fn on_selected<P, S, E, T>(op: T) -> OnSelected<T>
+where
+    T: Operator<P, Vec<S::Individual>, E, Output = ()>,
+    S: Population,
+    E: Eval<P, S::Individual>,
+{
+    OnSelected(op)
 }
