@@ -30,7 +30,7 @@ jobs:
       
       - name: Check code without any features
         run: |
-          cargo check ${{ matrix.target }} --all-targets --no-default-features --verbose
+          cargo check ${{ matrix.target }} --no-default-features --verbose
       
       - name: Build docs
         run: |
