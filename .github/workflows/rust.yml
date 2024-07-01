@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        target: [--lib, --examples, --tests, --benches]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
@@ -25,11 +26,11 @@ jobs:
       
       - name: Check code with all features
         run: |
-          cargo check --all-targets --all-features --verbose
+          cargo check ${{ matrix.target }} --all-features --verbose
       
       - name: Check code without any features
         run: |
-          cargo check --all-targets --no-default-features --verbose
+          cargo check ${{ matrix.target }} --all-targets --no-default-features --verbose
       
       - name: Build docs
         run: |
@@ -40,6 +41,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        target: [--lib, --examples, --tests, --benches]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
@@ -54,7 +56,7 @@ jobs:
 
       - name: Lint code
         run: |
-          cargo clippy --all-targets --all-features --verbose -- --deny warnings
+          cargo clippy ${{ matrix.target }} --all-features --verbose -- --deny warnings
       
       - name: Format code
         run: |
