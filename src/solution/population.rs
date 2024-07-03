@@ -25,6 +25,12 @@ pub trait Population: Solution {
     }
 
     #[must_use]
+    fn get(&self, index: usize) -> Option<&Self::Individual>;
+
+    #[must_use]
+    fn get_mut(&mut self, index: usize) -> Option<&mut Self::Individual>;
+
+    #[must_use]
     fn iter(&self) -> Self::Iter<'_>;
 
     #[must_use]
@@ -72,6 +78,16 @@ impl<T> Population for Vec<T> {
     }
 
     #[inline]
+    fn get(&self, index: usize) -> Option<&Self::Individual> {
+        self.as_slice().get(index)
+    }
+
+    #[inline]
+    fn get_mut(&mut self, index: usize) -> Option<&mut Self::Individual> {
+        self.as_mut_slice().get_mut(index)
+    }
+
+    #[inline]
     fn iter(&self) -> Self::Iter<'_> {
         self.as_slice().iter()
     }
@@ -94,6 +110,16 @@ impl<T, const N: usize> Population for [T; N] {
     #[inline]
     fn len(&self) -> usize {
         self.as_slice().len()
+    }
+
+    #[inline]
+    fn get(&self, index: usize) -> Option<&Self::Individual> {
+        self.as_slice().get(index)
+    }
+
+    #[inline]
+    fn get_mut(&mut self, index: usize) -> Option<&mut Self::Individual> {
+        self.as_mut_slice().get_mut(index)
     }
 
     #[inline]
@@ -120,6 +146,16 @@ impl<T> Population for [T] {
     #[inline]
     fn len(&self) -> usize {
         self.len()
+    }
+
+    #[inline]
+    fn get(&self, index: usize) -> Option<&Self::Individual> {
+        self.get(index)
+    }
+
+    #[inline]
+    fn get_mut(&mut self, index: usize) -> Option<&mut Self::Individual> {
+        self.get_mut(index)
     }
 
     #[inline]
@@ -151,6 +187,16 @@ where
     }
 
     #[inline]
+    fn get(&self, index: usize) -> Option<&Self::Individual> {
+        self.as_ref().get(index)
+    }
+
+    #[inline]
+    fn get_mut(&mut self, index: usize) -> Option<&mut Self::Individual> {
+        self.as_mut().get_mut(index)
+    }
+
+    #[inline]
     fn iter(&self) -> Self::Iter<'_> {
         S::iter(self)
     }
@@ -173,6 +219,16 @@ impl<T> Population for VecDeque<T> {
     #[inline]
     fn len(&self) -> usize {
         self.len()
+    }
+
+    #[inline]
+    fn get(&self, index: usize) -> Option<&Self::Individual> {
+        self.get(index)
+    }
+
+    #[inline]
+    fn get_mut(&mut self, index: usize) -> Option<&mut Self::Individual> {
+        self.get_mut(index)
     }
 
     #[inline]
