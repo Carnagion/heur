@@ -6,6 +6,9 @@ pub use on_selected::OnSelected;
 mod tournament;
 pub use tournament::{TournamentSelectError, TournamentSelector};
 
+mod elitist;
+pub use elitist::ElitistSelector;
+
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Select<P, S, E>: Operator<P, S, E, Output = Vec<S::Individual>>
 where
