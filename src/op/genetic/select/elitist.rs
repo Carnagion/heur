@@ -1,35 +1,30 @@
 use std::convert::Infallible;
 
-use rand::Rng;
-
 use crate::{eval::Eval, op::Operator, solution::Population};
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub struct ElitistSelector<R> {
+pub struct ElitistSelector {
     selection_size: usize,
-    rng: R,
     // NOTE: We store the indices as part of the struct itself to avoid re-allocating a new vec for them every time we
     //       need to select individuals.
     indices: Vec<usize>,
 }
 
-impl<R> ElitistSelector<R> {
+impl ElitistSelector {
     #[inline]
     #[must_use]
-    pub fn new(selection_size: usize, rng: R) -> Self {
+    pub fn new(selection_size: usize) -> Self {
         Self {
             selection_size,
-            rng,
             indices: Vec::new(),
         }
     }
 }
 
-impl<P, S, E, R> Operator<P, S, E> for ElitistSelector<R>
+impl<P, S, E> Operator<P, S, E> for ElitistSelector
 where
     S: Population<Individual: Clone>,
     E: Eval<P, S::Individual>,
-    R: Rng,
 {
     type Output = Vec<S::Individual>;
 
