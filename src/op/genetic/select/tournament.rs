@@ -31,6 +31,7 @@ impl<R> TournamentSelector<R> {
 
 impl<P, S, E, R> Operator<P, S, E> for TournamentSelector<R>
 where
+    // TODO: Should we use `IteratorRandom::choose_multiple` instead to work with solutions that don't impl `AsRef<[T]>`?
     S: Population<Individual: Clone> + AsRef<[S::Individual]>,
     E: Eval<P, S::Individual>,
     R: Rng,
@@ -93,6 +94,9 @@ where
         }
 
         // Run tournaments `selection_size` times and select the best individual from each
+        // NOTE: This does not guarantee that we won't select the same individual(s) multiple times. We also don't check
+        //       whether `selection_size <= population.len()`, so in case `selection_size` is larger than the number of
+        //       individuals available, we will invariably end up selecting repeated individuals, but this is fine.
         selected.clear();
         selected.reserve(self.selection_size);
         for _ in 0..self.selection_size {
