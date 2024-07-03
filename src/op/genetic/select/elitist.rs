@@ -2,6 +2,8 @@ use std::convert::Infallible;
 
 use crate::{eval::Eval, op::Operator, solution::Population};
 
+use super::Select;
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct ElitistSelector {
     selection_size: usize,
@@ -30,6 +32,7 @@ where
 
     type Error = Infallible;
 
+    #[inline]
     fn apply(
         &mut self,
         population: &mut S,
@@ -37,6 +40,34 @@ where
         eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {
+        self.select(population, problem, eval)
+    }
+}
+
+impl<P, S, E> Select<P, S, E> for ElitistSelector
+where
+    S: Population<Individual: Clone>,
+    E: Eval<P, S::Individual>,
+{
+    #[inline]
+    fn select(
+        &mut self,
+        population: &S,
+        problem: &P,
+        eval: &mut E,
+    ) -> Result<Vec<S::Individual>, Self::Error> {
+        let mut selected = Vec::with_capacity(self.selection_size);
+        self.select_into(population, problem, eval, &mut selected)?;
+        Ok(selected)
+    }
+
+    fn select_into(
+        &mut self,
+        population: &S,
+        problem: &P,
+        eval: &mut E,
+        selected: &mut Vec<S::Individual>,
+    ) -> Result<(), Self::Error> {
         // Create a list of indices to individuals in the solution sorted by their objective values
         self.indices.extend(0..population.len());
         self.indices.sort_by_cached_key(|&idx| {
@@ -48,7 +79,8 @@ where
         // Pick the `selection_size` best indivdiuals
         // NOTE: We don't check whether `selection_size <= population.len()`, so if `selection_size` is greater than the
         //       number of individuals available, we will invariably end up selecting repeated individuals, but this is fine.
-        let mut selected = Vec::with_capacity(self.selection_size);
+        selected.clear();
+        selected.reserve(self.selection_size);
         selected.extend(
             self.indices
                 .iter()
@@ -61,6 +93,6 @@ where
         // Clear the indices so that the next time we select we have a blank state (but with a reusable allocation)
         self.indices.clear();
 
-        Ok(selected)
+        Ok(())
     }
 }
