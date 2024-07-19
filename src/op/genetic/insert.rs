@@ -1,5 +1,8 @@
 use crate::{eval::Eval, op::Operator, solution::Population};
 
+mod elitist;
+pub use elitist::ElitistInserter;
+
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Insert<P, S, E>: Operator<P, S, E, Vec<S::Individual>>
 where
