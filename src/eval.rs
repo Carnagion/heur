@@ -1,3 +1,6 @@
+mod cached;
+pub use cached::Cached;
+
 mod from_fn;
 pub use from_fn::FromFn;
 
@@ -15,6 +18,15 @@ pub trait Eval<P, S> {
 
     #[must_use]
     fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective;
+
+    #[inline]
+    fn cached(self) -> Cached<Self>
+    where
+        Self: Sized,
+        Self::Objective: Copy,
+    {
+        Cached(self)
+    }
 }
 
 impl<T, P, S> Eval<P, S> for &mut T
