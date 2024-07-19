@@ -1,14 +1,20 @@
+use std::marker::PhantomData;
+
 use crate::{
     eval::Eval,
     op::{mutate::Mutate, search::Search, Operator},
     solution::{Individual, Population},
 };
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+// TODO: Manually impl common traits
 #[must_use]
-pub struct ForEach<T>(pub(super) T);
+pub struct ForEach<T, P, S, E, In = ()> {
+    pub(super) op: T,
+    #[allow(clippy::type_complexity)]
+    pub(super) _marker: PhantomData<fn() -> (P, S, E, In)>,
+}
 
-impl<T, P, S, E, In> Operator<P, S, E, In> for ForEach<T>
+impl<T, P, S, E, In> Operator<P, S, E, In> for ForEach<T, P, S, E, In>
 where
     T: Operator<P, Individual<S::Individual>, E, In, Output = In>,
     S: Population,
@@ -30,12 +36,12 @@ where
             .iter_mut()
             .map(Individual::from_mut)
             .try_fold(input, |input, solution| {
-                self.0.apply(solution, problem, eval, input)
+                self.op.apply(solution, problem, eval, input)
             })
     }
 }
 
-impl<T, P, S, E> Mutate<P, S, E> for ForEach<T>
+impl<T, P, S, E> Mutate<P, S, E> for ForEach<T, P, S, E>
 where
     T: Mutate<P, Individual<S::Individual>, E, Output = ()>,
     S: Population,
@@ -44,13 +50,13 @@ where
     #[inline]
     fn mutate(&mut self, population: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         for solution in population.iter_mut().map(Individual::from_mut) {
-            self.0.mutate(solution, problem, eval)?;
+            self.op.mutate(solution, problem, eval)?;
         }
         Ok(())
     }
 }
 
-impl<T, P, S, E> Search<P, S, E> for ForEach<T>
+impl<T, P, S, E> Search<P, S, E> for ForEach<T, P, S, E>
 where
     T: Search<P, Individual<S::Individual>, E, Output = ()>,
     S: Population,
@@ -59,7 +65,7 @@ where
     #[inline]
     fn search(&mut self, population: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         for solution in population.iter_mut().map(Individual::from_mut) {
-            self.0.search(solution, problem, eval)?;
+            self.op.search(solution, problem, eval)?;
         }
         Ok(())
     }

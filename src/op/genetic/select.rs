@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use crate::{eval::Eval, op::Operator, solution::Population};
 
 mod on_selected;
@@ -128,11 +130,14 @@ where
 }
 
 #[inline]
-pub fn on_selected<P, S, E, T>(op: T) -> OnSelected<T>
+pub fn on_selected<P, S, E, T>(op: T) -> OnSelected<T, P, S, E>
 where
     T: Operator<P, Vec<S::Individual>, E, Output = ()>,
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    OnSelected(op)
+    OnSelected {
+        op,
+        _marker: PhantomData,
+    }
 }

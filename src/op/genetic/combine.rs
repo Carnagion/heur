@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use crate::{eval::Eval, op::Operator, solution::Population};
 
 mod on_combined;
@@ -84,11 +86,14 @@ where
 }
 
 #[inline]
-pub fn on_combined<P, S, E, T>(op: T) -> OnCombined<T>
+pub fn on_combined<P, S, E, T>(op: T) -> OnCombined<T, P, S, E>
 where
     T: Operator<P, Vec<S::Individual>, E, Output = ()>,
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    OnCombined(op)
+    OnCombined {
+        op,
+        _marker: PhantomData,
+    }
 }

@@ -1,10 +1,16 @@
+use std::marker::PhantomData;
+
 use crate::{eval::Eval, op::Operator, solution::Population};
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+// TODO: Manually impl common traits
 #[must_use]
-pub struct OnSelected<T>(pub(super) T);
+pub struct OnSelected<T, P, S, E> {
+    pub(super) op: T,
+    #[allow(clippy::type_complexity)]
+    pub(super) _marker: PhantomData<fn() -> (P, S, E)>,
+}
 
-impl<T, P, S, E> Operator<P, S, E, Vec<S::Individual>> for OnSelected<T>
+impl<T, P, S, E> Operator<P, S, E, Vec<S::Individual>> for OnSelected<T, P, S, E>
 where
     T: Operator<P, Vec<S::Individual>, E, Output = ()>,
     S: Population,
@@ -22,7 +28,7 @@ where
         eval: &mut E,
         mut selected: Vec<S::Individual>,
     ) -> Result<Self::Output, Self::Error> {
-        self.0.apply(&mut selected, problem, eval, ())?;
+        self.op.apply(&mut selected, problem, eval, ())?;
         Ok(selected)
     }
 }
