@@ -1,4 +1,4 @@
-use std::convert::Infallible;
+use std::{cmp::Reverse, convert::Infallible};
 
 use crate::{eval::Eval, op::Operator, solution::Population};
 
@@ -73,7 +73,9 @@ where
         self.indices.sort_by_cached_key(|&idx| {
             // PANICS: The index is valid because it's between `0` and `population.len()`.
             let solution = population.get(idx).unwrap();
-            eval.eval(solution, problem)
+
+            // NOTE: We reverse the comparison order because we need the best (largest) objective values to be at the front.
+            Reverse(eval.eval(solution, problem))
         });
 
         // Pick the `selection_size` best indivdiuals
