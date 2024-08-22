@@ -26,7 +26,7 @@ fn main() {
     ils(&knapsack);
 }
 
-// This represents the problem data we are given while solving. A knapsack problem instance is comprised of a list of items,
+// This represents the problem data we are given while solving. A knapsack problem instance consists of a list of items,
 // each having a weight and a value, and a maximum capacity - i.e. the maximum weight the knapsack can hold.
 struct Knapsack {
     items: Vec<Item>,
