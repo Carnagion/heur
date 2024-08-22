@@ -27,9 +27,6 @@ pub use accept_if::AcceptIf;
 mod repeat;
 pub use repeat::{Repeat, RepeatUntil};
 
-mod alternate;
-pub use alternate::Alternate;
-
 mod unwrapped;
 pub use unwrapped::Unwrapped;
 
@@ -167,21 +164,6 @@ where
         F: Stop<P, S, E>,
     {
         RepeatUntil { op: self, cond }
-    }
-
-    #[inline]
-    fn alternate<U>(self, op: U) -> Alternate<Self, U>
-    where
-        Self: Sized,
-        U: Operator<P, S, E, In, Output = Self::Output, Error = Self::Error>,
-    {
-        Alternate {
-            first: self,
-            second: op,
-            // NOTE: This will get switched to `true` immediately upon the first invocation, and thus
-            //       will run `self` first as intended.
-            is_first: false,
-        }
     }
 
     #[inline]
