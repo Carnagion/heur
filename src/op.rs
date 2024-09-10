@@ -27,6 +27,9 @@ pub use accept_if::AcceptIf;
 mod repeat;
 pub use repeat::{Repeat, RepeatUntil};
 
+mod flatten;
+pub use flatten::{FlatMap, Flatten};
+
 mod unwrapped;
 pub use unwrapped::Unwrapped;
 
@@ -164,6 +167,25 @@ where
         F: Stop<P, S, E>,
     {
         RepeatUntil { op: self, cond }
+    }
+
+    #[inline]
+    fn flatten(self) -> Flatten<Self>
+    where
+        Self: Sized,
+        Self::Output: Operator<P, S, E, Error = Self::Error>,
+    {
+        Flatten(self)
+    }
+
+    #[inline]
+    fn flat_map<U, F>(self, f: F) -> FlatMap<Self, F>
+    where
+        Self: Sized,
+        F: FnMut(Self::Output) -> U,
+        U: Operator<P, S, E, Error = Self::Error>,
+    {
+        FlatMap { op: self, f }
     }
 
     #[inline]
