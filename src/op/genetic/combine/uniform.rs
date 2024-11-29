@@ -31,7 +31,7 @@ where
 
     type Error = UniformCrossoverError;
 
-    #[inline]
+    
     fn apply(
         &mut self,
         population: &mut S,

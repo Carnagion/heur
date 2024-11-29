@@ -39,7 +39,6 @@ where
 {
     type Error = T::Error;
 
-    #[inline]
     fn solve(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
         T::solve(self, problem, eval)
     }
@@ -53,7 +52,6 @@ where
 {
     type Error = T::Error;
 
-    #[inline]
     fn solve(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
         T::solve(self, problem, eval)
     }
@@ -69,7 +67,6 @@ where
 {
     type Error = L::Error;
 
-    #[inline]
     fn solve(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
         match self {
             Self::Left(left) => left.solve(problem, eval),

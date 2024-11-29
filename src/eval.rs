@@ -19,7 +19,7 @@ pub trait Eval<P, S> {
     #[must_use]
     fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective;
 
-    #[inline]
+    
     fn cached(self) -> Cached<Self>
     where
         Self: Sized,
@@ -35,7 +35,7 @@ where
 {
     type Objective = T::Objective;
 
-    #[inline]
+    
     fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective {
         T::eval(self, solution, problem)
     }
@@ -47,7 +47,7 @@ where
 {
     type Objective = T::Objective;
 
-    #[inline]
+    
     fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective {
         T::eval(self, solution, problem)
     }
@@ -61,7 +61,7 @@ where
 {
     type Objective = L::Objective;
 
-    #[inline]
+    
     fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective {
         match self {
             Self::Left(left) => left.eval(solution, problem),
@@ -70,7 +70,7 @@ where
     }
 }
 
-#[inline]
+
 pub fn from_fn<F, P, S, O>(f: F) -> FromFn<F>
 where
     F: FnMut(&S, &P) -> O,

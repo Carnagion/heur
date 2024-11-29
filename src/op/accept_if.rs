@@ -20,7 +20,7 @@ where
 
     type Error = T::Error;
 
-    #[inline]
+    
     fn apply(
         &mut self,
         solution: &mut S,
@@ -47,7 +47,7 @@ where
     S: Solution + Clone,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         let prev_solution = solution.clone();
 
@@ -67,7 +67,7 @@ where
     S: Solution + Clone,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         let prev_solution = solution.clone();
 

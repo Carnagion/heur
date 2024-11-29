@@ -22,7 +22,7 @@ where
 
     type Error = Err;
 
-    #[inline]
+    
     fn apply(
         &mut self,
         solution: &mut S,

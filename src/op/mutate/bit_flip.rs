@@ -19,7 +19,7 @@ pub struct FlipBit<R> {
 }
 
 impl<R> FlipBit<R> {
-    #[inline]
+    
     #[must_use]
     pub fn new(rng: R) -> Self {
         Self { rng }
@@ -36,7 +36,7 @@ where
 
     type Error = Infallible;
 
-    #[inline]
+    
     fn apply(
         &mut self,
         solution: &mut Individual<B>,
@@ -54,7 +54,7 @@ where
     E: Eval<P, B>,
     R: Rng,
 {
-    #[inline]
+    
     fn mutate(
         &mut self,
         solution: &mut Individual<B>,
@@ -78,7 +78,7 @@ pub struct FlipAllBits<R> {
 
 impl<R> FlipAllBits<R> {
     // TODO: Should we take an `f64` probability instead of a `Bernoulli` and return a `Result<Self, BernoulliError>`?
-    #[inline]
+    
     #[must_use]
     pub fn new(dist: Bernoulli, rng: R) -> Self {
         Self { dist, rng }
@@ -95,7 +95,7 @@ where
 
     type Error = Infallible;
 
-    #[inline]
+    
     fn apply(
         &mut self,
         solution: &mut Individual<B>,
@@ -113,7 +113,7 @@ where
     E: Eval<P, B>,
     R: Rng,
 {
-    #[inline]
+    
     fn mutate(
         &mut self,
         solution: &mut Individual<B>,

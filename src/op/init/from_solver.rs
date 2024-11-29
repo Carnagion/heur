@@ -20,7 +20,7 @@ where
 
     type Error = T::Error;
 
-    #[inline]
+    
     fn apply(
         &mut self,
         solution: &mut S,
@@ -38,7 +38,7 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
         self.0.solve(problem, eval)
     }

@@ -24,7 +24,7 @@ where
         eval: &mut E,
     ) -> Result<Vec<S::Individual>, Self::Error>;
 
-    #[inline]
+    
     fn select_into(
         &mut self,
         population: &S,
@@ -43,7 +43,7 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn select(
         &mut self,
         population: &S,
@@ -53,7 +53,7 @@ where
         T::select(self, population, problem, eval)
     }
 
-    #[inline]
+    
     fn select_into(
         &mut self,
         population: &S,
@@ -71,7 +71,7 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn select(
         &mut self,
         population: &S,
@@ -81,7 +81,7 @@ where
         T::select(self, population, problem, eval)
     }
 
-    #[inline]
+    
     fn select_into(
         &mut self,
         population: &S,
@@ -101,7 +101,7 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn select(
         &mut self,
         population: &S,
@@ -114,7 +114,7 @@ where
         }
     }
 
-    #[inline]
+    
     fn select_into(
         &mut self,
         population: &S,
@@ -129,7 +129,7 @@ where
     }
 }
 
-#[inline]
+
 pub fn on_selected<P, S, E, T>(op: T) -> OnSelected<T, P, S, E>
 where
     T: Operator<P, Vec<S::Individual>, E, Output = ()>,

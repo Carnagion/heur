@@ -19,7 +19,7 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn search(
         &mut self,
         _solution: &mut S,
@@ -36,7 +36,7 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         T::search(self, solution, problem, eval)
     }
@@ -48,7 +48,7 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         T::search(self, solution, problem, eval)
     }
@@ -60,7 +60,7 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         if let Some(op) = self {
             op.search(solution, problem, eval)?;
@@ -77,7 +77,7 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         match self {
             Self::Left(left) => left.search(solution, problem, eval),

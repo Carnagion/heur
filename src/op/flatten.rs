@@ -15,7 +15,7 @@ where
 
     type Error = T::Error;
 
-    #[inline]
+    
     fn apply(
         &mut self,
         solution: &mut S,
@@ -48,7 +48,7 @@ where
 
     type Error = T::Error;
 
-    #[inline]
+    
     fn apply(
         &mut self,
         solution: &mut S,

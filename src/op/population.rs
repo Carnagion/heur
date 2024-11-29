@@ -10,7 +10,7 @@ use super::Operator;
 mod for_each;
 pub use for_each::ForEach;
 
-#[inline]
+
 pub fn for_each<P, S, E, In, T>(op: T) -> ForEach<T, P, S, E, In>
 where
     T: Operator<P, Individual<S::Individual>, E, In, Output = In>,

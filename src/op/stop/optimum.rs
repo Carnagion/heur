@@ -6,7 +6,7 @@ use super::Stop;
 pub struct Optimum<O>(pub O);
 
 impl<O> Optimum<O> {
-    #[inline]
+    
     #[must_use]
     pub fn new(optimum: O) -> Self {
         Self(optimum)
@@ -18,7 +18,7 @@ where
     E: Eval<P, S, Objective = O>,
     O: Ord,
 {
-    #[inline]
+    
     fn stop(&mut self, solution: &Individual<S>, problem: &P, eval: &mut E) -> bool {
         eval.eval(solution, problem) >= self.0
     }

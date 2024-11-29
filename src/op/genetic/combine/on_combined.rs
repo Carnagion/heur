@@ -20,7 +20,7 @@ where
 
     type Error = T::Error;
 
-    #[inline]
+    
     fn apply(
         &mut self,
         _solution: &mut S,

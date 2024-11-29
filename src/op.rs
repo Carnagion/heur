@@ -77,7 +77,6 @@ where
         input: In,
     ) -> Result<Self::Output, Self::Error>;
 
-    #[inline]
     fn then<U>(self, op: U) -> Then<Self, U>
     where
         Self: Operator<P, S, E, Output = ()> + Sized,
@@ -89,7 +88,6 @@ where
         }
     }
 
-    #[inline]
     fn pipe<U>(self, to: U) -> Pipe<Self, U>
     where
         Self: Sized,
@@ -98,7 +96,6 @@ where
         Pipe { from: self, to }
     }
 
-    #[inline]
     fn ignore(self) -> Ignore<Self>
     where
         Self: Sized,
@@ -106,7 +103,6 @@ where
         Ignore(self)
     }
 
-    #[inline]
     fn map<Out, F>(self, f: F) -> Map<Self, F>
     where
         Self: Sized,
@@ -115,7 +111,6 @@ where
         Map { op: self, f }
     }
 
-    #[inline]
     fn map_err<Err, F>(self, f: F) -> MapErr<Self, F>
     where
         Self: Sized,
@@ -125,7 +120,6 @@ where
         MapErr { op: self, f }
     }
 
-    #[inline]
     fn try_map<Out, F>(self, f: F) -> TryMap<Self, F>
     where
         Self: Sized,
@@ -134,7 +128,6 @@ where
         TryMap { op: self, f }
     }
 
-    #[inline]
     fn once(self) -> Once<Self>
     where
         Self: Sized,
@@ -142,7 +135,6 @@ where
         Once(Some(self))
     }
 
-    #[inline]
     fn accept_if<F>(self, cond: F) -> AcceptIf<Self, F>
     where
         Self: Sized,
@@ -152,7 +144,6 @@ where
         AcceptIf { op: self, cond }
     }
 
-    #[inline]
     fn repeat(self, times: usize) -> Repeat<Self>
     where
         Self: Operator<P, S, E, In, Output = In> + Sized,
@@ -160,7 +151,6 @@ where
         Repeat { op: self, times }
     }
 
-    #[inline]
     fn repeat_until<F>(self, cond: F) -> RepeatUntil<Self, F>
     where
         Self: Operator<P, S, E, In, Output = In> + Sized,
@@ -169,7 +159,6 @@ where
         RepeatUntil { op: self, cond }
     }
 
-    #[inline]
     fn flatten(self) -> Flatten<Self>
     where
         Self: Sized,
@@ -178,7 +167,6 @@ where
         Flatten(self)
     }
 
-    #[inline]
     fn flat_map<U, F>(self, f: F) -> FlatMap<Self, F>
     where
         Self: Sized,
@@ -188,7 +176,6 @@ where
         FlatMap { op: self, f }
     }
 
-    #[inline]
     fn unwrapped(self) -> Unwrapped<Self>
     where
         Self: Sized,
@@ -196,7 +183,6 @@ where
         Unwrapped(self)
     }
 
-    #[inline]
     #[must_use]
     fn by_ref(&mut self) -> &mut Self
     where
@@ -205,7 +191,6 @@ where
         self
     }
 
-    #[inline]
     #[must_use]
     fn boxed<'a>(
         self,
@@ -227,7 +212,6 @@ where
 
     type Error = T::Error;
 
-    #[inline]
     fn apply(
         &mut self,
         solution: &mut S,
@@ -249,7 +233,6 @@ where
 
     type Error = T::Error;
 
-    #[inline]
     fn apply(
         &mut self,
         solution: &mut S,
@@ -273,7 +256,6 @@ where
 
     type Error = L::Error;
 
-    #[inline]
     fn apply(
         &mut self,
         solution: &mut S,
@@ -297,7 +279,6 @@ where
 
     type Error = Infallible;
 
-    #[inline]
     fn apply(
         &mut self,
         _solution: &mut S,
@@ -319,7 +300,6 @@ where
 
     type Error = T::Error;
 
-    #[inline]
     fn apply(
         &mut self,
         solution: &mut S,
@@ -333,7 +313,6 @@ where
     }
 }
 
-#[inline]
 pub fn from_fn<P, S, E, In, Out, Err, F>(f: F) -> FromFn<F>
 where
     F: FnMut(&mut S, &P, &mut E, In) -> Result<Out, Err>,
@@ -344,7 +323,6 @@ where
     FromFn(f)
 }
 
-#[inline]
 pub fn hint<P, S, E, In, T>(op: T) -> Hint<T, P, S, E, In>
 where
     T: Operator<P, S, E, In>,
@@ -357,7 +335,6 @@ where
     }
 }
 
-#[inline]
 pub fn todo<P, S, E, In, Out, Err>() -> Todo<P, S, E, In, Out, Err>
 where
     S: Solution,

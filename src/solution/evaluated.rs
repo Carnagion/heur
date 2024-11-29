@@ -15,7 +15,7 @@ pub struct Evaluated<S, O> {
 }
 
 impl<S, O> Evaluated<S, O> {
-    #[inline]
+    
     pub fn new(solution: S) -> Self {
         Self {
             solution,
@@ -23,12 +23,12 @@ impl<S, O> Evaluated<S, O> {
         }
     }
 
-    #[inline]
+    
     pub fn into_inner(this: Self) -> S {
         this.solution
     }
 
-    #[inline]
+    
     pub fn objective(&self) -> Option<O>
     where
         O: Copy,
@@ -36,7 +36,7 @@ impl<S, O> Evaluated<S, O> {
         self.objective.get()
     }
 
-    #[inline]
+    
     pub(crate) fn objective_or_eval<F>(&self, eval: F) -> O
     where
         F: FnOnce(&S) -> O,
@@ -56,14 +56,14 @@ impl<S, O> Evaluated<S, O> {
 impl<S, O> Deref for Evaluated<S, O> {
     type Target = S;
 
-    #[inline]
+    
     fn deref(&self) -> &Self::Target {
         &self.solution
     }
 }
 
 impl<S, O> DerefMut for Evaluated<S, O> {
-    #[inline]
+    
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.objective.set(None);
         &mut self.solution
@@ -75,7 +75,7 @@ where
     S: Clone,
     O: Copy,
 {
-    #[inline]
+    
     fn clone(&self) -> Self {
         Self {
             solution: self.solution.clone(),
@@ -89,7 +89,7 @@ where
     S: Debug,
     O: Debug + Copy,
 {
-    #[inline]
+    
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("Evaluated")

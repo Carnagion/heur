@@ -72,27 +72,27 @@ impl<T> Population for Vec<T> {
     where
         T: 'a;
 
-    #[inline]
+    
     fn len(&self) -> usize {
         self.len()
     }
 
-    #[inline]
+    
     fn get(&self, index: usize) -> Option<&Self::Individual> {
         self.as_slice().get(index)
     }
 
-    #[inline]
+    
     fn get_mut(&mut self, index: usize) -> Option<&mut Self::Individual> {
         self.as_mut_slice().get_mut(index)
     }
 
-    #[inline]
+    
     fn iter(&self) -> Self::Iter<'_> {
         self.as_slice().iter()
     }
 
-    #[inline]
+    
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
         self.as_mut_slice().iter_mut()
     }
@@ -107,27 +107,27 @@ impl<T, const N: usize> Population for [T; N] {
     where
         T: 'a;
 
-    #[inline]
+    
     fn len(&self) -> usize {
         self.as_slice().len()
     }
 
-    #[inline]
+    
     fn get(&self, index: usize) -> Option<&Self::Individual> {
         self.as_slice().get(index)
     }
 
-    #[inline]
+    
     fn get_mut(&mut self, index: usize) -> Option<&mut Self::Individual> {
         self.as_mut_slice().get_mut(index)
     }
 
-    #[inline]
+    
     fn iter(&self) -> Self::Iter<'_> {
         self.as_slice().iter()
     }
 
-    #[inline]
+    
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
         self.as_mut_slice().iter_mut()
     }
@@ -143,27 +143,27 @@ impl<T> Population for [T] {
     where
         T: 'a;
 
-    #[inline]
+    
     fn len(&self) -> usize {
         self.len()
     }
 
-    #[inline]
+    
     fn get(&self, index: usize) -> Option<&Self::Individual> {
         self.get(index)
     }
 
-    #[inline]
+    
     fn get_mut(&mut self, index: usize) -> Option<&mut Self::Individual> {
         self.get_mut(index)
     }
 
-    #[inline]
+    
     fn iter(&self) -> Self::Iter<'_> {
         self.iter()
     }
 
-    #[inline]
+    
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
         self.iter_mut()
     }
@@ -181,27 +181,27 @@ where
     where
         S: 'a;
 
-    #[inline]
+    
     fn len(&self) -> usize {
         S::len(self)
     }
 
-    #[inline]
+    
     fn get(&self, index: usize) -> Option<&Self::Individual> {
         self.as_ref().get(index)
     }
 
-    #[inline]
+    
     fn get_mut(&mut self, index: usize) -> Option<&mut Self::Individual> {
         self.as_mut().get_mut(index)
     }
 
-    #[inline]
+    
     fn iter(&self) -> Self::Iter<'_> {
         S::iter(self)
     }
 
-    #[inline]
+    
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
         S::iter_mut(self)
     }
@@ -216,27 +216,27 @@ impl<T> Population for VecDeque<T> {
     where
         T: 'a;
 
-    #[inline]
+    
     fn len(&self) -> usize {
         self.len()
     }
 
-    #[inline]
+    
     fn get(&self, index: usize) -> Option<&Self::Individual> {
         self.get(index)
     }
 
-    #[inline]
+    
     fn get_mut(&mut self, index: usize) -> Option<&mut Self::Individual> {
         self.get_mut(index)
     }
 
-    #[inline]
+    
     fn iter(&self) -> Self::Iter<'_> {
         self.iter()
     }
 
-    #[inline]
+    
     fn iter_mut(&mut self) -> Self::IterMut<'_> {
         self.iter_mut()
     }

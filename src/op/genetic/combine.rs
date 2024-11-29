@@ -32,7 +32,7 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn combine(
         &mut self,
         population: &S,
@@ -50,7 +50,7 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn combine(
         &mut self,
         population: &S,
@@ -70,7 +70,7 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn combine(
         &mut self,
         population: &S,
@@ -85,7 +85,7 @@ where
     }
 }
 
-#[inline]
+
 pub fn on_combined<P, S, E, T>(op: T) -> OnCombined<T, P, S, E>
 where
     T: Operator<P, Vec<S::Individual>, E, Output = ()>,

@@ -31,7 +31,7 @@ where
 
     type Error = T::Error;
 
-    #[inline]
+    
     fn apply(
         &mut self,
         solution: &mut S,
@@ -49,12 +49,12 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
         self.op.init(problem, eval)
     }
 
-    #[inline]
+    
     fn init_into(
         &mut self,
         solution: &mut S,
@@ -71,7 +71,7 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         self.op.mutate(solution, problem, eval)
     }
@@ -83,7 +83,7 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         self.op.search(solution, problem, eval)
     }
@@ -95,7 +95,7 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn select(
         &mut self,
         population: &S,
@@ -105,7 +105,7 @@ where
         self.op.select(population, problem, eval)
     }
 
-    #[inline]
+    
     fn select_into(
         &mut self,
         population: &S,
@@ -123,7 +123,7 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn combine(
         &mut self,
         population: &S,
@@ -141,7 +141,7 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn insert(
         &mut self,
         population: &mut S,

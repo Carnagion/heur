@@ -22,7 +22,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
     fn accept(&mut self, solution: &S, prev_solution: &S, problem: &P, eval: &mut E) -> bool {
         T::accept(self, solution, prev_solution, problem, eval)
     }
@@ -34,7 +33,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
     fn accept(&mut self, solution: &S, prev_solution: &S, problem: &P, eval: &mut E) -> bool {
         T::accept(self, solution, prev_solution, problem, eval)
     }
@@ -48,7 +46,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
     fn accept(&mut self, solution: &S, prev_solution: &S, problem: &P, eval: &mut E) -> bool {
         match self {
             Self::Left(left) => left.accept(solution, prev_solution, problem, eval),

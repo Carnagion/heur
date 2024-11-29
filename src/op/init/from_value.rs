@@ -21,7 +21,7 @@ where
 
     type Error = Infallible;
 
-    #[inline]
+    
     fn apply(
         &mut self,
         solution: &mut Individual<S>,
@@ -38,12 +38,12 @@ where
     S: Clone,
     E: Eval<P, S>,
 {
-    #[inline]
+    
     fn init(&mut self, _problem: &P, _eval: &mut E) -> Result<Individual<S>, Self::Error> {
         Ok(Individual::new(self.0.clone()))
     }
 
-    #[inline]
+    
     fn init_into(
         &mut self,
         solution: &mut Individual<S>,
@@ -68,7 +68,7 @@ where
 
     type Error = Infallible;
 
-    #[inline]
+    
     fn apply(
         &mut self,
         solution: &mut S,
@@ -85,12 +85,12 @@ where
     S: Population + Clone,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn init(&mut self, _problem: &P, _eval: &mut E) -> Result<S, Self::Error> {
         Ok(self.0.clone())
     }
 
-    #[inline]
+    
     fn init_into(
         &mut self,
         solution: &mut S,
@@ -115,7 +115,7 @@ where
 
     type Error = Infallible;
 
-    #[inline]
+    
     fn apply(
         &mut self,
         solution: &mut S,
@@ -133,7 +133,7 @@ where
     S: Solution + Default,
     E: Eval<P, S::Individual>,
 {
-    #[inline]
+    
     fn init(&mut self, _problem: &P, _eval: &mut E) -> Result<S, Self::Error> {
         Ok(S::default())
     }
