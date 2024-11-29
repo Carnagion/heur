@@ -64,6 +64,18 @@ impl<S, O> DerefMut for Evaluated<S, O> {
     }
 }
 
+impl<S, O> AsRef<S> for Evaluated<S, O> {
+    fn as_ref(&self) -> &S {
+        &*self
+    }
+}
+
+impl<S, O> AsMut<S> for Evaluated<S, O> {
+    fn as_mut(&mut self) -> &mut S {
+        &mut *self
+    }
+}
+
 impl<S, O> Clone for Evaluated<S, O>
 where
     S: Clone,

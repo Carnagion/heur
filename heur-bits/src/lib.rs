@@ -11,6 +11,8 @@ pub use flip::{FlipAllBits, FlipBit};
 mod climb;
 pub use climb::{FirstAscentBitClimb, SteepestAscentBitClimb};
 
+use heur_core::solution::Evaluated;
+
 // TODO: 1. Add `#[diagnostic::on_unimplemented]`
 //       2. Impl `Bits` for types from `smallvec`, `arrayvec`, `tinyvec`, `heapless`, `im`, and/or `bitvec`
 pub trait Bits {
@@ -108,6 +110,31 @@ impl Bits for VecDeque<bool> {
 impl<B> Bits for Box<B>
 where
     B: Bits + ?Sized,
+{
+    fn len(&self) -> usize {
+        self.as_ref().len()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.as_ref().is_empty()
+    }
+
+    fn get(&self, index: usize) -> Option<bool> {
+        self.as_ref().get(index)
+    }
+
+    fn set(&mut self, index: usize, bit: bool) -> Option<bool> {
+        self.as_mut().set(index, bit)
+    }
+
+    fn flip(&mut self, index: usize) -> Option<bool> {
+        self.as_mut().flip(index)
+    }
+}
+
+impl<S, O> Bits for Evaluated<S, O>
+where
+    S: Bits,
 {
     fn len(&self) -> usize {
         self.as_ref().len()
