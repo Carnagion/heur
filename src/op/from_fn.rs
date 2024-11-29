@@ -22,7 +22,6 @@ where
 
     type Error = Err;
 
-    
     fn apply(
         &mut self,
         solution: &mut S,

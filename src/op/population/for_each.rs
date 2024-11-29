@@ -24,7 +24,6 @@ where
 
     type Error = T::Error;
 
-    
     fn apply(
         &mut self,
         population: &mut S,
@@ -47,7 +46,6 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    
     fn mutate(&mut self, population: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         for solution in population.iter_mut().map(Individual::from_mut) {
             self.op.mutate(solution, problem, eval)?;
@@ -62,7 +60,6 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    
     fn search(&mut self, population: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         for solution in population.iter_mut().map(Individual::from_mut) {
             self.op.search(solution, problem, eval)?;

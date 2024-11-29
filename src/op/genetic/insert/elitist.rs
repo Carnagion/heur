@@ -12,7 +12,6 @@ pub struct ElitistInserter {
 }
 
 impl ElitistInserter {
-    
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -30,7 +29,6 @@ where
 
     type Error = Infallible;
 
-    
     fn apply(
         &mut self,
         population: &mut S,
@@ -47,7 +45,6 @@ where
     S: Population<Individual: Clone>,
     E: Eval<P, S::Individual>,
 {
-    
     fn insert(
         &mut self,
         population: &mut S,

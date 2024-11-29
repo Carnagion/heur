@@ -6,7 +6,6 @@ use super::Accept;
 pub struct Always;
 
 impl Always {
-    
     #[must_use]
     pub fn new() -> Self {
         Self
@@ -18,7 +17,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn accept(&mut self, _solution: &S, _prev_solution: &S, _problem: &P, _eval: &mut E) -> bool {
         true
     }
@@ -28,7 +26,6 @@ where
 pub struct Never;
 
 impl Never {
-    
     #[must_use]
     pub fn new() -> Self {
         Self
@@ -40,7 +37,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn accept(&mut self, _solution: &S, _prev_solution: &S, _problem: &P, _eval: &mut E) -> bool {
         false
     }

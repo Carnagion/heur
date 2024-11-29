@@ -24,7 +24,6 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    
     fn insert(
         &mut self,
         population: &mut S,
@@ -42,7 +41,6 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    
     fn insert(
         &mut self,
         population: &mut S,
@@ -62,7 +60,6 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    
     fn insert(
         &mut self,
         population: &mut S,

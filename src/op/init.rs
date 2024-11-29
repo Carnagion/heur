@@ -21,7 +21,6 @@ where
 {
     fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error>;
 
-    
     fn init_into(
         &mut self,
         solution: &mut S,
@@ -39,12 +38,10 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
         T::init(self, problem, eval)
     }
 
-    
     fn init_into(
         &mut self,
         solution: &mut S,
@@ -61,12 +58,10 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
         T::init(self, problem, eval)
     }
 
-    
     fn init_into(
         &mut self,
         solution: &mut S,
@@ -85,7 +80,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
         match self {
             Self::Left(left) => left.init(problem, eval),
@@ -93,7 +87,6 @@ where
         }
     }
 
-    
     fn init_into(
         &mut self,
         solution: &mut S,
@@ -107,14 +100,12 @@ where
     }
 }
 
-
 pub fn from_individual<S>(individual: S) -> FromIndividual<S>
 where
     S: Clone,
 {
     FromIndividual(individual)
 }
-
 
 pub fn from_population<S>(population: S) -> FromPopulation<S>
 where
@@ -123,14 +114,12 @@ where
     FromPopulation(population)
 }
 
-
 pub fn from_default<S>() -> FromDefault<S>
 where
     S: Solution + Default,
 {
     FromDefault(PhantomData)
 }
-
 
 pub fn from_solver<P, S, E, T>(solver: T) -> FromSolver<T>
 where

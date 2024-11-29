@@ -13,7 +13,6 @@ pub struct ElitistSelector {
 }
 
 impl ElitistSelector {
-    
     #[must_use]
     pub fn new(selection_size: usize) -> Self {
         Self {
@@ -32,7 +31,6 @@ where
 
     type Error = Infallible;
 
-    
     fn apply(
         &mut self,
         population: &mut S,
@@ -49,7 +47,6 @@ where
     S: Population<Individual: Clone>,
     E: Eval<P, S::Individual>,
 {
-    
     fn select(
         &mut self,
         population: &S,

@@ -19,7 +19,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn mutate(
         &mut self,
         _solution: &mut S,
@@ -36,7 +35,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         T::mutate(self, solution, problem, eval)
     }
@@ -48,7 +46,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         T::mutate(self, solution, problem, eval)
     }
@@ -60,7 +57,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         if let Some(op) = self {
             op.mutate(solution, problem, eval)?;
@@ -77,7 +73,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         match self {
             Self::Left(left) => left.mutate(solution, problem, eval),

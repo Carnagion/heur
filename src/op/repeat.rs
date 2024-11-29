@@ -19,7 +19,6 @@ where
 
     type Error = T::Error;
 
-    
     fn apply(
         &mut self,
         solution: &mut S,
@@ -40,7 +39,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         for _ in 0..self.times {
             self.op.mutate(solution, problem, eval)?;
@@ -55,7 +53,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         for _ in 0..self.times {
             self.op.search(solution, problem, eval)?;
@@ -82,7 +79,6 @@ where
 
     type Error = T::Error;
 
-    
     fn apply(
         &mut self,
         solution: &mut S,
@@ -104,7 +100,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         while !self.cond.stop(solution, problem, eval) {
             self.op.mutate(solution, problem, eval)?;
@@ -120,7 +115,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         while !self.cond.stop(solution, problem, eval) {
             self.op.search(solution, problem, eval)?;

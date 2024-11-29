@@ -16,7 +16,6 @@ where
 
     type Error = T::Error;
 
-    
     fn apply(
         &mut self,
         solution: &mut S,
@@ -34,7 +33,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         self.0.take().mutate(solution, problem, eval)
     }
@@ -46,7 +44,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         self.0.take().search(solution, problem, eval)
     }

@@ -32,7 +32,6 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    
     fn combine(
         &mut self,
         population: &S,
@@ -50,7 +49,6 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    
     fn combine(
         &mut self,
         population: &S,
@@ -70,7 +68,6 @@ where
     S: Population,
     E: Eval<P, S::Individual>,
 {
-    
     fn combine(
         &mut self,
         population: &S,
@@ -84,7 +81,6 @@ where
         }
     }
 }
-
 
 pub fn on_combined<P, S, E, T>(op: T) -> OnCombined<T, P, S, E>
 where

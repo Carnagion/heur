@@ -6,7 +6,6 @@ use super::Accept;
 pub struct Improving;
 
 impl Improving {
-    
     #[must_use]
     pub fn new() -> Self {
         Self
@@ -17,7 +16,6 @@ impl<P, S, E> Accept<P, Individual<S>, E> for Improving
 where
     E: Eval<P, S>,
 {
-    
     fn accept(
         &mut self,
         solution: &Individual<S>,
@@ -33,7 +31,6 @@ where
 pub struct NonWorsening;
 
 impl NonWorsening {
-    
     #[must_use]
     pub fn new() -> Self {
         Self
@@ -44,7 +41,6 @@ impl<P, S, E> Accept<P, Individual<S>, E> for NonWorsening
 where
     E: Eval<P, S>,
 {
-    
     fn accept(
         &mut self,
         solution: &Individual<S>,

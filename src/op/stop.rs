@@ -22,7 +22,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn stop(&mut self, solution: &S, problem: &P, eval: &mut E) -> bool {
         T::stop(self, solution, problem, eval)
     }
@@ -34,7 +33,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn stop(&mut self, solution: &S, problem: &P, eval: &mut E) -> bool {
         T::stop(self, solution, problem, eval)
     }
@@ -48,7 +46,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    
     fn stop(&mut self, solution: &S, problem: &P, eval: &mut E) -> bool {
         match self {
             Self::Left(left) => left.stop(solution, problem, eval),

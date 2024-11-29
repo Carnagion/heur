@@ -13,7 +13,6 @@ where
 {
     type Objective = O;
 
-    
     fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective {
         (self.0)(solution, problem)
     }

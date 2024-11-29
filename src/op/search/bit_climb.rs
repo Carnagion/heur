@@ -12,7 +12,6 @@ use super::Search;
 pub struct FirstAscentBitClimb;
 
 impl FirstAscentBitClimb {
-    
     #[must_use]
     pub fn new() -> Self {
         Self
@@ -28,7 +27,6 @@ where
 
     type Error = Infallible;
 
-    
     fn apply(
         &mut self,
         solution: &mut Individual<B>,
@@ -77,7 +75,6 @@ where
 pub struct SteepestAscentBitClimb;
 
 impl SteepestAscentBitClimb {
-    
     #[must_use]
     pub fn new() -> Self {
         Self
@@ -93,7 +90,6 @@ where
 
     type Error = Infallible;
 
-    
     fn apply(
         &mut self,
         solution: &mut Individual<B>,

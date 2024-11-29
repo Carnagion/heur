@@ -18,7 +18,6 @@ pub struct TournamentSelector<R> {
 }
 
 impl<R> TournamentSelector<R> {
-    
     #[must_use]
     pub fn new(tournament_size: usize, selection_size: usize, rng: R) -> Self {
         Self {
@@ -40,7 +39,6 @@ where
 
     type Error = TournamentSelectError;
 
-    
     fn apply(
         &mut self,
         population: &mut S,
@@ -58,7 +56,6 @@ where
     E: Eval<P, S::Individual>,
     R: Rng,
 {
-    
     fn select(
         &mut self,
         population: &S,

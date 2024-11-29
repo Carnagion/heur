@@ -12,7 +12,6 @@ where
 {
     type Objective = T::Objective;
 
-    
     fn eval(&mut self, solution: &Evaluated<S, T::Objective>, problem: &P) -> Self::Objective {
         solution.objective_or_eval(|solution| self.0.eval(solution, problem))
     }

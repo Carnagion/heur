@@ -20,7 +20,6 @@ where
 
     type Error = Err;
 
-    
     fn apply(
         &mut self,
         _solution: &mut S,
@@ -38,7 +37,6 @@ where
     E: Eval<P, S::Individual>,
     Err: Error,
 {
-    
     fn init(&mut self, _problem: &P, _eval: &mut E) -> Result<S, Self::Error> {
         todo!()
     }
@@ -50,7 +48,6 @@ where
     E: Eval<P, S::Individual>,
     Err: Error,
 {
-    
     fn mutate(
         &mut self,
         _solution: &mut S,
@@ -67,7 +64,6 @@ where
     E: Eval<P, S::Individual>,
     Err: Error,
 {
-    
     fn search(
         &mut self,
         _solution: &mut S,

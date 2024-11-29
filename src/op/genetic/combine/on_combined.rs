@@ -20,7 +20,6 @@ where
 
     type Error = T::Error;
 
-    
     fn apply(
         &mut self,
         _solution: &mut S,
