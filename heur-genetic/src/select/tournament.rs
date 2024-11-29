@@ -5,7 +5,7 @@ use std::{
 
 use rand::{seq::SliceRandom, Rng};
 
-use crate::{eval::Eval, op::Operator, solution::Population};
+use heur_core::{eval::Eval, op::Operator, solution::Population};
 
 use super::Select;
 

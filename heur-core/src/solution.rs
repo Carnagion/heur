@@ -11,8 +11,6 @@ pub use population::Population;
 mod evaluated;
 pub use evaluated::Evaluated;
 
-pub mod bits;
-
 // TODO: 1. Impl `Solution` for types from `smallvec`, `arrayvec`, `tinyvec`, `heapless`, and/or `im`
 //       2. Add `#[diagnostic::on_unimplemented]`
 pub trait Solution {

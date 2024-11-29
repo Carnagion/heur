@@ -1,4 +1,15 @@
+#![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
+#![deny(rust_2018_idioms)]
+// #![warn(missing_docs)] // TODO: Enable once finished
+#![deny(rustdoc::broken_intra_doc_links)]
+
 use std::{collections::VecDeque, mem};
+
+mod flip;
+pub use flip::{FlipAllBits, FlipBit};
+
+mod climb;
+pub use climb::{FirstAscentBitClimb, SteepestAscentBitClimb};
 
 // TODO: 1. Add `#[diagnostic::on_unimplemented]`
 //       2. Impl `Bits` for types from `smallvec`, `arrayvec`, `tinyvec`, `heapless`, `im`, and/or `bitvec`

@@ -1,22 +1,13 @@
 use std::marker::PhantomData;
 
-use crate::{
-    eval::Eval,
-    solution::{Population, Solution},
-};
+use crate::{eval::Eval, solution::Solution};
 
-use super::{
-    genetic::{combine::Combine, insert::Insert, select::Select},
-    init::Init,
-    mutate::Mutate,
-    search::Search,
-    Operator,
-};
+use super::{init::Init, mutate::Mutate, search::Search, Operator};
 
 // TODO: Manually impl common traits
 #[must_use]
 pub struct Hint<T, P, S, E, In = ()> {
-    pub(super) op: T,
+    pub op: T,
     #[allow(clippy::type_complexity)]
     pub(super) _marker: PhantomData<fn() -> (P, S, E, In)>,
 }
@@ -81,65 +72,5 @@ where
 {
     fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
         self.op.search(solution, problem, eval)
-    }
-}
-
-impl<T, P, S, E> Select<P, S, E> for Hint<T, P, S, E>
-where
-    T: Select<P, S, E>,
-    S: Population,
-    E: Eval<P, S::Individual>,
-{
-    fn select(
-        &mut self,
-        population: &S,
-        problem: &P,
-        eval: &mut E,
-    ) -> Result<Vec<S::Individual>, Self::Error> {
-        self.op.select(population, problem, eval)
-    }
-
-    fn select_into(
-        &mut self,
-        population: &S,
-        problem: &P,
-        eval: &mut E,
-        selected: &mut Vec<S::Individual>,
-    ) -> Result<(), Self::Error> {
-        self.op.select_into(population, problem, eval, selected)
-    }
-}
-
-impl<T, P, S, E> Combine<P, S, E> for Hint<T, P, S, E, Vec<S::Individual>>
-where
-    T: Combine<P, S, E>,
-    S: Population,
-    E: Eval<P, S::Individual>,
-{
-    fn combine(
-        &mut self,
-        population: &S,
-        problem: &P,
-        eval: &mut E,
-        selected: Vec<S::Individual>,
-    ) -> Result<Vec<S::Individual>, Self::Error> {
-        self.op.combine(population, problem, eval, selected)
-    }
-}
-
-impl<T, P, S, E> Insert<P, S, E> for Hint<T, P, S, E, Vec<S::Individual>>
-where
-    T: Insert<P, S, E>,
-    S: Population,
-    E: Eval<P, S::Individual>,
-{
-    fn insert(
-        &mut self,
-        population: &mut S,
-        problem: &P,
-        eval: &mut E,
-        combined: Vec<S::Individual>,
-    ) -> Result<(), Self::Error> {
-        self.op.insert(population, problem, eval, combined)
     }
 }

@@ -5,13 +5,13 @@ use rand::{
     Rng,
 };
 
-use crate::{
+use heur_core::{
     eval::Eval,
-    op::Operator,
-    solution::{bits::Bits, Individual},
+    op::{mutate::Mutate, Operator},
+    solution::Individual,
 };
 
-use super::Mutate;
+use crate::Bits;
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct FlipBit<R> {

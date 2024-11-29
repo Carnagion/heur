@@ -1,14 +1,7 @@
 use heur::{
+    bits::{FlipAllBits, SteepestAscentBitClimb},
     eval::{self, Eval},
-    op::{
-        self,
-        accept::NonWorsening,
-        init,
-        mutate::FlipAllBits,
-        search::SteepestAscentBitClimb,
-        stop::Iterations,
-        Operator,
-    },
+    op::{self, accept::NonWorsening, init, stop::Iterations, Operator},
     solution::{Individual, Solve},
 };
 

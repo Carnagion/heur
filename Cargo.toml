@@ -9,16 +9,24 @@ cargo-args = ["-Z", "unstable-options", "-Z", "rustdoc-scrape-examples"]
 rustdoc-args = ["--generate-link-to-definition", "--cfg", "docsrs"]
 
 [dependencies]
-either = { version = "1.12.0", optional = true }                             # TODO: Do we need the default `use_std` feature?
-rand = { version = "0.8.5", default-features = false, features = ["alloc"] } # TODO: Should we gate default features behind an `std` or `alloc` feature?
+heur-core = { version = "0.1.0", path = "heur-core/" }
+heur-bits = { version = "0.1.0", path = "heur-bits/", optional = true }
+heur-genetic = { version = "0.1.0", path = "heur-genetic/", optional = true }
 
 [features]
-either = ["dep:either"]
+default = []
+either = ["heur-core/either", "heur-bits?/either", "heur-genetic?/either"]
+bits = ["dep:heur-bits"]
+genetic = ["dep:heur-genetic"]
 
 [[example]]
 name = "knapsack"
 doc-scrape-examples = true
+required-features = ["bits"]
 
 [dev-dependencies]
 ordered-float = "4.2.0" # TODO: Do we need the default `std` feature?
 rand = "0.8.5"          # NOTE: Declared here again since we need `ThreadRng`, which requires the default `std` feature
+
+[workspace]
+members = ["heur-core", "heur-bits", "heur-genetic"]

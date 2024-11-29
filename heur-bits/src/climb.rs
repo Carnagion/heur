@@ -1,12 +1,12 @@
 use std::convert::Infallible;
 
-use crate::{
+use heur_core::{
     eval::Eval,
-    op::Operator,
-    solution::{bits::Bits, Individual},
+    op::{search::Search, Operator},
+    solution::Individual,
 };
 
-use super::Search;
+use crate::Bits;
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct FirstAscentBitClimb;

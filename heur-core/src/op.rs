@@ -50,8 +50,6 @@ pub mod search;
 
 pub mod population;
 
-pub mod genetic;
-
 pub mod accept;
 
 pub mod stop;

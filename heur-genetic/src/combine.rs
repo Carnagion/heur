@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{eval::Eval, op::Operator, solution::Population};
+use heur_core::{eval::Eval, op::Operator, solution::Population};
 
 mod on_combined;
 pub use on_combined::OnCombined;

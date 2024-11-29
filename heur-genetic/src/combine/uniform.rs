@@ -10,7 +10,7 @@ use rand::{
     Rng,
 };
 
-use crate::{eval::Eval, op::Operator, solution::Population};
+use heur_core::{eval::Eval, op::Operator, solution::Population};
 
 use super::Combine;
 

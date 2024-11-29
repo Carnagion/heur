@@ -3,13 +3,8 @@
 // #![warn(missing_docs)] // TODO: Enable once finished
 #![deny(rustdoc::broken_intra_doc_links)]
 
-#[doc(inline)]
-pub use heur_core::*;
+pub mod solution;
 
-#[cfg(feature = "bits")]
-#[doc(inline)]
-pub use heur_bits as bits;
+pub mod eval;
 
-#[cfg(feature = "genetic")]
-#[doc(inline)]
-pub use heur_genetic as genetic;
+pub mod op;

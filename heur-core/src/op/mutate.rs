@@ -2,9 +2,6 @@ use crate::{eval::Eval, solution::Solution};
 
 use super::Operator;
 
-mod bit_flip;
-pub use bit_flip::{FlipAllBits, FlipBit};
-
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Mutate<P, S, E>: Operator<P, S, E>
 where

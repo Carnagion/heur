@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{eval::Eval, op::Operator, solution::Population};
+use heur_core::{eval::Eval, op::Operator, solution::Population};
 
 // TODO: Manually impl common traits
 #[must_use]

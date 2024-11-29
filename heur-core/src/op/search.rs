@@ -2,9 +2,6 @@ use crate::{eval::Eval, solution::Solution};
 
 use super::Operator;
 
-mod bit_climb;
-pub use bit_climb::{FirstAscentBitClimb, SteepestAscentBitClimb};
-
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Search<P, S, E>: Operator<P, S, E>
 where

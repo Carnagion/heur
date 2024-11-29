@@ -1,6 +1,6 @@
 use std::convert::Infallible;
 
-use crate::{eval::Eval, op::Operator, solution::Population};
+use heur_core::{eval::Eval, op::Operator, solution::Population};
 
 use super::Insert;
 
