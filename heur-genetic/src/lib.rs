@@ -26,7 +26,7 @@ where
         problem: &P,
         eval: &mut E,
     ) -> Result<Vec<S::Individual>, Self::Error> {
-        self.op.select(population, problem, eval)
+        self.as_mut().select(population, problem, eval)
     }
 
     fn select_into(
@@ -36,7 +36,8 @@ where
         eval: &mut E,
         selected: &mut Vec<S::Individual>,
     ) -> Result<(), Self::Error> {
-        self.op.select_into(population, problem, eval, selected)
+        self.as_mut()
+            .select_into(population, problem, eval, selected)
     }
 }
 
@@ -53,7 +54,7 @@ where
         eval: &mut E,
         selected: Vec<S::Individual>,
     ) -> Result<Vec<S::Individual>, Self::Error> {
-        self.op.combine(population, problem, eval, selected)
+        self.as_mut().combine(population, problem, eval, selected)
     }
 }
 
@@ -70,6 +71,6 @@ where
         eval: &mut E,
         combined: Vec<S::Individual>,
     ) -> Result<(), Self::Error> {
-        self.op.insert(population, problem, eval, combined)
+        self.as_mut().insert(population, problem, eval, combined)
     }
 }

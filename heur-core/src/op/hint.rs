@@ -7,9 +7,21 @@ use super::{init::Init, mutate::Mutate, search::Search, Operator};
 // TODO: Manually impl common traits
 #[must_use]
 pub struct Hint<T, P, S, E, In = ()> {
-    pub op: T,
+    pub(crate) op: T,
     #[allow(clippy::type_complexity)]
     pub(super) _marker: PhantomData<fn() -> (P, S, E, In)>,
+}
+
+impl<T, P, S, E, In> AsRef<T> for Hint<T, P, S, E, In> {
+    fn as_ref(&self) -> &T {
+        &self.op
+    }
+}
+
+impl<T, P, S, E, In> AsMut<T> for Hint<T, P, S, E, In> {
+    fn as_mut(&mut self) -> &mut T {
+        &mut self.op
+    }
 }
 
 impl<T, P, S, E, In> Operator<P, S, E, In> for Hint<T, P, S, E, In>
