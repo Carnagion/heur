@@ -25,9 +25,9 @@ where
         _solution: &mut S,
         problem: &P,
         eval: &mut E,
-        mut selected: Vec<S::Individual>,
+        mut combined: Vec<S::Individual>,
     ) -> Result<Self::Output, Self::Error> {
-        self.op.apply(&mut selected, problem, eval, ())?;
-        Ok(selected)
+        self.op.apply(&mut combined, problem, eval, ())?;
+        Ok(combined)
     }
 }
