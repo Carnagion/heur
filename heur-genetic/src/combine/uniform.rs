@@ -20,6 +20,13 @@ pub struct UniformCrossover<R> {
     rng: R,
 }
 
+impl<R> UniformCrossover<R> {
+    #[must_use]
+    pub fn new(dist: Bernoulli, rng: R) -> Self {
+        Self { dist, rng }
+    }
+}
+
 impl<P, S, E, R, T> Operator<P, S, E, Vec<S::Individual>> for UniformCrossover<R>
 where
     S: Population<Individual: Clone>,
