@@ -24,6 +24,11 @@ name = "knapsack"
 doc-scrape-examples = true
 required-features = ["bits"]
 
+[[example]]
+name = "n_queens"
+doc-scrape-examples = true
+required-features = ["genetic"]
+
 [dev-dependencies]
 ordered-float = "4.2.0" # TODO: Do we need the default `std` feature?
 rand = "0.8.5"          # NOTE: Declared here again since we need `ThreadRng`, which requires the default `std` feature
