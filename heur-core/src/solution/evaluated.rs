@@ -66,13 +66,13 @@ impl<S, O> DerefMut for Evaluated<S, O> {
 
 impl<S, O> AsRef<S> for Evaluated<S, O> {
     fn as_ref(&self) -> &S {
-        &*self
+        self
     }
 }
 
 impl<S, O> AsMut<S> for Evaluated<S, O> {
     fn as_mut(&mut self) -> &mut S {
-        &mut *self
+        self
     }
 }
 
