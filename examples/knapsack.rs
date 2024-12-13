@@ -68,6 +68,7 @@ fn cost(solution: &Solution, knapsack: &Knapsack) -> NotNan<f64> {
 fn ils(knapsack: &Knapsack) {
     // Create an objective function that can be given to the metaheuristic. This example uses `eval::from_fn` to wrap up
     // the objective function above, but you could create a custom type and impl `Eval` for it manually like so:
+    //
     // ```rs
     // struct Cost;
     //
@@ -101,14 +102,15 @@ fn ils(knapsack: &Knapsack) {
     // ambiguous types/impls.
     //
     // Note that we could have also handwritten the metaheuristic like so, which is equivalent to the combinator-based version:
+    //
     // ```rs
     // let mut solution = init.init(knapsack, &mut eval).unwrap();
     //
     // while !stop.stop(&solution, knapsack, &mut eval) {
     //     let prev_solution = solution.clone();
     //
-    //     mutate.mutate(&mut solution, knapsack, &mut eval).unwrap();
-    //     local_search.search(&mut solution, knapsack, &mut eval).unwrap();
+    //     mutate.mutate(&mut solution, knapsack, &mut eval)?;
+    //     local_search.search(&mut solution, knapsack, &mut eval)?;
     //
     //     if !accept.accept(&solution, &prev_solution, knapsack, &mut eval) {
     //         solution = prev_solution;
@@ -133,11 +135,13 @@ fn ils(knapsack: &Knapsack) {
     // In this case, all operators chosen above have an error type of `Infallible`, so the error type of their combination is
     // also `Infallible` and we can safely unwrap the result. For more complex operators, they may return errors, which you
     // would want to handle properly.
-    let solution: Individual<_> = ils.solve(knapsack, &mut eval).unwrap();
+    //
+    // Since we started with an individual solution (see `init::from_individual`), we get back an individual as well.
+    let solution: Individual<Solution> = ils.solve(knapsack, &mut eval).unwrap();
 
-    // Evaluate the solution and print it. Note that since we only ran the metaheuristic for 1000 iterations (see the `stop`
-    // operator above), we will likely not get an optimal objective value - but it is very likely that we get a near-optimal
-    // value around ~1% away from the global optimum.
+    // Evaluate the solution. Note that since we only ran the metaheuristic for 1000 iterations (see the `stop` operator
+    // above), we will likely not get an optimal objective value - but it is very likely that we get a near-optimal value
+    // around ~1% away from the global optimum.
     let objective = eval.eval(&solution, knapsack);
     println!("found solution with objective value of {}", objective);
 }
