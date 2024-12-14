@@ -35,6 +35,6 @@ where
 
 impl<F> Debug for FromFn<F> {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
-        formatter.debug_tuple("FromFn").finish()
+        formatter.debug_tuple("FromFn").finish_non_exhaustive()
     }
 }

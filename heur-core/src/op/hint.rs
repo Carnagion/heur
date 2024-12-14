@@ -1,15 +1,80 @@
-use std::marker::PhantomData;
+use std::{
+    fmt::{self, Debug, Formatter},
+    hash::{Hash, Hasher},
+    marker::PhantomData,
+};
 
 use crate::{eval::Eval, solution::Solution};
 
 use super::{init::Init, mutate::Mutate, search::Search, Operator};
 
-// TODO: Manually impl common traits
 #[must_use]
 pub struct Hint<T, P, S, E, In = ()> {
     pub(crate) op: T,
     #[allow(clippy::type_complexity)]
-    pub(super) _marker: PhantomData<fn() -> (P, S, E, In)>,
+    pub(super) marker: PhantomData<fn() -> (P, S, E, In)>,
+}
+
+impl<T, P, S, E, In> Debug for Hint<T, P, S, E, In>
+where
+    T: Debug,
+{
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("Hint")
+            .field("op", &self.op)
+            .finish_non_exhaustive()
+    }
+}
+
+impl<T, P, S, E, In> Default for Hint<T, P, S, E, In>
+where
+    T: Default,
+{
+    fn default() -> Self {
+        Self {
+            op: T::default(),
+            marker: PhantomData,
+        }
+    }
+}
+
+impl<T, P, S, E, In> Copy for Hint<T, P, S, E, In> where T: Copy {}
+
+impl<T, P, S, E, In> Clone for Hint<T, P, S, E, In>
+where
+    T: Clone,
+{
+    fn clone(&self) -> Self {
+        Self {
+            op: self.op.clone(),
+            marker: self.marker,
+        }
+    }
+}
+
+impl<T, P, S, E, In> Eq for Hint<T, P, S, E, In> where T: Eq {}
+
+impl<T, P, S, E, In> PartialEq for Hint<T, P, S, E, In>
+where
+    T: PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.op == other.op
+    }
+}
+
+impl<T, P, S, E, In> Hash for Hint<T, P, S, E, In>
+where
+    T: Hash,
+{
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        self.op.hash(state);
+        self.marker.hash(state);
+    }
 }
 
 impl<T, P, S, E, In> AsRef<T> for Hint<T, P, S, E, In> {

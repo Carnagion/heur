@@ -1,8 +1,11 @@
+use std::fmt::{self, Debug, Formatter};
+
 use crate::{eval::Eval, solution::Solution};
 
 use super::Operator;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct Flatten<T>(pub(crate) T);
 
 impl<T, P, S, E, In> Operator<P, S, E, In> for Flatten<T>
@@ -28,11 +31,23 @@ where
     }
 }
 
-// TODO: Manually impl `Debug`
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct FlatMap<T, F> {
     pub(crate) op: T,
     pub(crate) f: F,
+}
+
+impl<T, F> Debug for FlatMap<T, F>
+where
+    T: Debug,
+{
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("FlatMap")
+            .field("op", &self.op)
+            .finish_non_exhaustive()
+    }
 }
 
 impl<T, U, F, P, S, E, In> Operator<P, S, E, In> for FlatMap<T, F>

@@ -3,10 +3,10 @@ use crate::{eval::Eval, solution::Individual};
 use super::Stop;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct Optimum<O>(pub O);
 
 impl<O> Optimum<O> {
-    #[must_use]
     pub fn new(optimum: O) -> Self {
         Self(optimum)
     }

@@ -64,7 +64,6 @@ where
     //       See https://github.com/rust-lang/rust/issues/29661.
     type Output;
 
-    // TODO: Do we really need to bound on `Error`?
     type Error: Error;
 
     fn apply(
@@ -329,7 +328,7 @@ where
 {
     Hint {
         op,
-        _marker: PhantomData,
+        marker: PhantomData,
     }
 }
 

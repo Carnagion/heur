@@ -1,8 +1,11 @@
-use std::marker::PhantomData;
+use std::{
+    fmt::{self, Debug, Formatter},
+    hash::{Hash, Hasher},
+    marker::PhantomData,
+};
 
 use heur_core::{eval::Eval, op::Operator, solution::Population};
 
-// TODO: Manually impl common traits
 #[must_use]
 pub struct OnCombined<T, P, S, E> {
     pub(super) op: T,
@@ -29,5 +32,55 @@ where
     ) -> Result<Self::Output, Self::Error> {
         self.op.apply(&mut combined, problem, eval, ())?;
         Ok(combined)
+    }
+}
+
+impl<T, P, S, E> Debug for OnCombined<T, P, S, E>
+where
+    T: Debug,
+{
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("OnCombined")
+            .field("op", &self.op)
+            .finish_non_exhaustive()
+    }
+}
+
+impl<T, P, S, E> Copy for OnCombined<T, P, S, E> where T: Copy {}
+
+impl<T, P, S, E> Clone for OnCombined<T, P, S, E>
+where
+    T: Clone,
+{
+    fn clone(&self) -> Self {
+        Self {
+            op: self.op.clone(),
+            _marker: self._marker,
+        }
+    }
+}
+
+impl<T, P, S, E> Eq for OnCombined<T, P, S, E> where T: Eq {}
+
+impl<T, P, S, E> PartialEq for OnCombined<T, P, S, E>
+where
+    T: PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.op == other.op
+    }
+}
+
+impl<T, P, S, E> Hash for OnCombined<T, P, S, E>
+where
+    T: Hash,
+{
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        self.op.hash(state);
+        self._marker.hash(state);
     }
 }

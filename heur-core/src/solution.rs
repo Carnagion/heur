@@ -23,7 +23,6 @@ where
     S: Solution,
     E: Eval<P, S::Individual>,
 {
-    // TODO: Do we really need to bound on `Error`?
     type Error: Error;
 
     fn solve(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error>;

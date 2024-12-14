@@ -4,7 +4,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-// TODO: Manually impl common traits
+#[must_use]
 pub struct Evaluated<S, O> {
     solution: S,
     // NOTE: In theory, we could have a design that doesn't use `Cell<T>` and instead stores a regular `Option<O>` instead,
@@ -49,6 +49,50 @@ impl<S, O> Evaluated<S, O> {
     }
 }
 
+impl<S, O> Debug for Evaluated<S, O>
+where
+    S: Debug,
+    O: Debug + Copy,
+{
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("Evaluated")
+            .field("solution", &self.solution)
+            .field("objective", &self.objective)
+            .finish()
+    }
+}
+
+impl<S, O> Clone for Evaluated<S, O>
+where
+    S: Clone,
+    O: Copy,
+{
+    fn clone(&self) -> Self {
+        Self {
+            solution: self.solution.clone(),
+            objective: self.objective.clone(),
+        }
+    }
+}
+
+impl<S, O> Eq for Evaluated<S, O>
+where
+    S: Eq,
+    O: Eq + Copy,
+{
+}
+
+impl<S, O> PartialEq for Evaluated<S, O>
+where
+    S: PartialEq,
+    O: PartialEq + Copy,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.solution == other.solution && self.objective == other.objective
+    }
+}
+
 impl<S, O> Deref for Evaluated<S, O> {
     type Target = S;
 
@@ -73,32 +117,5 @@ impl<S, O> AsRef<S> for Evaluated<S, O> {
 impl<S, O> AsMut<S> for Evaluated<S, O> {
     fn as_mut(&mut self) -> &mut S {
         self
-    }
-}
-
-impl<S, O> Clone for Evaluated<S, O>
-where
-    S: Clone,
-    O: Copy,
-{
-    fn clone(&self) -> Self {
-        Self {
-            solution: self.solution.clone(),
-            objective: self.objective.clone(),
-        }
-    }
-}
-
-impl<S, O> Debug for Evaluated<S, O>
-where
-    S: Debug,
-    O: Debug + Copy,
-{
-    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("Evaluated")
-            .field("solution", &self.solution)
-            .field("objective", &self.objective)
-            .finish()
     }
 }

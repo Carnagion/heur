@@ -5,10 +5,10 @@ use crate::{eval::Eval, solution::Solution};
 use super::Stop;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct Iterations(pub usize);
 
 impl Iterations {
-    #[must_use]
     pub fn new(iters: usize) -> Self {
         Self(iters)
     }

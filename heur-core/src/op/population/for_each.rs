@@ -1,4 +1,8 @@
-use std::marker::PhantomData;
+use std::{
+    fmt::{self, Debug, Formatter},
+    hash::{Hash, Hasher},
+    marker::PhantomData,
+};
 
 use crate::{
     eval::Eval,
@@ -6,12 +10,61 @@ use crate::{
     solution::{Individual, Population},
 };
 
-// TODO: Manually impl common traits
 #[must_use]
 pub struct ForEach<T, P, S, E, In = ()> {
     pub(super) op: T,
     #[allow(clippy::type_complexity)]
     pub(super) _marker: PhantomData<fn() -> (P, S, E, In)>,
+}
+
+impl<T, P, S, E, In> Debug for ForEach<T, P, S, E, In>
+where
+    T: Debug,
+{
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("ForEach")
+            .field("op", &self.op)
+            .finish_non_exhaustive()
+    }
+}
+
+impl<T, P, S, E, In> Copy for ForEach<T, P, S, E, In> where T: Copy {}
+
+impl<T, P, S, E, In> Clone for ForEach<T, P, S, E, In>
+where
+    T: Clone,
+{
+    fn clone(&self) -> Self {
+        Self {
+            op: self.op.clone(),
+            _marker: self._marker,
+        }
+    }
+}
+
+impl<T, P, S, E, In> Eq for ForEach<T, P, S, E, In> where T: Eq {}
+
+impl<T, P, S, E, In> PartialEq for ForEach<T, P, S, E, In>
+where
+    T: PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.op == other.op
+    }
+}
+
+impl<T, P, S, E, In> Hash for ForEach<T, P, S, E, In>
+where
+    T: Hash,
+{
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        self.op.hash(state);
+        self._marker.hash(state);
+    }
 }
 
 impl<T, P, S, E, In> Operator<P, S, E, In> for ForEach<T, P, S, E, In>

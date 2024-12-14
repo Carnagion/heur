@@ -1,4 +1,9 @@
-use std::{convert::Infallible, marker::PhantomData};
+use std::{
+    convert::Infallible,
+    fmt::{self, Debug, Formatter},
+    hash::{Hash, Hasher},
+    marker::PhantomData,
+};
 
 use crate::{
     eval::Eval,
@@ -96,9 +101,45 @@ where
     }
 }
 
-// TODO: Manually impl common traits
 #[must_use]
 pub struct FromDefault<S>(pub(super) PhantomData<fn() -> S>);
+
+impl<S> Debug for FromDefault<S> {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        formatter.debug_tuple("FromDefault").finish_non_exhaustive()
+    }
+}
+
+impl<S> Default for FromDefault<S> {
+    fn default() -> Self {
+        Self(PhantomData)
+    }
+}
+
+impl<S> Copy for FromDefault<S> {}
+
+impl<S> Clone for FromDefault<S> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<S> Eq for FromDefault<S> {}
+
+impl<S> PartialEq for FromDefault<S> {
+    fn eq(&self, _: &Self) -> bool {
+        true
+    }
+}
+
+impl<S> Hash for FromDefault<S> {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        self.0.hash(state);
+    }
+}
 
 impl<P, S, E> Operator<P, S, E> for FromDefault<S>
 where
