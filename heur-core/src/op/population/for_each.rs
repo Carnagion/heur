@@ -14,7 +14,7 @@ use crate::{
 pub struct ForEach<T, P, S, E, In = ()> {
     pub(super) op: T,
     #[allow(clippy::type_complexity)]
-    pub(super) _marker: PhantomData<fn() -> (P, S, E, In)>,
+    pub(super) marker: PhantomData<fn() -> (P, S, E, In)>,
 }
 
 impl<T, P, S, E, In> Debug for ForEach<T, P, S, E, In>
@@ -38,7 +38,7 @@ where
     fn clone(&self) -> Self {
         Self {
             op: self.op.clone(),
-            _marker: self._marker,
+            marker: self.marker,
         }
     }
 }
@@ -63,7 +63,7 @@ where
         H: Hasher,
     {
         self.op.hash(state);
-        self._marker.hash(state);
+        self.marker.hash(state);
     }
 }
 

@@ -90,6 +90,6 @@ where
 {
     OnCombined {
         op,
-        _marker: PhantomData,
+        marker: PhantomData,
     }
 }

@@ -10,7 +10,7 @@ use heur_core::{eval::Eval, op::Operator, solution::Population};
 pub struct OnCombined<T, P, S, E> {
     pub(super) op: T,
     #[allow(clippy::type_complexity)]
-    pub(super) _marker: PhantomData<fn() -> (P, S, E)>,
+    pub(super) marker: PhantomData<fn() -> (P, S, E)>,
 }
 
 impl<T, P, S, E> Operator<P, S, E, Vec<S::Individual>> for OnCombined<T, P, S, E>
@@ -56,7 +56,7 @@ where
     fn clone(&self) -> Self {
         Self {
             op: self.op.clone(),
-            _marker: self._marker,
+            marker: self.marker,
         }
     }
 }
@@ -81,6 +81,6 @@ where
         H: Hasher,
     {
         self.op.hash(state);
-        self._marker.hash(state);
+        self.marker.hash(state);
     }
 }
