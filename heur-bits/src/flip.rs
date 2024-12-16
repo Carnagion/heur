@@ -14,12 +14,12 @@ use heur_core::{
 use crate::Bits;
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct FlipBit<R> {
     rng: R,
 }
 
 impl<R> FlipBit<R> {
-    #[must_use]
     pub fn new(rng: R) -> Self {
         Self { rng }
     }
@@ -68,15 +68,13 @@ where
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[must_use]
 pub struct FlipAllBits<R> {
     dist: Bernoulli,
     rng: R,
 }
 
 impl<R> FlipAllBits<R> {
-    // TODO: Should we take an `f64` probability instead of a `Bernoulli` and return a `Result<Self, BernoulliError>`?
-
-    #[must_use]
     pub fn new(dist: Bernoulli, rng: R) -> Self {
         Self { dist, rng }
     }

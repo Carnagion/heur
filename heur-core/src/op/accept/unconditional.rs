@@ -3,10 +3,10 @@ use crate::{eval::Eval, solution::Solution};
 use super::Accept;
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct Always;
 
 impl Always {
-    #[must_use]
     pub fn new() -> Self {
         Self
     }
@@ -23,10 +23,10 @@ where
 }
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct Never;
 
 impl Never {
-    #[must_use]
     pub fn new() -> Self {
         Self
     }

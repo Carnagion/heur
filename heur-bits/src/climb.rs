@@ -9,10 +9,10 @@ use heur_core::{
 use crate::Bits;
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct FirstAscentBitClimb;
 
 impl FirstAscentBitClimb {
-    #[must_use]
     pub fn new() -> Self {
         Self
     }
@@ -72,10 +72,10 @@ where
 }
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct SteepestAscentBitClimb;
 
 impl SteepestAscentBitClimb {
-    #[must_use]
     pub fn new() -> Self {
         Self
     }

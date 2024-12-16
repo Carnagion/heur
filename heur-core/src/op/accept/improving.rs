@@ -3,10 +3,10 @@ use crate::{eval::Eval, solution::Individual};
 use super::Accept;
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct Improving;
 
 impl Improving {
-    #[must_use]
     pub fn new() -> Self {
         Self
     }
@@ -28,10 +28,10 @@ where
 }
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct NonWorsening;
 
 impl NonWorsening {
-    #[must_use]
     pub fn new() -> Self {
         Self
     }

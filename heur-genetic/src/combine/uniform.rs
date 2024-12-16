@@ -15,13 +15,13 @@ use heur_core::{eval::Eval, op::Operator, solution::Population};
 use super::Combine;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[must_use]
 pub struct UniformCrossover<R> {
     dist: Bernoulli,
     rng: R,
 }
 
 impl<R> UniformCrossover<R> {
-    #[must_use]
     pub fn new(dist: Bernoulli, rng: R) -> Self {
         Self { dist, rng }
     }

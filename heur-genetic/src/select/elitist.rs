@@ -5,6 +5,7 @@ use heur_core::{eval::Eval, op::Operator, solution::Population};
 use super::Select;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct ElitistSelector {
     selection_size: usize,
     // NOTE: We store the indices as part of the struct itself to avoid re-allocating a new vec for them every time we
@@ -13,7 +14,6 @@ pub struct ElitistSelector {
 }
 
 impl ElitistSelector {
-    #[must_use]
     pub fn new(selection_size: usize) -> Self {
         Self {
             selection_size,

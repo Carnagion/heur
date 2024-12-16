@@ -10,6 +10,7 @@ use heur_core::{eval::Eval, op::Operator, solution::Population};
 use super::Select;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct TournamentSelector<R> {
     // TODO: Should these be `NonZeroUsize`?
     tournament_size: usize,
@@ -18,7 +19,6 @@ pub struct TournamentSelector<R> {
 }
 
 impl<R> TournamentSelector<R> {
-    #[must_use]
     pub fn new(tournament_size: usize, selection_size: usize, rng: R) -> Self {
         Self {
             tournament_size,

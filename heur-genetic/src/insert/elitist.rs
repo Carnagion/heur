@@ -5,6 +5,7 @@ use heur_core::{eval::Eval, op::Operator, solution::Population};
 use super::Insert;
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash)]
+#[must_use]
 pub struct ElitistInserter {
     // NOTE: We store the indices as part of the struct itself to avoid re-allocating a new vec for them every time we
     //       need to insert individuals.
@@ -12,7 +13,6 @@ pub struct ElitistInserter {
 }
 
 impl ElitistInserter {
-    #[must_use]
     pub fn new() -> Self {
         Self {
             indices: Vec::new(),
