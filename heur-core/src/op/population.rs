@@ -14,6 +14,7 @@ pub fn for_each<P, S, E, In, T>(op: T) -> ForEach<T, P, S, E, In>
 where
     T: Operator<P, Individual<S::Individual>, E, In, Output = In>,
     S: Population,
+    for<'a> &'a mut S: IntoIterator<Item = &'a mut S::Individual>,
     E: Eval<P, S::Individual>,
 {
     ForEach {

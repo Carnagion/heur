@@ -22,7 +22,7 @@ impl ElitistInserter {
 
 impl<P, S, E> Operator<P, S, E, Vec<S::Individual>> for ElitistInserter
 where
-    S: Population<Individual: Clone>,
+    S: Population<Individual: Clone> + AsMut<[S::Individual]>,
     E: Eval<P, S::Individual>,
 {
     type Output = ();
@@ -42,7 +42,7 @@ where
 
 impl<P, S, E> Insert<P, S, E> for ElitistInserter
 where
-    S: Population<Individual: Clone>,
+    S: Population<Individual: Clone> + AsMut<[S::Individual]>,
     E: Eval<P, S::Individual>,
 {
     fn insert(
@@ -52,17 +52,17 @@ where
         eval: &mut E,
         combined: Vec<S::Individual>,
     ) -> Result<(), Self::Error> {
+        let population = population.as_mut();
+
         // Create a list of indices to individuals in the solution sorted by their objective values
         self.indices.extend(0..population.len());
         self.indices.sort_by_cached_key(|&idx| {
-            // PANICS: The index is valid because it's between `0` and `population.len()`.
-            let solution = population.get(idx).unwrap();
+            let solution = &population[idx];
             eval.eval(solution, problem)
         });
 
         for (idx, offspring) in self.indices.drain(..).zip(combined) {
-            // PANICS: See above.
-            let parent = population.get_mut(idx).unwrap();
+            let parent = &mut population[idx];
             *parent = offspring;
         }
 

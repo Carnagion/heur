@@ -24,7 +24,7 @@ impl ElitistSelector {
 
 impl<P, S, E> Operator<P, S, E> for ElitistSelector
 where
-    S: Population<Individual: Clone>,
+    S: Population<Individual: Clone> + AsRef<[S::Individual]>,
     E: Eval<P, S::Individual>,
 {
     type Output = Vec<S::Individual>;
@@ -44,7 +44,7 @@ where
 
 impl<P, S, E> Select<P, S, E> for ElitistSelector
 where
-    S: Population<Individual: Clone>,
+    S: Population<Individual: Clone> + AsRef<[S::Individual]>,
     E: Eval<P, S::Individual>,
 {
     fn select(
@@ -65,11 +65,12 @@ where
         eval: &mut E,
         selected: &mut Vec<S::Individual>,
     ) -> Result<(), Self::Error> {
+        let population = population.as_ref();
+
         // Create a list of indices to individuals in the solution sorted by their objective values
         self.indices.extend(0..population.len());
         self.indices.sort_by_cached_key(|&idx| {
-            // PANICS: The index is valid because it's between `0` and `population.len()`.
-            let solution = population.get(idx).unwrap();
+            let solution = &population[idx];
 
             // NOTE: We reverse the comparison order because we need the best (largest) objective values to be at the front.
             Reverse(eval.eval(solution, problem))
@@ -79,13 +80,12 @@ where
         // NOTE: We don't check whether `selection_size <= population.len()`, so if `selection_size` is greater than the
         //       number of individuals available, we will invariably end up selecting repeated individuals, but this is fine.
         selected.clear();
-        selected.reserve(self.selection_size);
         selected.extend(
             self.indices
                 .iter()
                 .cycle()
                 .take(self.selection_size)
-                .map(|&idx| population.get(idx).unwrap()) // PANICS: See above.
+                .map(|&idx| &population[idx])
                 .cloned(),
         );
 
