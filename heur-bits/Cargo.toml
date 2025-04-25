@@ -1,7 +1,7 @@
 [package]
 name = "heur-bits"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -9,7 +9,7 @@ cargo-args = ["-Z", "unstable-options", "-Z", "rustdoc-scrape-examples"]
 rustdoc-args = ["--generate-link-to-definition", "--cfg", "docsrs"]
 
 [dependencies]
-rand = { version = "0.8.5", default-features = false, features = ["alloc"] } # TODO: Should we gate default features behind an `std` or `alloc` feature?
+rand = { version = "0.9.1", default-features = false, features = ["alloc"] } # TODO: Should we gate default features behind an `std` or `alloc` feature?
 heur-core = { version = "0.1.0", path = "../heur-core" }
 
 [features]

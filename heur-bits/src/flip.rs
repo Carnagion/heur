@@ -1,7 +1,7 @@
 use std::convert::Infallible;
 
 use rand::{
-    distributions::{Bernoulli, Distribution},
+    distr::{Bernoulli, Distribution},
     Rng,
 };
 
@@ -60,7 +60,7 @@ where
     ) -> Result<(), Self::Error> {
         // NOTE: We need to check that the solution is not empty, because `Rng::gen_range` panics on empty ranges.
         if !solution.is_empty() {
-            let idx = self.rng.gen_range(0..solution.len());
+            let idx = self.rng.random_range(0..solution.len());
             solution.flip(idx).unwrap(); // PANICS: We know that the index is valid
         }
         Ok(())

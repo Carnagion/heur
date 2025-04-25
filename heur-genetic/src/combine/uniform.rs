@@ -6,8 +6,8 @@ use std::{
 };
 
 use rand::{
-    distributions::{Bernoulli, Distribution},
     Rng,
+    distr::{Bernoulli, Distribution},
 };
 
 use heur_core::{eval::Eval, op::Operator, solution::Population};
@@ -29,7 +29,7 @@ impl<R> UniformCrossover<R> {
 
 impl<P, S, E, R, T> Operator<P, S, E, Vec<S::Individual>> for UniformCrossover<R>
 where
-    S: Population<Individual: Clone>,
+    S: Population,
     for<'a> &'a mut S::Individual: IntoIterator<Item = &'a mut T>,
     E: Eval<P, S::Individual>,
     R: Rng,
@@ -51,7 +51,7 @@ where
 
 impl<P, S, E, R, T> Combine<P, S, E> for UniformCrossover<R>
 where
-    S: Population<Individual: Clone>,
+    S: Population,
     for<'a> &'a mut S::Individual: IntoIterator<Item = &'a mut T>,
     E: Eval<P, S::Individual>,
     R: Rng,

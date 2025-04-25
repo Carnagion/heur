@@ -11,7 +11,7 @@ use heur::{
     solution::{Individual, Solve},
 };
 
-use rand::{distributions::Bernoulli, Rng};
+use rand::{distr::Bernoulli, Rng};
 
 fn main() {
     // Create an N-queens problem instance. In this case, N = 8.
@@ -70,7 +70,7 @@ where
     let n_cols = problem.n_queens;
     (0..n_rows)
         .map(|y| Pos {
-            x: rng.gen_range(0..n_cols),
+            x: rng.random_range(0..n_cols),
             y,
         })
         .collect()
@@ -91,7 +91,7 @@ fn ga(problem: &Problem) {
     // ```
     let mut eval = eval::from_fn(cost);
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Define the various operators we will be using for the genetic algorithm. We initialise a population of 100 solutions,
     // with each individual being initialised randomly by `init_random`.
@@ -109,7 +109,7 @@ fn ga(problem: &Problem) {
     let mutate = op::from_fn(
         |solution: &mut Individual<Vec<Pos>>, problem: &Problem, _eval, _input| {
             for pos in &mut **solution {
-                pos.x = rng.gen_range(0..problem.n_queens);
+                pos.x = rng.random_range(0..problem.n_queens);
             }
             Ok(())
         },

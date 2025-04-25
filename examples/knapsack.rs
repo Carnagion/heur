@@ -7,7 +7,7 @@ use heur::{
 
 use ordered_float::NotNan;
 
-use rand::distributions::Bernoulli;
+use rand::distr::Bernoulli;
 
 fn main() {
     // Load and parse the knapsack problem instance. The problem instance at `../instances/knapsack.in` is taken from
@@ -89,7 +89,7 @@ fn ils(knapsack: &Knapsack) {
     // Any changes made by the mutation and local search operators are only accepted if they are non-worsening (i.e. produce an
     // objective value that is no worse than the previous known value), and we stop when we get to 1000 iterations.
     let init = init::from_individual(vec![false; knapsack.items.len()]);
-    let mutate = FlipAllBits::new(Bernoulli::new(0.002).unwrap(), rand::thread_rng());
+    let mutate = FlipAllBits::new(Bernoulli::new(0.002).unwrap(), rand::rng());
     let local_search = SteepestAscentBitClimb::new();
     let accept = NonWorsening::new();
     let stop = Iterations::new(1000);
