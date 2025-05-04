@@ -94,71 +94,71 @@ fn heur_ga(dim: usize) -> f64 {
     best_objective.into()
 }
 
-// // use std::ops::Range;
+use std::ops::Range;
 
-// // use mahf::{
-// //     conditions::LessThanN,
-// //     heuristics::ga::{self, RealProblemParameters},
-// //     problems::{evaluate::ObjectiveFunction, LimitedVectorProblem, Sequential, VectorProblem},
-// //     Problem,
-// //     SingleObjective,
-// // };
+use mahf::{
+    Problem,
+    SingleObjective,
+    conditions::LessThanN,
+    heuristics::ga::{self, RealProblemParameters},
+    problems::{LimitedVectorProblem, Sequential, VectorProblem, evaluate::ObjectiveFunction},
+};
 
-// // impl Problem for Sphere {
-// //     type Encoding = Solution;
+impl Problem for Sphere {
+    type Encoding = Solution;
 
-// //     type Objective = SingleObjective;
+    type Objective = SingleObjective;
 
-// //     fn name(&self) -> &str {
-// //         "sphere"
-// //     }
-// // }
+    fn name(&self) -> &str {
+        "sphere"
+    }
+}
 
-// // impl VectorProblem for Sphere {
-// //     type Element = f64;
+impl VectorProblem for Sphere {
+    type Element = f64;
 
-// //     fn dimension(&self) -> usize {
-// //         self.dim
-// //     }
-// // }
+    fn dimension(&self) -> usize {
+        self.dim
+    }
+}
 
-// // impl LimitedVectorProblem for Sphere {
-// //     fn domain(&self) -> Vec<Range<Self::Element>> {
-// //         iter::repeat(-1.0..1.0).take(self.dim).collect()
-// //     }
-// // }
+impl LimitedVectorProblem for Sphere {
+    fn domain(&self) -> Vec<Range<Self::Element>> {
+        iter::repeat(-1.0..1.0).take(self.dim).collect()
+    }
+}
 
-// // impl ObjectiveFunction for Sphere {
-// //     fn objective(&self, solution: &Self::Encoding) -> Self::Objective {
-// //         let objective = f64::from(cost(solution, self));
-// //         objective.try_into().unwrap()
-// //     }
-// // }
+impl ObjectiveFunction for Sphere {
+    fn objective(&self, solution: &Self::Encoding) -> Self::Objective {
+        let objective = f64::from(cost(solution, self));
+        objective.try_into().unwrap()
+    }
+}
 
-// // #[divan::bench(args = DIMS)]
-// // fn mahf_ga(dim: usize) -> f64 {
-// //     let sphere = Sphere { dim };
+#[divan::bench(args = DIMS)]
+fn mahf_ga(dim: usize) -> f64 {
+    let sphere = Sphere { dim };
 
-// //     let ga = ga::real_ga(
-// //         RealProblemParameters {
-// //             population_size: N as u32,
-// //             tournament_size: TOUR as u32,
-// //             pm: 1.0,
-// //             deviation: 0.1,
-// //             pc: PC,
-// //         },
-// //         LessThanN::iterations(ITERS as u32),
-// //     )
-// //     .unwrap();
+    let ga = ga::real_ga(
+        RealProblemParameters {
+            population_size: N as u32,
+            tournament_size: TOUR as u32,
+            pm: 1.0,
+            deviation: 0.1,
+            pc: PC,
+        },
+        LessThanN::iterations(ITERS as u32),
+    )
+    .unwrap();
 
-// //     let state = ga.optimize(&sphere, Sequential::new()).unwrap();
-// //     let populations = state.populations();
-// //     let population = populations.current();
+    let state = ga.optimize(&sphere, Sequential::new()).unwrap();
+    let populations = state.populations();
+    let population = populations.current();
 
-// //     let best_objective = population
-// //         .iter()
-// //         .map(mahf::Individual::objective)
-// //         .max()
-// //         .unwrap();
-// //     best_objective.value()
-// // }
+    let best_objective = population
+        .iter()
+        .map(mahf::Individual::objective)
+        .max()
+        .unwrap();
+    best_objective.value()
+}
