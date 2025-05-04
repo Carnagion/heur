@@ -3,7 +3,7 @@ use crate::{
     solution::{Solution, Solve},
 };
 
-use super::{init::Init, mutate::Mutate, search::Search, Operator};
+use super::{Operator, init::Init, mutate::Mutate, search::Search};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]

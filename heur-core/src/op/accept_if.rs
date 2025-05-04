@@ -1,6 +1,6 @@
 use crate::{eval::Eval, solution::Solution};
 
-use super::{accept::Accept, mutate::Mutate, search::Search, Operator};
+use super::{Operator, accept::Accept, mutate::Mutate, search::Search};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]

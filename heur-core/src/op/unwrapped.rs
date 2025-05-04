@@ -2,7 +2,7 @@ use std::convert::Infallible;
 
 use crate::{eval::Eval, solution::Solution};
 
-use super::{init::Init, mutate::Mutate, search::Search, Operator};
+use super::{Operator, init::Init, mutate::Mutate, search::Search};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]

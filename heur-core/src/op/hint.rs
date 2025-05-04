@@ -6,7 +6,7 @@ use std::{
 
 use crate::{eval::Eval, solution::Solution};
 
-use super::{init::Init, mutate::Mutate, search::Search, Operator};
+use super::{Operator, init::Init, mutate::Mutate, search::Search};
 
 #[must_use]
 pub struct Hint<T, P, S, E, In = ()> {

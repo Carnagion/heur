@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
     eval::Eval,
-    op::{mutate::Mutate, search::Search, Operator},
+    op::{Operator, mutate::Mutate, search::Search},
     solution::{Individual, Population},
 };
 

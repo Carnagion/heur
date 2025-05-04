@@ -1,13 +1,13 @@
 use std::convert::Infallible;
 
 use rand::{
-    distr::{Bernoulli, Distribution},
     Rng,
+    distr::{Bernoulli, Distribution},
 };
 
 use heur_core::{
     eval::Eval,
-    op::{mutate::Mutate, Operator},
+    op::{Operator, mutate::Mutate},
     solution::Individual,
 };
 

@@ -5,7 +5,7 @@ use std::{
 
 use crate::{eval::Eval, solution::Solution};
 
-use super::{init::Init, mutate::Mutate, search::Search, Operator};
+use super::{Operator, init::Init, mutate::Mutate, search::Search};
 
 // TODO: Should this impl `Init`, `Mutate`, and/or `Search`?
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]

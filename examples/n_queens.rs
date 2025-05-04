@@ -3,15 +3,15 @@ use std::array;
 use heur::{
     eval::{self, Eval},
     genetic::{
-        combine::{on_combined, UniformCrossover},
+        combine::{UniformCrossover, on_combined},
         insert::ElitistInserter,
         select::ElitistSelector,
     },
-    op::{self, init, population, stop::Iterations, Operator},
+    op::{self, Operator, init, population, stop::Iterations},
     solution::{Individual, Solve},
 };
 
-use rand::{distr::Bernoulli, Rng};
+use rand::{Rng, distr::Bernoulli};
 
 fn main() {
     // Create an N-queens problem instance. In this case, N = 8.

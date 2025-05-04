@@ -2,7 +2,7 @@ use std::convert::Infallible;
 
 use heur_core::{
     eval::Eval,
-    op::{search::Search, Operator},
+    op::{Operator, search::Search},
     solution::Individual,
 };
 
