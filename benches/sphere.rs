@@ -124,7 +124,7 @@ impl VectorProblem for Sphere {
 
 impl LimitedVectorProblem for Sphere {
     fn domain(&self) -> Vec<Range<Self::Element>> {
-        iter::repeat(-1.0..1.0).take(self.dim).collect()
+        iter::repeat_n(-1.0..1.0, self.dim).collect()
     }
 }
 
