@@ -27,10 +27,11 @@ impl<R> UniformCrossover<R> {
     }
 }
 
-impl<P, S, E, R, T> Operator<P, S, E, Vec<S::Individual>> for UniformCrossover<R>
+use heur_core::solution::IterMut;
+
+impl<P, S, E, R> Operator<P, S, E, Vec<S::Individual>> for UniformCrossover<R>
 where
-    S: Population,
-    for<'a> &'a mut S::Individual: IntoIterator<Item = &'a mut T>,
+    S: Population<Individual: for<'a> IterMut<'a>>,
     E: Eval<P, S::Individual>,
     R: Rng,
 {
@@ -49,10 +50,9 @@ where
     }
 }
 
-impl<P, S, E, R, T> Combine<P, S, E> for UniformCrossover<R>
+impl<P, S, E, R> Combine<P, S, E> for UniformCrossover<R>
 where
-    S: Population,
-    for<'a> &'a mut S::Individual: IntoIterator<Item = &'a mut T>,
+    S: Population<Individual: for<'a> IterMut<'a>>,
     E: Eval<P, S::Individual>,
     R: Rng,
 {
@@ -76,7 +76,7 @@ where
             };
 
             // Crossover the two parents, producing offspring in-place
-            for (left, right) in iter::zip(left, right) {
+            for (left, right) in iter::zip(left.iter_mut(), right.iter_mut()) {
                 if self.dist.sample(&mut self.rng) {
                     mem::swap(left, right);
                 }

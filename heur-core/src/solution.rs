@@ -71,3 +71,51 @@ where
         }
     }
 }
+
+// NOTE: We need these traits due to a possible bug in `rustc` where trying to prove that `Evaluated<S, O>` impls
+//       `IntoIterator` puts the trait solver into a loop and leads to an overflow. Conceptually, `T: for<'a> Iter<'a>`
+//       is exactly the same as `for<'a> &'a T: IntoIterator<Item = &'a U>`, but the latter leads to E0275 ("overflow
+//       evaluating the requirement ...") while the former works perfectly.
+pub trait Iter<'a> {
+    type Item: 'a;
+
+    type Iter: Iterator<Item = &'a Self::Item>;
+
+    fn iter(&'a self) -> Self::Iter;
+}
+
+// NOTE: See the above note on `Iter<'a>`.
+pub trait IterMut<'a>: Iter<'a> {
+    type IterMut: Iterator<Item = &'a mut Self::Item>;
+
+    fn iter_mut(&'a mut self) -> Self::IterMut;
+}
+
+impl<'a, I, T> Iter<'a> for I
+where
+    I: 'a,
+    &'a I: IntoIterator<Item = &'a T>,
+    T: 'a,
+{
+    type Item = T;
+
+    type Iter = <&'a Self as IntoIterator>::IntoIter;
+
+    fn iter(&'a self) -> Self::Iter {
+        self.into_iter()
+    }
+}
+
+impl<'a, I, T> IterMut<'a> for I
+where
+    I: 'a,
+    &'a I: IntoIterator<Item = &'a T>,
+    &'a mut I: IntoIterator<Item = &'a mut T>,
+    T: 'a,
+{
+    type IterMut = <&'a mut Self as IntoIterator>::IntoIter;
+
+    fn iter_mut(&'a mut self) -> Self::IterMut {
+        self.into_iter()
+    }
+}

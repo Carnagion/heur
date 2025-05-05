@@ -119,3 +119,46 @@ impl<S, O> AsMut<S> for Evaluated<S, O> {
         self
     }
 }
+
+impl<S, O> IntoIterator for Evaluated<S, O>
+where
+    S: IntoIterator,
+{
+    type Item = S::Item;
+
+    type IntoIter = S::IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Self::into_inner(self).into_iter()
+    }
+}
+
+impl<'a, S, O> IntoIterator for &'a Evaluated<S, O>
+where
+    &'a S: IntoIterator,
+{
+    type Item = <&'a S as IntoIterator>::Item;
+
+    type IntoIter = <&'a S as IntoIterator>::IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        // NOTE: While we don't need to deref here, it looks consistent with the impl for `&mut Evaluated<S, O>`.
+        let solution = &**self;
+        solution.into_iter()
+    }
+}
+
+impl<'a, S, O> IntoIterator for &'a mut Evaluated<S, O>
+where
+    &'a mut S: IntoIterator,
+{
+    type Item = <&'a mut S as IntoIterator>::Item;
+
+    type IntoIter = <&'a mut S as IntoIterator>::IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        // NOTE: We need to deref here so that the cached objective value can be reset to `None`.
+        let solution = &mut **self;
+        solution.into_iter()
+    }
+}
