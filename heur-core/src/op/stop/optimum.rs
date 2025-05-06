@@ -1,4 +1,7 @@
-use crate::{eval::Eval, solution::Individual};
+use crate::{
+    eval::Eval,
+    solution::{Individual, Iter, Population},
+};
 
 use super::Stop;
 
@@ -12,12 +15,23 @@ impl<O> Optimum<O> {
     }
 }
 
-impl<P, S, E, O> Stop<P, Individual<S>, E> for Optimum<O>
+impl<P, S, E> Stop<P, Individual<S>, E> for Optimum<E::Objective>
 where
-    E: Eval<P, S, Objective = O>,
-    O: Ord,
+    E: Eval<P, S>,
 {
     fn stop(&mut self, solution: &Individual<S>, problem: &P, eval: &mut E) -> bool {
         eval.eval(solution, problem) >= self.0
+    }
+}
+
+impl<P, S, E> Stop<P, S, E> for Optimum<E::Objective>
+where
+    S: Population + for<'a> Iter<'a, Item = S::Individual>,
+    E: Eval<P, S::Individual>,
+{
+    fn stop(&mut self, population: &S, problem: &P, eval: &mut E) -> bool {
+        population
+            .iter()
+            .any(|solution| eval.eval(solution, problem) >= self.0)
     }
 }
