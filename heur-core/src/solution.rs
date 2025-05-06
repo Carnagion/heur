@@ -1,4 +1,7 @@
-use std::error::Error;
+use core::error::Error;
+
+#[cfg(feature = "alloc")]
+use alloc::boxed::Box;
 
 use crate::eval::Eval;
 
@@ -41,6 +44,7 @@ where
     }
 }
 
+#[cfg(feature = "alloc")]
 impl<T, P, S, E> Solve<P, S, E> for Box<T>
 where
     T: Solve<P, S, E> + ?Sized,

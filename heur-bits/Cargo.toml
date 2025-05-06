@@ -9,9 +9,11 @@ cargo-args = ["-Z", "unstable-options", "-Z", "rustdoc-scrape-examples"]
 rustdoc-args = ["--generate-link-to-definition", "--cfg", "docsrs"]
 
 [dependencies]
-rand = { version = "0.9.1", default-features = false, features = ["alloc"] } # TODO: Should we gate default features behind an `std` or `alloc` feature?
-heur-core = { version = "0.1.0", path = "../heur-core" }
+rand = { version = "0.9.1", default-features = false }
+heur-core = { version = "0.1.0", path = "../heur-core", default-features = false }
 
 [features]
-default = []
+default = ["std"]
+std = ["alloc", "heur-core/std", "rand/std"]
+alloc = ["heur-core/alloc", "rand/alloc"]
 either = ["heur-core/either"]

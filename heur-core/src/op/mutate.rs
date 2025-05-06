@@ -1,3 +1,6 @@
+#[cfg(feature = "alloc")]
+use alloc::boxed::Box;
+
 use crate::{eval::Eval, solution::Solution};
 
 use super::Operator;
@@ -37,6 +40,7 @@ where
     }
 }
 
+#[cfg(feature = "alloc")]
 impl<T, P, S, E> Mutate<P, S, E> for Box<T>
 where
     T: Mutate<P, S, E> + ?Sized,

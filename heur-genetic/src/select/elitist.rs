@@ -1,4 +1,6 @@
-use std::{cmp::Reverse, convert::Infallible};
+use core::{cmp::Reverse, convert::Infallible};
+
+use alloc::vec::Vec;
 
 use heur_core::{eval::Eval, op::Operator, solution::Population};
 

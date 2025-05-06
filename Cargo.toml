@@ -10,11 +10,13 @@ rustdoc-args = ["--generate-link-to-definition", "--cfg", "docsrs"]
 
 [dependencies]
 heur-core = { version = "0.1.0", path = "heur-core/" }
-heur-bits = { version = "0.1.0", path = "heur-bits/", optional = true }
-heur-genetic = { version = "0.1.0", path = "heur-genetic/", optional = true }
+heur-bits = { version = "0.1.0", path = "heur-bits/", optional = true, default-features = false }
+heur-genetic = { version = "0.1.0", path = "heur-genetic/", optional = true, default-features = false }
 
 [features]
-default = []
+default = ["std"]
+std = ["alloc", "heur-core/std", "heur-bits?/std"]
+alloc = ["heur-core/alloc", "heur-bits?/alloc"]
 either = ["heur-core/either", "heur-bits?/either", "heur-genetic?/either"]
 bits = ["dep:heur-bits"]
 genetic = ["dep:heur-genetic"]
@@ -22,17 +24,17 @@ genetic = ["dep:heur-genetic"]
 [[example]]
 name = "knapsack"
 doc-scrape-examples = true
-required-features = ["bits"]
+required-features = ["std", "bits"]
 
 [[example]]
 name = "n_queens"
 doc-scrape-examples = true
-required-features = ["genetic"]
+required-features = ["std", "genetic"]
 
 [[bench]]
 name = "sphere"
 harness = false
-required-features = ["genetic"]
+required-features = ["std", "genetic"]
 
 [dev-dependencies]
 divan = "0.1.21"

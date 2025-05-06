@@ -1,4 +1,6 @@
-use std::marker::PhantomData;
+use core::marker::PhantomData;
+
+use alloc::{boxed::Box, vec::Vec};
 
 use heur_core::{eval::Eval, op::Operator, solution::Population};
 

@@ -1,4 +1,4 @@
-use std::fmt::{self, Debug, Formatter};
+use core::fmt::{self, Debug, Formatter};
 
 use crate::{eval::Eval, solution::Solution};
 

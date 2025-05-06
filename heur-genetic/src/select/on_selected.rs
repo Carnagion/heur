@@ -1,8 +1,10 @@
-use std::{
+use core::{
     fmt::{self, Debug, Formatter},
     hash::{Hash, Hasher},
     marker::PhantomData,
 };
+
+use alloc::vec::Vec;
 
 use heur_core::{eval::Eval, op::Operator, solution::Population};
 

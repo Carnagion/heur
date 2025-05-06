@@ -1,3 +1,6 @@
+#[cfg(feature = "alloc")]
+use alloc::boxed::Box;
+
 use crate::{eval::Eval, solution::Solution};
 
 mod iters;
@@ -27,6 +30,7 @@ where
     }
 }
 
+#[cfg(feature = "alloc")]
 impl<T, P, S, E> Stop<P, S, E> for Box<T>
 where
     T: Stop<P, S, E> + ?Sized,

@@ -1,4 +1,6 @@
-use std::convert::Infallible;
+use core::convert::Infallible;
+
+use alloc::vec::Vec;
 
 use heur_core::{eval::Eval, op::Operator, solution::Population};
 

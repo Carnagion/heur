@@ -9,9 +9,9 @@ cargo-args = ["-Z", "unstable-options", "-Z", "rustdoc-scrape-examples"]
 rustdoc-args = ["--generate-link-to-definition", "--cfg", "docsrs"]
 
 [dependencies]
-either = { version = "1.12.0", optional = true }                             # TODO: Do we need the default `use_std` feature?
-rand = { version = "0.9.1", default-features = false, features = ["alloc"] } # TODO: Should we gate default features behind an `std` or `alloc` feature?
-heur-core = { version = "0.1.0", path = "../heur-core" }
+either = { version = "1.15.0", optional = true, default-features = false }
+rand = { version = "0.9.1", default-features = false, features = ["alloc"] }
+heur-core = { version = "0.1.0", path = "../heur-core", default-features = false, features = ["alloc"] }
 
 [features]
 default = []

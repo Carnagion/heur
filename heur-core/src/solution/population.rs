@@ -1,4 +1,5 @@
-use std::collections::VecDeque;
+#[cfg(feature = "alloc")]
+use alloc::{boxed::Box, collections::VecDeque, vec::Vec};
 
 use super::Solution;
 
@@ -6,10 +7,12 @@ use super::Solution;
 //       2. Add `#[diagnostic::on_unimplemented]`
 pub trait Population: Solution {}
 
+#[cfg(feature = "alloc")]
 impl<T> Solution for Vec<T> {
     type Individual = T;
 }
 
+#[cfg(feature = "alloc")]
 impl<T> Population for Vec<T> {}
 
 // NOTE: While it wouldn't actually be possible to use a `[T]` as a solution (it's unsized and therefore can't be initialised
@@ -28,6 +31,7 @@ impl<T, const N: usize> Solution for [T; N] {
 
 impl<T, const N: usize> Population for [T; N] {}
 
+#[cfg(feature = "alloc")]
 impl<S> Solution for Box<S>
 where
     S: Solution + ?Sized,
@@ -35,10 +39,13 @@ where
     type Individual = S::Individual;
 }
 
+#[cfg(feature = "alloc")]
 impl<P> Population for Box<P> where P: Population + ?Sized {}
 
+#[cfg(feature = "alloc")]
 impl<T> Solution for VecDeque<T> {
     type Individual = T;
 }
 
+#[cfg(feature = "alloc")]
 impl<T> Population for VecDeque<T> {}

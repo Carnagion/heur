@@ -1,4 +1,4 @@
-use std::{
+use core::{
     convert::Infallible,
     fmt::{self, Debug, Formatter},
     hash::{Hash, Hasher},

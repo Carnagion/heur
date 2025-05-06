@@ -1,3 +1,6 @@
+#[cfg(feature = "alloc")]
+use alloc::boxed::Box;
+
 use crate::{eval::Eval, solution::Solution};
 
 mod unconditional;
@@ -27,6 +30,7 @@ where
     }
 }
 
+#[cfg(feature = "alloc")]
 impl<T, P, S, E> Accept<P, S, E> for Box<T>
 where
     T: Accept<P, S, E> + ?Sized,

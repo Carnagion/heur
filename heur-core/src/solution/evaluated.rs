@@ -1,4 +1,4 @@
-use std::{
+use core::{
     cell::Cell,
     fmt::{self, Debug, Formatter},
     ops::{Deref, DerefMut},

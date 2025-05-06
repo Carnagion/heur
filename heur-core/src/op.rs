@@ -1,4 +1,7 @@
-use std::{convert::Infallible, error::Error, marker::PhantomData};
+use core::{convert::Infallible, error::Error, marker::PhantomData};
+
+#[cfg(feature = "alloc")]
+use alloc::boxed::Box;
 
 use crate::{eval::Eval, solution::Solution};
 
@@ -188,6 +191,7 @@ where
         self
     }
 
+    #[cfg(feature = "alloc")]
     #[must_use]
     fn boxed<'a>(
         self,
@@ -220,6 +224,7 @@ where
     }
 }
 
+#[cfg(feature = "alloc")]
 impl<T, P, S, E, In> Operator<P, S, E, In> for Box<T>
 where
     T: Operator<P, S, E, In> + ?Sized,

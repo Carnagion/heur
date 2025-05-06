@@ -1,9 +1,11 @@
-use std::{
+use core::{
     error::Error,
     fmt::{self, Display, Formatter},
     iter,
     mem,
 };
+
+use alloc::vec::Vec;
 
 use rand::{
     Rng,

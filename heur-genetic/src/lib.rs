@@ -2,6 +2,11 @@
 #![deny(rust_2018_idioms)]
 // #![warn(missing_docs)] // TODO: Enable once finished
 #![deny(rustdoc::broken_intra_doc_links)]
+#![no_std]
+
+extern crate alloc;
+
+use alloc::vec::Vec;
 
 use heur_core::{eval::Eval, op::Hint, solution::Population};
 

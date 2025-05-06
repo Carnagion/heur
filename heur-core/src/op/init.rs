@@ -1,4 +1,7 @@
-use std::marker::PhantomData;
+use core::marker::PhantomData;
+
+#[cfg(feature = "alloc")]
+use alloc::boxed::Box;
 
 use crate::{
     eval::Eval,
@@ -52,6 +55,7 @@ where
     }
 }
 
+#[cfg(feature = "alloc")]
 impl<T, P, S, E> Init<P, S, E> for Box<T>
 where
     T: Init<P, S, E> + ?Sized,

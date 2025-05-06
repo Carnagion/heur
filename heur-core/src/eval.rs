@@ -1,3 +1,6 @@
+#[cfg(feature = "alloc")]
+use alloc::boxed::Box;
+
 mod cached;
 pub use cached::Cached;
 
@@ -39,6 +42,7 @@ where
     }
 }
 
+#[cfg(feature = "alloc")]
 impl<T, P, S> Eval<P, S> for Box<T>
 where
     T: Eval<P, S> + ?Sized,
