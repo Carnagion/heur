@@ -1,6 +1,10 @@
 use alloc::{boxed::Box, vec::Vec};
 
-use heur_core::{eval::Eval, op::Operator, solution::Population};
+use heur_core::{
+    eval::Eval,
+    op::{Hint, Ignore, Operator, Unwrapped},
+    solution::Population,
+};
 
 mod elitist;
 pub use elitist::ElitistInserter;
@@ -73,5 +77,59 @@ where
             Self::Left(left) => left.insert(population, problem, eval, combined),
             Self::Right(right) => right.insert(population, problem, eval, combined),
         }
+    }
+}
+
+impl<T, P, S, E> Insert<P, S, E> for Ignore<T>
+where
+    T: Insert<P, S, E>,
+    S: Population,
+    E: Eval<P, S::Individual>,
+{
+    fn insert(
+        &mut self,
+        population: &mut S,
+        problem: &P,
+        eval: &mut E,
+        combined: Vec<S::Individual>,
+    ) -> Result<(), Self::Error> {
+        self.as_mut().insert(population, problem, eval, combined)
+    }
+}
+
+impl<T, P, S, E> Insert<P, S, E> for Unwrapped<T>
+where
+    T: Insert<P, S, E>,
+    S: Population,
+    E: Eval<P, S::Individual>,
+{
+    fn insert(
+        &mut self,
+        population: &mut S,
+        problem: &P,
+        eval: &mut E,
+        combined: Vec<S::Individual>,
+    ) -> Result<(), Self::Error> {
+        self.as_mut()
+            .insert(population, problem, eval, combined)
+            .unwrap();
+        Ok(())
+    }
+}
+
+impl<T, P, S, E> Insert<P, S, E> for Hint<T, P, S, E, Vec<S::Individual>>
+where
+    T: Insert<P, S, E>,
+    S: Population,
+    E: Eval<P, S::Individual>,
+{
+    fn insert(
+        &mut self,
+        population: &mut S,
+        problem: &P,
+        eval: &mut E,
+        combined: Vec<S::Individual>,
+    ) -> Result<(), Self::Error> {
+        self.as_mut().insert(population, problem, eval, combined)
     }
 }

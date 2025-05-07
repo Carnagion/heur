@@ -6,6 +6,18 @@ use super::{Operator, init::Init, mutate::Mutate, search::Search};
 #[must_use]
 pub struct Ignore<T>(pub(super) T);
 
+impl<T> AsRef<T> for Ignore<T> {
+    fn as_ref(&self) -> &T {
+        &self.0
+    }
+}
+
+impl<T> AsMut<T> for Ignore<T> {
+    fn as_mut(&mut self) -> &mut T {
+        &mut self.0
+    }
+}
+
 impl<T, P, S, E, In> Operator<P, S, E, In> for Ignore<T>
 where
     T: Operator<P, S, E, In>,

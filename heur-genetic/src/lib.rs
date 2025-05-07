@@ -8,74 +8,64 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use heur_core::{eval::Eval, op::Hint, solution::Population};
+use combine::{Combine, on_combined};
 
-pub mod select;
-use select::Select;
+use heur_core::{
+    Optimize,
+    eval::Eval,
+    op::{Operator, init::Init, stop::Stop},
+    solution::Population,
+};
 
-pub mod combine;
-use combine::Combine;
-
-pub mod insert;
 use insert::Insert;
 
-impl<T, P, S, E> Select<P, S, E> for Hint<T, P, S, E>
-where
-    T: Select<P, S, E>,
-    S: Population,
-    E: Eval<P, S::Individual>,
-{
-    fn select(
-        &mut self,
-        population: &S,
-        problem: &P,
-        eval: &mut E,
-    ) -> Result<Vec<S::Individual>, Self::Error> {
-        self.as_mut().select(population, problem, eval)
-    }
+use select::Select;
 
-    fn select_into(
-        &mut self,
-        population: &S,
-        problem: &P,
-        eval: &mut E,
-        selected: &mut Vec<S::Individual>,
-    ) -> Result<(), Self::Error> {
-        self.as_mut()
-            .select_into(population, problem, eval, selected)
-    }
+pub mod select;
+
+pub mod combine;
+
+pub mod insert;
+
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
+pub struct GeneticAlgorithm<Ini, Sel, Com, Mut, Ins, Sto> {
+    pub init: Ini,
+    pub select: Sel,
+    pub combine: Com,
+    pub mutate: Mut,
+    pub insert: Ins,
+    pub stop: Sto,
 }
 
-impl<T, P, S, E> Combine<P, S, E> for Hint<T, P, S, E, Vec<S::Individual>>
+impl<P, S, E, Ini, Sel, Com, Mut, Ins, Sto> Optimize<P, S, E>
+    for GeneticAlgorithm<Ini, Sel, Com, Mut, Ins, Sto>
 where
-    T: Combine<P, S, E>,
     S: Population,
     E: Eval<P, S::Individual>,
+    Ini: Init<P, S, E, Output = ()>,
+    Sel: Select<P, S, E, Error = Ini::Error>,
+    Com: Combine<P, S, E, Error = Ini::Error>,
+    Mut: Operator<P, Vec<S::Individual>, E, Output = (), Error = Ini::Error>,
+    Ins: Insert<P, S, E, Output = (), Error = Ini::Error>,
+    Sto: Stop<P, S, E>,
 {
-    fn combine(
-        &mut self,
-        population: &S,
-        problem: &P,
-        eval: &mut E,
-        selected: Vec<S::Individual>,
-    ) -> Result<Vec<S::Individual>, Self::Error> {
-        self.as_mut().combine(population, problem, eval, selected)
-    }
-}
+    type Error = Ini::Error;
 
-impl<T, P, S, E> Insert<P, S, E> for Hint<T, P, S, E, Vec<S::Individual>>
-where
-    T: Insert<P, S, E>,
-    S: Population,
-    E: Eval<P, S::Individual>,
-{
-    fn insert(
-        &mut self,
-        population: &mut S,
-        problem: &P,
-        eval: &mut E,
-        combined: Vec<S::Individual>,
-    ) -> Result<(), Self::Error> {
-        self.as_mut().insert(population, problem, eval, combined)
+    fn optimize(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
+        let init = self.init.by_ref();
+        let select = self.select.by_ref();
+        let combine = self.combine.by_ref();
+        let mutate = self.mutate.by_ref();
+        let insert = self.insert.by_ref();
+
+        let mut ga = init.then(
+            select
+                .pipe(combine)
+                .pipe(on_combined(mutate))
+                .pipe(insert)
+                .repeat_until(&mut self.stop),
+        );
+
+        ga.optimize(problem, eval)
     }
 }

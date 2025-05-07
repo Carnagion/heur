@@ -12,7 +12,11 @@ use rand::{
     distr::{Bernoulli, Distribution},
 };
 
-use heur_core::{eval::Eval, op::Operator, solution::Population};
+use heur_core::{
+    eval::Eval,
+    op::Operator,
+    solution::{IterMut, Population},
+};
 
 use super::Combine;
 
@@ -28,8 +32,6 @@ impl<R> UniformCrossover<R> {
         Self { dist, rng }
     }
 }
-
-use heur_core::solution::IterMut;
 
 impl<P, S, E, R> Operator<P, S, E, Vec<S::Individual>> for UniformCrossover<R>
 where

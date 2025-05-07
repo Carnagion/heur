@@ -39,6 +39,7 @@ const ITERS: usize = 10000;
 const PC: f64 = 0.5;
 
 use heur::{
+    Optimize,
     eval::{self, Eval},
     genetic::{
         combine::{UniformCrossover, on_combined},
@@ -46,7 +47,7 @@ use heur::{
         select::TournamentSelector,
     },
     op::{self, Operator, init, population, stop::Iterations},
-    solution::{Individual, Solve},
+    solution::Individual,
 };
 
 #[divan::bench(args = DIMS)]
@@ -84,7 +85,7 @@ fn heur_ga(dim: usize) -> f64 {
             .repeat_until(stop),
     );
 
-    let population: [_; N] = ga.solve(&sphere, &mut eval).unwrap();
+    let population: [_; N] = ga.optimize(&sphere, &mut eval).unwrap();
 
     let best_objective = population
         .iter()

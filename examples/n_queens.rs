@@ -1,14 +1,15 @@
 use std::array;
 
 use heur::{
+    Optimize,
     eval::{self, Eval},
     genetic::{
         combine::{UniformCrossover, on_combined},
         insert::ElitistInserter,
         select::ElitistSelector,
     },
-    op::{self, Operator, init, population, stop::Iterations},
-    solution::{Individual, Solve},
+    op::{self, Operator, init, population, stop::Optimum},
+    solution::Individual,
 };
 
 use rand::{Rng, distr::Bernoulli};
@@ -76,6 +77,15 @@ where
         .collect()
 }
 
+fn apply_mutation<R>(solution: &mut Individual<Solution>, problem: &Problem, rng: &mut R)
+where
+    R: Rng,
+{
+    for pos in &mut **solution {
+        pos.x = rng.random_range(0..problem.n_queens);
+    }
+}
+
 fn ga(problem: &Problem) {
     // Create an objective function that can be given to the metaheuristic. This example uses `eval::from_fn` to wrap up
     // the objective function above, but you could create a custom type and impl `Eval` for it manually like so:
@@ -106,16 +116,12 @@ fn ga(problem: &Problem) {
     let init = init::from_population(population);
     let select = ElitistSelector::new(50);
     let combine = UniformCrossover::new(Bernoulli::new(0.5).unwrap(), rng.clone());
-    let mutate = op::from_fn(
-        |solution: &mut Individual<Vec<Pos>>, problem: &Problem, _eval, _input| {
-            for pos in &mut **solution {
-                pos.x = rng.random_range(0..problem.n_queens);
-            }
-            Ok(())
-        },
-    );
+    let mutate = op::from_fn(|solution, problem, _, _| {
+        apply_mutation(solution, problem, &mut rng);
+        Ok(())
+    });
     let insert = ElitistInserter::new();
-    let stop = Iterations::new(10000);
+    let stop = Optimum::new(0);
 
     // Note that we could have also handwritten the metaheuristic like so, which is equivalent to the combinator-based version:
     //
@@ -153,10 +159,10 @@ fn ga(problem: &Problem) {
     // would want to handle properly.
     //
     // Since we started with a population of individuals (see `init::from_population`), we get back a population as well.
-    let population: [Solution; 100] = ga.solve(problem, &mut eval).unwrap();
+    let population: [Solution; 100] = ga.optimize(problem, &mut eval).unwrap();
 
-    // Evaluate the best individual from the population. Note that it is not guaranteed that we will get an optimal
-    // solution - but it is very likely that we get one, or at least a near-optimal solution.
+    // Evaluate the best individual from the population. Since our stop condition is finding an optimal solution, this
+    // individual will have the optimal objective value of 0.
     let best_objective = population
         .iter()
         .map(|solution| eval.eval(solution, problem))

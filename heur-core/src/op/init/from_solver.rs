@@ -1,8 +1,4 @@
-use crate::{
-    eval::Eval,
-    op::Operator,
-    solution::{Solution, Solve},
-};
+use crate::{Optimize, eval::Eval, op::Operator, solution::Solution};
 
 use super::Init;
 
@@ -12,7 +8,7 @@ pub struct FromSolver<T>(pub(super) T);
 
 impl<T, P, S, E> Operator<P, S, E> for FromSolver<T>
 where
-    T: Solve<P, S, E>,
+    T: Optimize<P, S, E>,
     S: Solution,
     E: Eval<P, S::Individual>,
 {
@@ -33,11 +29,11 @@ where
 
 impl<T, P, S, E> Init<P, S, E> for FromSolver<T>
 where
-    T: Solve<P, S, E>,
+    T: Optimize<P, S, E>,
     S: Solution,
     E: Eval<P, S::Individual>,
 {
     fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
-        self.0.solve(problem, eval)
+        self.0.optimize(problem, eval)
     }
 }

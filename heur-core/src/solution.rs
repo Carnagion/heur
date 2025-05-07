@@ -1,15 +1,10 @@
-use core::error::Error;
+use core::{
+    fmt::{self, Debug, Display, Formatter},
+    ops::{Deref, DerefMut},
+};
 
 #[cfg(feature = "alloc")]
-use alloc::boxed::Box;
-
-use crate::eval::Eval;
-
-mod individual;
-pub use individual::Individual;
-
-mod population;
-pub use population::Population;
+use alloc::{boxed::Box, collections::VecDeque, vec::Vec};
 
 mod evaluated;
 pub use evaluated::Evaluated;
@@ -20,61 +15,146 @@ pub trait Solution {
     type Individual;
 }
 
-// TODO: Add `#[diagnostic::on_unimplemented]`
-pub trait Solve<P, S, E>
-where
-    S: Solution,
-    E: Eval<P, S::Individual>,
-{
-    type Error: Error;
+#[derive(Default, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[repr(transparent)]
+pub struct Individual<T>(pub T);
 
-    fn solve(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error>;
+impl<T> Individual<T> {
+    pub fn new(value: T) -> Self {
+        Self(value)
+    }
+
+    pub fn from_ref(ptr: &T) -> &Self {
+        // SAFETY: `Individual<T>` is `repr(transparent)` and only contains a `T`.
+        let ptr = ptr as *const T as *const Individual<T>;
+        unsafe { &*ptr }
+    }
+
+    pub fn from_mut(ptr: &mut T) -> &mut Self {
+        // SAFETY: `Individual<T>` is `repr(transparent)` and only contains a `T`.
+        let ptr = ptr as *mut T as *mut Individual<T>;
+        unsafe { &mut *ptr }
+    }
+
+    // NOTE: This is an associated function and not a method to prevent confusion with any methods named `into_inner` on `T`
+    //       (since `Individual<T>` derefs to `T`).
+    pub fn into_inner(this: Self) -> T {
+        this.0
+    }
 }
 
-impl<T, P, S, E> Solve<P, S, E> for &mut T
-where
-    T: Solve<P, S, E> + ?Sized,
-    S: Solution,
-    E: Eval<P, S::Individual>,
-{
-    type Error = T::Error;
+impl<T> Solution for Individual<T> {
+    type Individual = T;
+}
 
-    fn solve(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
-        T::solve(self, problem, eval)
+impl<T> Debug for Individual<T>
+where
+    T: Debug,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
     }
+}
+
+impl<T> Display for Individual<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl<T> AsRef<T> for Individual<T> {
+    fn as_ref(&self) -> &T {
+        &self.0
+    }
+}
+
+impl<T> AsMut<T> for Individual<T> {
+    fn as_mut(&mut self) -> &mut T {
+        &mut self.0
+    }
+}
+
+impl<T> Deref for Individual<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T> DerefMut for Individual<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl<T> From<T> for Individual<T> {
+    fn from(value: T) -> Self {
+        Self(value)
+    }
+}
+
+impl<'a, T> From<&'a T> for &'a Individual<T> {
+    fn from(ptr: &'a T) -> Self {
+        Individual::from_ref(ptr)
+    }
+}
+
+impl<'a, T> From<&'a mut T> for &'a mut Individual<T> {
+    fn from(ptr: &'a mut T) -> Self {
+        Individual::from_mut(ptr)
+    }
+}
+
+// TODO: 1. Impl `Population` for types from `smallvec`, `arrayvec`, `tinyvec`, `heapless`, and/or `im`
+//       2. Add `#[diagnostic::on_unimplemented]`
+pub trait Population: Solution {}
+
+#[cfg(feature = "alloc")]
+impl<T> Solution for Vec<T> {
+    type Individual = T;
 }
 
 #[cfg(feature = "alloc")]
-impl<T, P, S, E> Solve<P, S, E> for Box<T>
-where
-    T: Solve<P, S, E> + ?Sized,
-    S: Solution,
-    E: Eval<P, S::Individual>,
-{
-    type Error = T::Error;
+impl<T> Population for Vec<T> {}
 
-    fn solve(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
-        T::solve(self, problem, eval)
-    }
+// NOTE: While it wouldn't actually be possible to use a `[T]` as a solution (it's unsized and therefore can't be initialised
+//       with an initialisation operator), this impl allows any `Box<S>` to impl `Solution` as long as `S: Solution`, including
+//       the case when `S` = `[T]`.
+impl<T> Solution for [T] {
+    type Individual = T;
 }
 
-#[cfg(feature = "either")]
-impl<L, R, P, S, E> Solve<P, S, E> for either::Either<L, R>
-where
-    L: Solve<P, S, E>,
-    R: Solve<P, S, E, Error = L::Error>,
-    S: Solution,
-    E: Eval<P, S::Individual>,
-{
-    type Error = L::Error;
+// NOTE: See the note above on the `Solution` impl for `[T]`.
+impl<T> Population for [T] {}
 
-    fn solve(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
-        match self {
-            Self::Left(left) => left.solve(problem, eval),
-            Self::Right(right) => right.solve(problem, eval),
-        }
-    }
+impl<T, const N: usize> Solution for [T; N] {
+    type Individual = T;
 }
+
+impl<T, const N: usize> Population for [T; N] {}
+
+#[cfg(feature = "alloc")]
+impl<S> Solution for Box<S>
+where
+    S: Solution + ?Sized,
+{
+    type Individual = S::Individual;
+}
+
+#[cfg(feature = "alloc")]
+impl<P> Population for Box<P> where P: Population + ?Sized {}
+
+#[cfg(feature = "alloc")]
+impl<T> Solution for VecDeque<T> {
+    type Individual = T;
+}
+
+#[cfg(feature = "alloc")]
+impl<T> Population for VecDeque<T> {}
 
 // NOTE: We need these traits due to a possible bug in `rustc` where trying to prove that `Evaluated<S, O>` impls
 //       `IntoIterator` puts the trait solver into a loop and leads to an overflow. Conceptually, `T: for<'a> Iter<'a>`

@@ -1,8 +1,9 @@
 use heur::{
+    Optimize,
     bits::{FlipAllBits, SteepestAscentBitClimb},
     eval::{self, Eval},
     op::{self, Operator, accept::NonWorsening, init, stop::Iterations},
-    solution::{Individual, Solve},
+    solution::Individual,
 };
 
 use ordered_float::NotNan;
@@ -128,16 +129,16 @@ fn ils(knapsack: &Knapsack) {
             .repeat_until(stop),
     );
 
-    // These combined operators now impl `Solve`, so we can pass it a problem instance and an objective function (anything that
-    // impls `Eval<P, S>` where `S` is the solution type and `P` is the problem type), and we get back a solution (or an error
-    // if something went wrong during solving).
+    // These combined operators now impl `Optimize`, so we can pass it a problem instance and an objective function (anything
+    // that impls `Eval<P, S>` where `S` is the solution type and `P` is the problem type), and we get back a solution (or an
+    // error if something went wrong during solving).
     //
     // In this case, all operators chosen above have an error type of `Infallible`, so the error type of their combination is
     // also `Infallible` and we can safely unwrap the result. For more complex operators, they may return errors, which you
     // would want to handle properly.
     //
     // Since we started with an individual solution (see `init::from_individual`), we get back an individual as well.
-    let solution: Individual<Solution> = ils.solve(knapsack, &mut eval).unwrap();
+    let solution: Individual<Solution> = ils.optimize(knapsack, &mut eval).unwrap();
 
     // Evaluate the solution. Note that since we only ran the metaheuristic for 1000 iterations (see the `stop` operator
     // above), we will likely not get an optimal objective value - but it is very likely that we get a near-optimal value

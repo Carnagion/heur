@@ -2,7 +2,11 @@ use core::marker::PhantomData;
 
 use alloc::{boxed::Box, vec::Vec};
 
-use heur_core::{eval::Eval, op::Operator, solution::Population};
+use heur_core::{
+    eval::Eval,
+    op::{Hint, Operator, Unwrapped},
+    solution::Population,
+};
 
 mod on_combined;
 pub use on_combined::OnCombined;
@@ -81,6 +85,44 @@ where
             Self::Left(left) => left.combine(population, problem, eval, selected),
             Self::Right(right) => right.combine(population, problem, eval, selected),
         }
+    }
+}
+
+impl<T, P, S, E> Combine<P, S, E> for Unwrapped<T>
+where
+    T: Combine<P, S, E>,
+    S: Population,
+    E: Eval<P, S::Individual>,
+{
+    fn combine(
+        &mut self,
+        population: &S,
+        problem: &P,
+        eval: &mut E,
+        selected: Vec<S::Individual>,
+    ) -> Result<Vec<S::Individual>, Self::Error> {
+        let combined = self
+            .as_mut()
+            .combine(population, problem, eval, selected)
+            .unwrap();
+        Ok(combined)
+    }
+}
+
+impl<T, P, S, E> Combine<P, S, E> for Hint<T, P, S, E, Vec<S::Individual>>
+where
+    T: Combine<P, S, E>,
+    S: Population,
+    E: Eval<P, S::Individual>,
+{
+    fn combine(
+        &mut self,
+        population: &S,
+        problem: &P,
+        eval: &mut E,
+        selected: Vec<S::Individual>,
+    ) -> Result<Vec<S::Individual>, Self::Error> {
+        self.as_mut().combine(population, problem, eval, selected)
     }
 }
 

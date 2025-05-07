@@ -4,8 +4,9 @@ use core::marker::PhantomData;
 use alloc::boxed::Box;
 
 use crate::{
+    Optimize,
     eval::Eval,
-    solution::{Population, Solution, Solve},
+    solution::{Population, Solution},
 };
 
 use super::Operator;
@@ -127,7 +128,7 @@ where
 
 pub fn from_solver<P, S, E, T>(solver: T) -> FromSolver<T>
 where
-    T: Solve<P, S, E>,
+    T: Optimize<P, S, E>,
     S: Solution,
     E: Eval<P, S::Individual>,
 {

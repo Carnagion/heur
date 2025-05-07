@@ -2,7 +2,11 @@ use core::marker::PhantomData;
 
 use alloc::{boxed::Box, vec::Vec};
 
-use heur_core::{eval::Eval, op::Operator, solution::Population};
+use heur_core::{
+    eval::Eval,
+    op::{Hint, Operator, Unwrapped},
+    solution::Population,
+};
 
 mod on_selected;
 pub use on_selected::OnSelected;
@@ -121,6 +125,63 @@ where
             Self::Left(left) => left.select_into(population, problem, eval, selected),
             Self::Right(right) => right.select_into(population, problem, eval, selected),
         }
+    }
+}
+
+impl<T, P, S, E> Select<P, S, E> for Unwrapped<T>
+where
+    T: Select<P, S, E>,
+    S: Population,
+    E: Eval<P, S::Individual>,
+{
+    fn select(
+        &mut self,
+        population: &S,
+        problem: &P,
+        eval: &mut E,
+    ) -> Result<Vec<S::Individual>, Self::Error> {
+        let selected = self.as_mut().select(population, problem, eval).unwrap();
+        Ok(selected)
+    }
+
+    fn select_into(
+        &mut self,
+        population: &S,
+        problem: &P,
+        eval: &mut E,
+        selected: &mut Vec<S::Individual>,
+    ) -> Result<(), Self::Error> {
+        self.as_mut()
+            .select_into(population, problem, eval, selected)
+            .unwrap();
+        Ok(())
+    }
+}
+
+impl<T, P, S, E> Select<P, S, E> for Hint<T, P, S, E>
+where
+    T: Select<P, S, E>,
+    S: Population,
+    E: Eval<P, S::Individual>,
+{
+    fn select(
+        &mut self,
+        population: &S,
+        problem: &P,
+        eval: &mut E,
+    ) -> Result<Vec<S::Individual>, Self::Error> {
+        self.as_mut().select(population, problem, eval)
+    }
+
+    fn select_into(
+        &mut self,
+        population: &S,
+        problem: &P,
+        eval: &mut E,
+        selected: &mut Vec<S::Individual>,
+    ) -> Result<(), Self::Error> {
+        self.as_mut()
+            .select_into(population, problem, eval, selected)
     }
 }
 

@@ -1,7 +1,4 @@
-use crate::{
-    eval::Eval,
-    solution::{Solution, Solve},
-};
+use crate::{Optimize, eval::Eval, solution::Solution};
 
 use super::{Operator, init::Init, mutate::Mutate, search::Search};
 
@@ -89,7 +86,7 @@ where
     }
 }
 
-impl<T, U, P, S, E> Solve<P, S, E> for Then<T, U>
+impl<T, U, P, S, E> Optimize<P, S, E> for Then<T, U>
 where
     T: Init<P, S, E, Output = ()>,
     U: Operator<P, S, E, Output = (), Error = T::Error>,
@@ -98,7 +95,7 @@ where
 {
     type Error = T::Error;
 
-    fn solve(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
+    fn optimize(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
         self.init(problem, eval)
     }
 }
