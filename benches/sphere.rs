@@ -81,7 +81,6 @@ fn heur_ga(dim: usize) -> f64 {
             .pipe(op::hint(combine).unwrapped())
             .pipe(on_combined(population::for_each(mutate)))
             .pipe(insert)
-            .ignore()
             .repeat_until(stop),
     );
 
