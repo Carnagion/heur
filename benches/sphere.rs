@@ -47,23 +47,23 @@ use heur::{
         select::TournamentSelector,
     },
     op::{self, Operator, init, population, stop::Iterations},
-    solution::Individual,
+    solution::{Evaluated, Individual},
 };
 
 #[divan::bench(args = DIMS)]
 fn heur_ga(dim: usize) -> f64 {
     let sphere = Sphere { dim };
 
-    let mut eval = eval::from_fn(cost);
+    let mut eval = eval::from_fn(cost).cached();
 
     let mut rng = rand::rng();
 
-    let population: [_; N] = array::from_fn(|_| init_random(&sphere, &mut rng));
+    let population: [_; N] = array::from_fn(|_| init_random(&sphere, &mut rng)).map(Evaluated::new);
     let init = init::from_population(population);
     let select = TournamentSelector::new(TOUR, N, rng.clone());
     let combine = UniformCrossover::new(Bernoulli::new(PC).unwrap(), rng.clone());
     let mutate = op::from_fn(
-        |solution: &mut Individual<Solution>, _sphere, _eval, _input| {
+        |solution: &mut Individual<Evaluated<Solution, _>>, _, _, _| {
             for x in &mut **solution {
                 let min = (*x - 0.1).max(-1.0);
                 let max = (*x + 0.1).min(1.0);
