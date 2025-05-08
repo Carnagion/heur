@@ -9,7 +9,7 @@ pub struct FromFn<F>(pub(super) F);
 impl<F, P, S, O> Eval<P, S> for FromFn<F>
 where
     F: FnMut(&S, &P) -> O,
-    O: Ord,
+    O: PartialOrd,
 {
     type Objective = O;
 

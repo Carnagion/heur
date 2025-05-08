@@ -13,11 +13,7 @@ pub use from_fn::FromFn;
 //       `Eval` repeatedly for each different population type, which is just stupid.
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
 pub trait Eval<P, S> {
-    // NOTE: In theory, having `Objective: PartialOrd` would be "enough" and allow using types like `f32` or `f64` as
-    //       objective values. However, many operators rely on a total order existing in the objective value type. Plus, it
-    //       is often incorrect to use `PartialOrd` in this manner - eg. it would be nonsensical to have an objective value
-    //       of `NaN`. As such, we restrict `Objective` to `Ord` types only.
-    type Objective: Ord;
+    type Objective: PartialOrd;
 
     #[must_use]
     fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective;
@@ -73,7 +69,7 @@ where
 pub fn from_fn<F, P, S, O>(f: F) -> FromFn<F>
 where
     F: FnMut(&S, &P) -> O,
-    O: Ord,
+    O: PartialOrd,
 {
     FromFn(f)
 }

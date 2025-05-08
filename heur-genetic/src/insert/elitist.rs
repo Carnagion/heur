@@ -25,7 +25,7 @@ impl ElitistInserter {
 impl<P, S, E> Operator<P, S, E, Vec<S::Individual>> for ElitistInserter
 where
     S: Population<Individual: Clone> + AsMut<[S::Individual]>,
-    E: Eval<P, S::Individual>,
+    E: Eval<P, S::Individual, Objective: Ord>,
 {
     type Output = ();
 
@@ -45,7 +45,7 @@ where
 impl<P, S, E> Insert<P, S, E> for ElitistInserter
 where
     S: Population<Individual: Clone> + AsMut<[S::Individual]>,
-    E: Eval<P, S::Individual>,
+    E: Eval<P, S::Individual, Objective: Ord>,
 {
     fn insert(
         &mut self,

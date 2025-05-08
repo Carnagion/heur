@@ -27,7 +27,7 @@ impl ElitistSelector {
 impl<P, S, E> Operator<P, S, E> for ElitistSelector
 where
     S: Population<Individual: Clone> + AsRef<[S::Individual]>,
-    E: Eval<P, S::Individual>,
+    E: Eval<P, S::Individual, Objective: Ord>,
 {
     type Output = Vec<S::Individual>;
 
@@ -47,7 +47,7 @@ where
 impl<P, S, E> Select<P, S, E> for ElitistSelector
 where
     S: Population<Individual: Clone> + AsRef<[S::Individual]>,
-    E: Eval<P, S::Individual>,
+    E: Eval<P, S::Individual, Objective: Ord>,
 {
     fn select(
         &mut self,

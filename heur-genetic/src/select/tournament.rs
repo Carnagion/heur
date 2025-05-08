@@ -34,7 +34,7 @@ impl<P, S, E, R> Operator<P, S, E> for TournamentSelector<R>
 where
     // TODO: Should we use `IteratorRandom::choose_multiple` instead to work with solutions that don't impl `AsRef<[T]>`?
     S: Population<Individual: Clone> + AsRef<[S::Individual]>,
-    E: Eval<P, S::Individual>,
+    E: Eval<P, S::Individual, Objective: Ord>,
     R: Rng,
 {
     type Output = Vec<S::Individual>;
@@ -55,7 +55,7 @@ where
 impl<P, S, E, R> Select<P, S, E> for TournamentSelector<R>
 where
     S: Population<Individual: Clone> + AsRef<[S::Individual]>,
-    E: Eval<P, S::Individual>,
+    E: Eval<P, S::Individual, Objective: Ord>,
     R: Rng,
 {
     fn select(

@@ -84,7 +84,7 @@ impl SteepestAscentBitClimb {
 impl<P, B, E> Operator<P, Individual<B>, E> for SteepestAscentBitClimb
 where
     B: Bits,
-    E: Eval<P, B>,
+    E: Eval<P, B, Objective: Ord>,
 {
     type Output = ();
 
@@ -104,7 +104,7 @@ where
 impl<P, B, E> Search<P, Individual<B>, E> for SteepestAscentBitClimb
 where
     B: Bits,
-    E: Eval<P, B>,
+    E: Eval<P, B, Objective: Ord>,
 {
     fn search(
         &mut self,
