@@ -34,7 +34,7 @@ where
 
 impl<T, U, P> Init<P> for Then<T, U>
 where
-    T: Init<P, Output = ()>,
+    T: Init<P>,
     U: Operator<P, Output = (), Error = T::Error>,
     P: Problem,
 {
@@ -58,7 +58,7 @@ where
 
 impl<T, U, P> Optimize<P> for Then<T, U>
 where
-    T: Init<P, Output = ()>,
+    T: Init<P>,
     U: Operator<P, Output = (), Error = T::Error>,
     P: Problem,
 {

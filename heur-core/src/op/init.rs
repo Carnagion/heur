@@ -18,7 +18,7 @@ mod from_solver;
 pub use from_solver::FromSolver;
 
 // TODO: Add `#[diagnostic::on_unimplemented]`
-pub trait Init<P: Problem>: Operator<P> {
+pub trait Init<P: Problem>: Operator<P, Output = ()> {
     fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error>;
 
     fn init_into(
@@ -75,7 +75,7 @@ where
 impl<L, R, P> Init<P> for either::Either<L, R>
 where
     L: Init<P>,
-    R: Init<P, Output = L::Output, Error = L::Error>,
+    R: Init<P, Error = L::Error>,
     P: Problem,
 {
     fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
