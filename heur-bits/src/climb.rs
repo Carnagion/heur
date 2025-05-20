@@ -1,10 +1,6 @@
 use core::convert::Infallible;
 
-use heur_core::{
-    eval::Eval,
-    op::{Operator, search::Search},
-    solution::Individual,
-};
+use heur_core::{Problem, eval::Eval, op::Operator, solution::Individual};
 
 use crate::Bits;
 
@@ -12,16 +8,10 @@ use crate::Bits;
 #[must_use]
 pub struct FirstAscentBitClimb;
 
-impl FirstAscentBitClimb {
-    pub fn new() -> Self {
-        Self
-    }
-}
-
-impl<P, B, E> Operator<P, Individual<B>, E> for FirstAscentBitClimb
+impl<P, S> Operator<P> for FirstAscentBitClimb
 where
-    B: Bits,
-    E: Eval<P, B>,
+    P: Problem<Solution = Individual<S>>,
+    S: Bits,
 {
     type Output = ();
 
@@ -29,42 +19,30 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut Individual<B>,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {
-        self.search(solution, problem, eval)
-    }
-}
-
-impl<P, B, E> Search<P, Individual<B>, E> for FirstAscentBitClimb
-where
-    B: Bits,
-    E: Eval<P, B>,
-{
-    fn search(
-        &mut self,
-        solution: &mut Individual<B>,
-        problem: &P,
-        eval: &mut E,
-    ) -> Result<(), Self::Error> {
         let solution = &mut **solution;
 
         let objective = eval.eval(solution, problem);
 
         // NOTE: We iterate over indices here because it's not possible to iterate over the solution mutably
-        //       while also passing it immutably to `eval` for evaluation. Also because `Bits` doesn't expose
+        //       while also passing it immutably to `eval` for evaluation. Also because `Bits` cannot expose
         //       an API for mutably iterating over bits.
         let next = (0..solution.len()).find_map(|idx| {
-            let bit = solution.flip(idx).unwrap(); // PANICS: We know that the index is valid
+            let bit = solution.get(idx).unwrap(); // PANICS: We know that the index is valid
+            solution.set(idx, !bit);
+
             let improved = (eval.eval(solution, problem) > objective).then_some(idx);
             solution.set(idx, bit).unwrap(); // PANICS: Same as above
             improved
         });
 
         if let Some(idx) = next {
-            solution.flip(idx).unwrap(); // PANICS: We know that the index is valid from above
+            let bit = solution.get(idx).unwrap(); // PANICS: We know that the index is valid
+            solution.set(idx, !bit);
         }
 
         Ok(())
@@ -75,16 +53,11 @@ where
 #[must_use]
 pub struct SteepestAscentBitClimb;
 
-impl SteepestAscentBitClimb {
-    pub fn new() -> Self {
-        Self
-    }
-}
-
-impl<P, B, E> Operator<P, Individual<B>, E> for SteepestAscentBitClimb
+impl<P, S> Operator<P> for SteepestAscentBitClimb
 where
-    B: Bits,
-    E: Eval<P, B, Objective: Ord>,
+    P: Problem<Solution = Individual<S>>,
+    S: Bits,
+    P::Eval: Eval<P, Objective: Ord>,
 {
     type Output = ();
 
@@ -92,38 +65,26 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut Individual<B>,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
         _input: (),
     ) -> Result<Self::Output, Self::Error> {
-        self.search(solution, problem, eval)
-    }
-}
-
-impl<P, B, E> Search<P, Individual<B>, E> for SteepestAscentBitClimb
-where
-    B: Bits,
-    E: Eval<P, B, Objective: Ord>,
-{
-    fn search(
-        &mut self,
-        solution: &mut Individual<B>,
-        problem: &P,
-        eval: &mut E,
-    ) -> Result<(), Self::Error> {
         let solution = &mut **solution;
 
         // NOTE: See the note above regarding iteration over indices.
         let best = (0..solution.len()).max_by_key(|&idx| {
-            let bit = solution.flip(idx).unwrap(); // PANICS: We know that the index is valid from above
+            let bit = solution.get(idx).unwrap(); // PANICS: We know that the index is valid
+            solution.set(idx, !bit);
+
             let objective = eval.eval(solution, problem);
             solution.set(idx, bit).unwrap(); // PANICS: Same as above
             objective
         });
 
         if let Some(idx) = best {
-            solution.flip(idx).unwrap(); // PANICS: We know that the index is valid from above
+            let bit = solution.get(idx).unwrap(); // PANICS: We know that the index is valid
+            solution.set(idx, !bit);
         }
 
         Ok(())

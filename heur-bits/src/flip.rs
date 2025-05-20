@@ -5,11 +5,7 @@ use rand::{
     distr::{Bernoulli, Distribution},
 };
 
-use heur_core::{
-    eval::Eval,
-    op::{Operator, mutate::Mutate},
-    solution::Individual,
-};
+use heur_core::{Problem, op::Operator, solution::Individual};
 
 use crate::Bits;
 
@@ -25,10 +21,10 @@ impl<R> FlipBit<R> {
     }
 }
 
-impl<P, B, E, R> Operator<P, Individual<B>, E> for FlipBit<R>
+impl<P, S, R> Operator<P> for FlipBit<R>
 where
-    B: Bits,
-    E: Eval<P, B>,
+    P: Problem<Solution = Individual<S>>,
+    S: Bits,
     R: Rng,
 {
     type Output = ();
@@ -37,31 +33,16 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut Individual<B>,
-        problem: &P,
-        eval: &mut E,
-        _input: (),
+        solution: &mut P::Solution,
+        _: &mut P::Eval,
+        _: &P,
+        (): (),
     ) -> Result<Self::Output, Self::Error> {
-        self.mutate(solution, problem, eval)
-    }
-}
-
-impl<P, B, E, R> Mutate<P, Individual<B>, E> for FlipBit<R>
-where
-    B: Bits,
-    E: Eval<P, B>,
-    R: Rng,
-{
-    fn mutate(
-        &mut self,
-        solution: &mut Individual<B>,
-        _problem: &P,
-        _eval: &mut E,
-    ) -> Result<(), Self::Error> {
         // NOTE: We need to check that the solution is not empty, because `Rng::gen_range` panics on empty ranges.
         if !solution.is_empty() {
             let idx = self.rng.random_range(0..solution.len());
-            solution.flip(idx).unwrap(); // PANICS: We know that the index is valid
+            let bit = solution.get(idx).unwrap(); // PANICS: We know that the index is valid
+            solution.set(idx, !bit);
         }
         Ok(())
     }
@@ -80,10 +61,10 @@ impl<R> FlipAllBits<R> {
     }
 }
 
-impl<P, B, E, R> Operator<P, Individual<B>, E> for FlipAllBits<R>
+impl<P, S, R> Operator<P> for FlipAllBits<R>
 where
-    B: Bits,
-    E: Eval<P, B>,
+    P: Problem<Solution = Individual<S>>,
+    S: Bits,
     R: Rng,
 {
     type Output = ();
@@ -92,30 +73,15 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut Individual<B>,
-        problem: &P,
-        eval: &mut E,
-        _input: (),
+        solution: &mut P::Solution,
+        _: &mut P::Eval,
+        _: &P,
+        (): (),
     ) -> Result<Self::Output, Self::Error> {
-        self.mutate(solution, problem, eval)
-    }
-}
-
-impl<P, B, E, R> Mutate<P, Individual<B>, E> for FlipAllBits<R>
-where
-    B: Bits,
-    E: Eval<P, B>,
-    R: Rng,
-{
-    fn mutate(
-        &mut self,
-        solution: &mut Individual<B>,
-        _problem: &P,
-        _eval: &mut E,
-    ) -> Result<(), Self::Error> {
         for idx in 0..solution.len() {
             if self.dist.sample(&mut self.rng) {
-                solution.flip(idx).unwrap(); // PANICS: We know that the index is valid
+                let bit = solution.get(idx).unwrap(); // PANICS: We know that the index is valid
+                solution.set(idx, !bit);
             }
         }
         Ok(())
