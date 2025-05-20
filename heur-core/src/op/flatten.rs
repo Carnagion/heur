@@ -1,6 +1,6 @@
 use core::fmt::{self, Debug, Formatter};
 
-use crate::{eval::Eval, solution::Solution};
+use crate::Problem;
 
 use super::Operator;
 
@@ -8,26 +8,25 @@ use super::Operator;
 #[must_use]
 pub struct Flatten<T>(pub(crate) T);
 
-impl<T, P, S, E, In> Operator<P, S, E, In> for Flatten<T>
+impl<T, P, In> Operator<P, In> for Flatten<T>
 where
-    T: Operator<P, S, E, In, Output: Operator<P, S, E, Error = T::Error>>,
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    T: Operator<P, In, Output: Operator<P, Error = T::Error>>,
+    P: Problem,
 {
-    type Output = <T::Output as Operator<P, S, E>>::Output;
+    type Output = <T::Output as Operator<P>>::Output;
 
     type Error = T::Error;
 
     fn apply(
         &mut self,
-        solution: &mut S,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
         self.0
-            .apply(solution, problem, eval, input)?
-            .apply(solution, problem, eval, ())
+            .apply(solution, eval, problem, input)?
+            .apply(solution, eval, problem, ())
     }
 }
 
@@ -36,6 +35,30 @@ where
 pub struct FlatMap<T, F> {
     pub(crate) op: T,
     pub(crate) f: F,
+}
+
+impl<T, U, F, P, In> Operator<P, In> for FlatMap<T, F>
+where
+    T: Operator<P, In>,
+    U: Operator<P, Error = T::Error>,
+    F: FnMut(T::Output) -> U,
+    P: Problem,
+{
+    type Output = U::Output;
+
+    type Error = T::Error;
+
+    fn apply(
+        &mut self,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
+        problem: &P,
+        input: In,
+    ) -> Result<Self::Output, Self::Error> {
+        let output = self.op.apply(solution, eval, problem, input)?;
+        let mut op = (self.f)(output);
+        op.apply(solution, eval, problem, ())
+    }
 }
 
 impl<T, F> Debug for FlatMap<T, F>
@@ -47,30 +70,5 @@ where
             .debug_struct("FlatMap")
             .field("op", &self.op)
             .finish_non_exhaustive()
-    }
-}
-
-impl<T, U, F, P, S, E, In> Operator<P, S, E, In> for FlatMap<T, F>
-where
-    T: Operator<P, S, E, In>,
-    U: Operator<P, S, E, Error = T::Error>,
-    F: FnMut(T::Output) -> U,
-    S: Solution,
-    E: Eval<P, S::Individual>,
-{
-    type Output = U::Output;
-
-    type Error = T::Error;
-
-    fn apply(
-        &mut self,
-        solution: &mut S,
-        problem: &P,
-        eval: &mut E,
-        input: In,
-    ) -> Result<Self::Output, Self::Error> {
-        let output = self.op.apply(solution, problem, eval, input)?;
-        let mut op = (self.f)(output);
-        op.apply(solution, problem, eval, ())
     }
 }

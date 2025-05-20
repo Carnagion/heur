@@ -1,94 +1,33 @@
-use core::{
-    fmt::{self, Debug, Display, Formatter},
-    ops::{Deref, DerefMut},
-};
+use core::ops::{Deref, DerefMut};
 
 #[cfg(feature = "alloc")]
-use alloc::{boxed::Box, collections::VecDeque, vec::Vec};
+use alloc::{boxed::Box, vec::Vec};
 
-mod evaluated;
-pub use evaluated::Evaluated;
-
-// TODO: 1. Impl `Solution` for types from `smallvec`, `arrayvec`, `tinyvec`, `heapless`, and/or `im`
-//       2. Add `#[diagnostic::on_unimplemented]`
+// TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Solution {
     type Individual;
 }
 
-#[derive(Default, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[repr(transparent)]
 pub struct Individual<T>(pub T);
 
 impl<T> Individual<T> {
-    pub fn new(value: T) -> Self {
-        Self(value)
-    }
-
+    #[must_use]
     pub fn from_ref(ptr: &T) -> &Self {
         // SAFETY: `Individual<T>` is `repr(transparent)` and only contains a `T`.
-        let ptr = ptr as *const T as *const Individual<T>;
-        unsafe { &*ptr }
+        unsafe { &*(ptr as *const T as *const Self) }
     }
 
+    #[must_use]
     pub fn from_mut(ptr: &mut T) -> &mut Self {
         // SAFETY: `Individual<T>` is `repr(transparent)` and only contains a `T`.
-        let ptr = ptr as *mut T as *mut Individual<T>;
-        unsafe { &mut *ptr }
-    }
-
-    // NOTE: This is an associated function and not a method to prevent confusion with any methods named `into_inner` on `T`
-    //       (since `Individual<T>` derefs to `T`).
-    pub fn into_inner(this: Self) -> T {
-        this.0
+        unsafe { &mut *(ptr as *mut T as *mut Self) }
     }
 }
 
 impl<T> Solution for Individual<T> {
     type Individual = T;
-}
-
-impl<T> Debug for Individual<T>
-where
-    T: Debug,
-{
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl<T> Display for Individual<T>
-where
-    T: Display,
-{
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl<T> AsRef<T> for Individual<T> {
-    fn as_ref(&self) -> &T {
-        &self.0
-    }
-}
-
-impl<T> AsMut<T> for Individual<T> {
-    fn as_mut(&mut self) -> &mut T {
-        &mut self.0
-    }
-}
-
-impl<T> Deref for Individual<T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<T> DerefMut for Individual<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
 }
 
 impl<T> From<T> for Individual<T> {
@@ -109,9 +48,41 @@ impl<'a, T> From<&'a mut T> for &'a mut Individual<T> {
     }
 }
 
+impl<T> AsRef<T> for Individual<T> {
+    fn as_ref(&self) -> &T {
+        self
+    }
+}
+
+impl<T> AsMut<T> for Individual<T> {
+    fn as_mut(&mut self) -> &mut T {
+        self
+    }
+}
+
+impl<T> Deref for Individual<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T> DerefMut for Individual<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
 // TODO: 1. Impl `Population` for types from `smallvec`, `arrayvec`, `tinyvec`, `heapless`, and/or `im`
 //       2. Add `#[diagnostic::on_unimplemented]`
 pub trait Population: Solution {}
+
+impl<T, const N: usize> Solution for [T; N] {
+    type Individual = T;
+}
+
+impl<T, const N: usize> Population for [T; N] {}
 
 #[cfg(feature = "alloc")]
 impl<T> Solution for Vec<T> {
@@ -121,40 +92,21 @@ impl<T> Solution for Vec<T> {
 #[cfg(feature = "alloc")]
 impl<T> Population for Vec<T> {}
 
-// NOTE: While it wouldn't actually be possible to use a `[T]` as a solution (it's unsized and therefore can't be initialised
-//       with an initialisation operator), this impl allows any `Box<S>` to impl `Solution` as long as `S: Solution`, including
-//       the case when `S` = `[T]`.
-impl<T> Solution for [T] {
-    type Individual = T;
-}
-
-// NOTE: See the note above on the `Solution` impl for `[T]`.
-impl<T> Population for [T] {}
-
-impl<T, const N: usize> Solution for [T; N] {
-    type Individual = T;
-}
-
-impl<T, const N: usize> Population for [T; N] {}
-
 #[cfg(feature = "alloc")]
-impl<S> Solution for Box<S>
-where
-    S: Solution + ?Sized,
-{
-    type Individual = S::Individual;
-}
-
-#[cfg(feature = "alloc")]
-impl<P> Population for Box<P> where P: Population + ?Sized {}
-
-#[cfg(feature = "alloc")]
-impl<T> Solution for VecDeque<T> {
+impl<T> Solution for Box<[T]> {
     type Individual = T;
 }
 
 #[cfg(feature = "alloc")]
-impl<T> Population for VecDeque<T> {}
+impl<T> Population for Box<[T]> {}
+
+#[cfg(feature = "alloc")]
+impl<T, const N: usize> Solution for Box<[T; N]> {
+    type Individual = T;
+}
+
+#[cfg(feature = "alloc")]
+impl<T, const N: usize> Population for Box<[T; N]> {}
 
 // NOTE: We need these traits due to a possible bug in `rustc` where trying to prove that `Evaluated<S, O>` impls
 //       `IntoIterator` puts the trait solver into a loop and leads to an overflow. Conceptually, `T: for<'a> Iter<'a>`

@@ -1,6 +1,6 @@
-use crate::{eval::Eval, solution::Solution};
+use crate::Problem;
 
-use super::{Operator, accept::Accept, mutate::Mutate, search::Search};
+use super::{Operator, cond::accept::Accept};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
@@ -9,12 +9,11 @@ pub struct AcceptIf<T, F> {
     pub(super) cond: F,
 }
 
-impl<T, F, P, S, E, In> Operator<P, S, E, In> for AcceptIf<T, F>
+impl<T, F, P, In> Operator<P, In> for AcceptIf<T, F>
 where
-    T: Operator<P, S, E, In>,
-    F: Accept<P, S, E>,
-    S: Solution + Clone,
-    E: Eval<P, S::Individual>,
+    T: Operator<P, In>,
+    F: Accept<P>,
+    P: Problem<Solution: Clone>,
 {
     type Output = Option<T::Output>;
 
@@ -22,57 +21,19 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut S,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
-        let prev_solution = solution.clone();
+        let prev = solution.clone();
 
-        let output = self.op.apply(solution, problem, eval, input)?;
-        if self.cond.accept(solution, &prev_solution, problem, eval) {
+        let output = self.op.apply(solution, eval, problem, input)?;
+        if self.cond.accept(solution, &prev, eval, problem) {
             Ok(Some(output))
         } else {
-            *solution = prev_solution;
+            *solution = prev;
             Ok(None)
         }
-    }
-}
-
-impl<T, F, P, S, E> Mutate<P, S, E> for AcceptIf<T, F>
-where
-    T: Mutate<P, S, E>,
-    F: Accept<P, S, E>,
-    S: Solution + Clone,
-    E: Eval<P, S::Individual>,
-{
-    fn mutate(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
-        let prev_solution = solution.clone();
-
-        self.op.mutate(solution, problem, eval)?;
-        if !self.cond.accept(solution, &prev_solution, problem, eval) {
-            *solution = prev_solution;
-        }
-
-        Ok(())
-    }
-}
-
-impl<T, F, P, S, E> Search<P, S, E> for AcceptIf<T, F>
-where
-    T: Search<P, S, E>,
-    F: Accept<P, S, E>,
-    S: Solution + Clone,
-    E: Eval<P, S::Individual>,
-{
-    fn search(&mut self, solution: &mut S, problem: &P, eval: &mut E) -> Result<(), Self::Error> {
-        let prev_solution = solution.clone();
-
-        self.op.search(solution, problem, eval)?;
-        if !self.cond.accept(solution, &prev_solution, problem, eval) {
-            *solution = prev_solution;
-        }
-
-        Ok(())
     }
 }

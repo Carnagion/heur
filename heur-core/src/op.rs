@@ -3,11 +3,9 @@ use core::{convert::Infallible, error::Error, marker::PhantomData};
 #[cfg(feature = "alloc")]
 use alloc::boxed::Box;
 
-use crate::{eval::Eval, solution::Solution};
+use cond::{accept::Accept, stop::Stop};
 
-use accept::Accept;
-
-use stop::Stop;
+use crate::Problem;
 
 mod then;
 pub use then::Then;
@@ -47,40 +45,28 @@ pub use todo::Todo;
 
 pub mod init;
 
-pub mod mutate;
-
-pub mod search;
-
 pub mod population;
 
-pub mod accept;
+pub mod cond;
 
-pub mod stop;
-
-// TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
-pub trait Operator<P, S, E, In = ()>
-where
-    S: Solution,
-    E: Eval<P, S::Individual>,
-{
-    // TODO: Should this be set to a default `()` once defaults for associated types lands?
-    //       See https://github.com/rust-lang/rust/issues/29661.
+// TODO: Add #[diagnostic::on_unimplemented]
+pub trait Operator<P: Problem, In = ()> {
     type Output;
 
     type Error: Error;
 
     fn apply(
         &mut self,
-        solution: &mut S,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error>;
 
     fn then<U>(self, op: U) -> Then<Self, U>
     where
-        Self: Operator<P, S, E, Output = ()> + Sized,
-        U: Operator<P, S, E, Output = (), Error = <Self as Operator<P, S, E>>::Error>,
+        Self: Operator<P, Output = ()> + Sized,
+        U: Operator<P, Output = (), Error = <Self as Operator<P>>::Error>,
     {
         Then {
             first: self,
@@ -88,12 +74,12 @@ where
         }
     }
 
-    fn pipe<U>(self, to: U) -> Pipe<Self, U>
+    fn pipe<U>(self, op: U) -> Pipe<Self, U>
     where
         Self: Sized,
-        U: Operator<P, S, E, Self::Output, Error = Self::Error>,
+        U: Operator<P, Self::Output, Error = Self::Error>,
     {
-        Pipe { from: self, to }
+        Pipe { from: self, to: op }
     }
 
     fn ignore(self) -> Ignore<Self>
@@ -138,23 +124,23 @@ where
     fn accept_if<F>(self, cond: F) -> AcceptIf<Self, F>
     where
         Self: Sized,
-        F: Accept<P, S, E>,
-        S: Clone,
+        F: Accept<P>,
+        P::Solution: Clone,
     {
         AcceptIf { op: self, cond }
     }
 
     fn repeat(self, times: usize) -> Repeat<Self>
     where
-        Self: Operator<P, S, E, In, Output = In> + Sized,
+        Self: Operator<P, In, Output = In> + Sized,
     {
         Repeat { op: self, times }
     }
 
     fn repeat_until<F>(self, cond: F) -> RepeatUntil<Self, F>
     where
-        Self: Operator<P, S, E, In, Output = In> + Sized,
-        F: Stop<P, S, E>,
+        Self: Operator<P, In, Output = In> + Sized,
+        F: Stop<P>,
     {
         RepeatUntil { op: self, cond }
     }
@@ -162,7 +148,7 @@ where
     fn flatten(self) -> Flatten<Self>
     where
         Self: Sized,
-        Self::Output: Operator<P, S, E, Error = Self::Error>,
+        Self::Output: Operator<P, Error = Self::Error>,
     {
         Flatten(self)
     }
@@ -171,7 +157,7 @@ where
     where
         Self: Sized,
         F: FnMut(Self::Output) -> U,
-        U: Operator<P, S, E, Error = Self::Error>,
+        U: Operator<P, Error = Self::Error>,
     {
         FlatMap { op: self, f }
     }
@@ -193,9 +179,7 @@ where
 
     #[cfg(feature = "alloc")]
     #[must_use]
-    fn boxed<'a>(
-        self,
-    ) -> Box<dyn Operator<P, S, E, In, Output = Self::Output, Error = Self::Error> + 'a>
+    fn boxed<'a>(self) -> Box<dyn Operator<P, In, Output = Self::Output, Error = Self::Error> + 'a>
     where
         Self: Sized + 'a,
     {
@@ -203,11 +187,10 @@ where
     }
 }
 
-impl<T, P, S, E, In> Operator<P, S, E, In> for &mut T
+impl<T, P, In> Operator<P, In> for &mut T
 where
-    T: Operator<P, S, E, In> + ?Sized,
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    T: Operator<P, In> + ?Sized,
+    P: Problem,
 {
     type Output = T::Output;
 
@@ -215,21 +198,20 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut S,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
-        T::apply(self, solution, problem, eval, input)
+        T::apply(self, solution, eval, problem, input)
     }
 }
 
 #[cfg(feature = "alloc")]
-impl<T, P, S, E, In> Operator<P, S, E, In> for Box<T>
+impl<T, P, In> Operator<P, In> for Box<T>
 where
-    T: Operator<P, S, E, In> + ?Sized,
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    T: Operator<P, In> + ?Sized,
+    P: Problem,
 {
     type Output = T::Output;
 
@@ -237,22 +219,21 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut S,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
-        T::apply(self, solution, problem, eval, input)
+        T::apply(self, solution, eval, problem, input)
     }
 }
 
 #[cfg(feature = "either")]
-impl<L, R, P, S, E, In> Operator<P, S, E, In> for either::Either<L, R>
+impl<L, R, P, In> Operator<P, In> for either::Either<L, R>
 where
-    L: Operator<P, S, E, In>,
-    R: Operator<P, S, E, In, Output = L::Output, Error = L::Error>,
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    L: Operator<P, In>,
+    R: Operator<P, In, Output = L::Output, Error = L::Error>,
+    P: Problem,
 {
     type Output = L::Output;
 
@@ -260,22 +241,21 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut S,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
         match self {
-            Self::Left(left) => left.apply(solution, problem, eval, input),
-            Self::Right(right) => right.apply(solution, problem, eval, input),
+            Self::Left(left) => left.apply(solution, eval, problem, input),
+            Self::Right(right) => right.apply(solution, eval, problem, input),
         }
     }
 }
 
-impl<P, S, E> Operator<P, S, E> for ()
+impl<P> Operator<P> for ()
 where
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    P: Problem,
 {
     type Output = ();
 
@@ -283,20 +263,19 @@ where
 
     fn apply(
         &mut self,
-        _solution: &mut S,
-        _problem: &P,
-        _eval: &mut E,
-        _input: (),
+        _: &mut P::Solution,
+        _: &mut P::Eval,
+        _: &P,
+        (): (),
     ) -> Result<Self::Output, Self::Error> {
         Ok(())
     }
 }
 
-impl<T, P, S, E, In> Operator<P, S, E, In> for Option<T>
+impl<T, P, In> Operator<P, In> for Option<T>
 where
-    T: Operator<P, S, E, In>,
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    T: Operator<P, In>,
+    P: Problem,
 {
     type Output = Option<T::Output>;
 
@@ -304,32 +283,34 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut S,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
         self.as_mut()
-            .map(|op| op.apply(solution, problem, eval, input))
+            .map(|op| op.apply(solution, eval, problem, input))
             .transpose()
     }
 }
 
-pub fn from_fn<P, S, E, In, Out, Err, F>(f: F) -> FromFn<F>
+pub fn from_fn<P, In, Out, Err, F>(f: F) -> FromFn<P, In, Out, Err, F>
 where
-    F: FnMut(&mut S, &P, &mut E, In) -> Result<Out, Err>,
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    F: FnMut(&mut P::Solution, &mut P::Eval, &P, In) -> Result<Out, Err>,
+    P: Problem,
     Err: Error,
 {
-    FromFn(f)
+    FromFn {
+        f,
+        marker: PhantomData,
+    }
 }
 
-pub fn hint<P, S, E, In, T>(op: T) -> Hint<T, P, S, E, In>
+pub fn hint<T, P, In, Out, Err>(op: T) -> Hint<T, P, In, Out, Err>
 where
-    T: Operator<P, S, E, In>,
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    T: Operator<P, In, Output = Out, Error = Err>,
+    P: Problem,
+    Err: Error,
 {
     Hint {
         op,
@@ -337,10 +318,9 @@ where
     }
 }
 
-pub fn todo<P, S, E, In, Out, Err>() -> Todo<P, S, E, In, Out, Err>
+pub fn todo<P, In, Out, Err>() -> Todo<P, In, Out, Err>
 where
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    P: Problem,
     Err: Error,
 {
     Todo(PhantomData)

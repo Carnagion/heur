@@ -5,132 +5,128 @@ use alloc::boxed::Box;
 
 use crate::{
     Optimize,
-    eval::Eval,
-    solution::{Population, Solution},
+    Problem,
+    solution::{Individual, Population},
 };
 
 use super::Operator;
 
 mod from_value;
-pub use from_value::{FromDefault, FromIndividual, FromPopulation};
+pub use from_value::{FromIndividual, FromPopulation};
 
 mod from_solver;
 pub use from_solver::FromSolver;
 
 // TODO: Add `#[diagnostic::on_unimplemented]`
-pub trait Init<P, S, E>: Operator<P, S, E>
-where
-    S: Solution,
-    E: Eval<P, S::Individual>,
-{
-    fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error>;
+pub trait Init<P: Problem>: Operator<P> {
+    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error>;
 
     fn init_into(
         &mut self,
-        solution: &mut S,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
     ) -> Result<(), Self::Error> {
-        *solution = self.init(problem, eval)?;
+        *solution = self.init(eval, problem)?;
         Ok(())
     }
 }
 
-impl<T, P, S, E> Init<P, S, E> for &mut T
+impl<T, P> Init<P> for &mut T
 where
-    T: Init<P, S, E> + ?Sized,
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    T: Init<P> + ?Sized,
+    P: Problem,
 {
-    fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
-        T::init(self, problem, eval)
+    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+        T::init(self, eval, problem)
     }
 
     fn init_into(
         &mut self,
-        solution: &mut S,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
     ) -> Result<(), Self::Error> {
-        T::init_into(self, solution, problem, eval)
+        T::init_into(self, solution, eval, problem)
     }
 }
 
 #[cfg(feature = "alloc")]
-impl<T, P, S, E> Init<P, S, E> for Box<T>
+impl<T, P> Init<P> for Box<T>
 where
-    T: Init<P, S, E> + ?Sized,
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    T: Init<P> + ?Sized,
+    P: Problem,
 {
-    fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
-        T::init(self, problem, eval)
+    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+        T::init(self, eval, problem)
     }
 
     fn init_into(
         &mut self,
-        solution: &mut S,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
     ) -> Result<(), Self::Error> {
-        T::init_into(self, solution, problem, eval)
+        T::init_into(self, solution, eval, problem)
     }
 }
 
 #[cfg(feature = "either")]
-impl<L, R, P, S, E> Init<P, S, E> for either::Either<L, R>
+impl<L, R, P> Init<P> for either::Either<L, R>
 where
-    L: Init<P, S, E>,
-    R: Init<P, S, E, Output = L::Output, Error = L::Error>,
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    L: Init<P>,
+    R: Init<P, Output = L::Output, Error = L::Error>,
+    P: Problem,
 {
-    fn init(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
+    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
         match self {
-            Self::Left(left) => left.init(problem, eval),
-            Self::Right(right) => right.init(problem, eval),
+            Self::Left(left) => left.init(eval, problem),
+            Self::Right(right) => right.init(eval, problem),
         }
     }
 
     fn init_into(
         &mut self,
-        solution: &mut S,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
     ) -> Result<(), Self::Error> {
         match self {
-            Self::Left(left) => left.init_into(solution, problem, eval),
-            Self::Right(right) => right.init_into(solution, problem, eval),
+            Self::Left(left) => left.init_into(solution, eval, problem),
+            Self::Right(right) => right.init_into(solution, eval, problem),
         }
     }
 }
 
-pub fn from_individual<S>(individual: S) -> FromIndividual<S>
+pub fn from_individual<P, S>(solution: S) -> FromIndividual<P, S>
 where
+    P: Problem<Solution = Individual<S>>,
     S: Clone,
 {
-    FromIndividual(individual)
+    FromIndividual {
+        solution,
+        marker: PhantomData,
+    }
 }
 
-pub fn from_population<S>(population: S) -> FromPopulation<S>
+pub fn from_population<P, S>(population: S) -> FromPopulation<P, S>
 where
+    P: Problem<Solution = S>,
     S: Population + Clone,
 {
-    FromPopulation(population)
+    FromPopulation {
+        population,
+        marker: PhantomData,
+    }
 }
 
-pub fn from_default<S>() -> FromDefault<S>
+pub fn from_solver<P, T>(solver: T) -> FromSolver<P, T>
 where
-    S: Solution + Default,
+    T: Optimize<P>,
+    P: Problem,
 {
-    FromDefault(PhantomData)
-}
-
-pub fn from_solver<P, S, E, T>(solver: T) -> FromSolver<T>
-where
-    T: Optimize<P, S, E>,
-    S: Solution,
-    E: Eval<P, S::Individual>,
-{
-    FromSolver(solver)
+    FromSolver {
+        solver,
+        marker: PhantomData,
+    }
 }

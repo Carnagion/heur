@@ -1,25 +1,52 @@
-use core::fmt::{self, Debug, Formatter};
+use core::{
+    fmt::{self, Debug, Formatter},
+    marker::PhantomData,
+};
+
+use crate::{Problem, solution::Solution};
 
 use super::Eval;
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
-#[must_use]
-pub struct FromFn<F>(pub(super) F);
+type EvalFn<P, O> = fn(&<<P as Problem>::Solution as Solution>::Individual, &P) -> O;
 
-impl<F, P, S, O> Eval<P, S> for FromFn<F>
+// TODO: Manually impl common traits
+#[must_use]
+pub struct FromFn<P, O, F = EvalFn<P, O>> {
+    pub(super) f: F,
+    #[allow(clippy::type_complexity)]
+    pub(super) marker: PhantomData<fn() -> (P, O)>,
+}
+
+impl<P, O, F> Eval<P> for FromFn<P, O, F>
 where
-    F: FnMut(&S, &P) -> O,
+    F: FnMut(&<P::Solution as Solution>::Individual, &P) -> O,
+    P: Problem,
     O: PartialOrd,
 {
     type Objective = O;
 
-    fn eval(&mut self, solution: &S, problem: &P) -> Self::Objective {
-        (self.0)(solution, problem)
+    fn eval(
+        &mut self,
+        solution: &<P::Solution as Solution>::Individual,
+        problem: &P,
+    ) -> Self::Objective {
+        (self.f)(solution, problem)
     }
 }
 
-impl<F> Debug for FromFn<F> {
+impl<P, O, F> Debug for FromFn<P, O, F> {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
-        formatter.debug_tuple("FromFn").finish_non_exhaustive()
+        formatter.debug_struct("FromFn").finish_non_exhaustive()
+    }
+}
+
+impl<P, O, F: Copy> Copy for FromFn<P, O, F> {}
+
+impl<P, O, F: Clone> Clone for FromFn<P, O, F> {
+    fn clone(&self) -> Self {
+        Self {
+            f: self.f.clone(),
+            marker: PhantomData,
+        }
     }
 }

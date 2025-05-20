@@ -6,21 +6,23 @@ use core::{
 };
 
 use crate::{
-    eval::Eval,
+    Problem,
     op::Operator,
-    solution::{Individual, Population, Solution},
+    solution::{Individual, Population},
 };
 
 use super::Init;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
-pub struct FromIndividual<S>(pub(super) S);
+pub struct FromIndividual<P, S> {
+    pub(super) solution: S,
+    pub(super) marker: PhantomData<fn() -> P>,
+}
 
-impl<P, S, E> Operator<P, Individual<S>, E> for FromIndividual<S>
+impl<P, S> Operator<P> for FromIndividual<P, S>
 where
+    P: Problem<Solution = Individual<S>>,
     S: Clone,
-    E: Eval<P, S>,
 {
     type Output = ();
 
@@ -29,42 +31,44 @@ where
     fn apply(
         &mut self,
         solution: &mut Individual<S>,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-        _input: (),
+        (): (),
     ) -> Result<Self::Output, Self::Error> {
-        self.init_into(solution, problem, eval)
+        self.init_into(solution, eval, problem)
     }
 }
 
-impl<P, S, E> Init<P, Individual<S>, E> for FromIndividual<S>
+impl<P, S> Init<P> for FromIndividual<P, S>
 where
+    P: Problem<Solution = Individual<S>>,
     S: Clone,
-    E: Eval<P, S>,
 {
-    fn init(&mut self, _problem: &P, _eval: &mut E) -> Result<Individual<S>, Self::Error> {
-        Ok(Individual::new(self.0.clone()))
+    fn init(&mut self, _: &mut P::Eval, _: &P) -> Result<Individual<S>, Self::Error> {
+        Ok(Individual(self.solution.clone()))
     }
 
     fn init_into(
         &mut self,
         solution: &mut Individual<S>,
-        _problem: &P,
-        _eval: &mut E,
+        _: &mut P::Eval,
+        _: &P,
     ) -> Result<(), Self::Error> {
-        solution.clone_from(Individual::from_ref(&self.0));
+        solution.clone_from(Individual::from_ref(&self.solution));
         Ok(())
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
-pub struct FromPopulation<S>(pub(super) S);
+pub struct FromPopulation<P, S> {
+    pub(super) population: S,
+    pub(super) marker: PhantomData<fn() -> P>,
+}
 
-impl<P, S, E> Operator<P, S, E> for FromPopulation<S>
+impl<P, S> Operator<P> for FromPopulation<P, S>
 where
+    P: Problem<Solution = S>,
     S: Population + Clone,
-    E: Eval<P, S::Individual>,
 {
     type Output = ();
 
@@ -72,102 +76,100 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut S,
+        population: &mut S,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-        _input: (),
+        (): (),
     ) -> Result<Self::Output, Self::Error> {
-        self.init_into(solution, problem, eval)
+        self.init_into(population, eval, problem)
     }
 }
 
-impl<P, S, E> Init<P, S, E> for FromPopulation<S>
+impl<P, S> Init<P> for FromPopulation<P, S>
 where
+    P: Problem<Solution = S>,
     S: Population + Clone,
-    E: Eval<P, S::Individual>,
 {
-    fn init(&mut self, _problem: &P, _eval: &mut E) -> Result<S, Self::Error> {
-        Ok(self.0.clone())
+    fn init(&mut self, _: &mut P::Eval, _: &P) -> Result<S, Self::Error> {
+        Ok(self.population.clone())
     }
 
-    fn init_into(
-        &mut self,
-        solution: &mut S,
-        _problem: &P,
-        _eval: &mut E,
-    ) -> Result<(), Self::Error> {
-        solution.clone_from(&self.0);
+    fn init_into(&mut self, population: &mut S, _: &mut P::Eval, _: &P) -> Result<(), Self::Error> {
+        population.clone_from(&self.population);
         Ok(())
     }
 }
 
-#[must_use]
-pub struct FromDefault<S>(pub(super) PhantomData<fn() -> S>);
-
-impl<S> Debug for FromDefault<S> {
+impl<S: Debug, P> Debug for FromIndividual<P, S> {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
-        formatter.debug_tuple("FromDefault").finish_non_exhaustive()
+        formatter
+            .debug_struct("FromIndividual")
+            .field("solution", &self.solution)
+            .finish_non_exhaustive()
     }
 }
 
-impl<S> Default for FromDefault<S> {
-    fn default() -> Self {
-        Self(PhantomData)
-    }
-}
+impl<S: Copy, P> Copy for FromIndividual<P, S> {}
 
-impl<S> Copy for FromDefault<S> {}
-
-impl<S> Clone for FromDefault<S> {
+impl<S: Clone, P> Clone for FromIndividual<P, S> {
     fn clone(&self) -> Self {
-        *self
+        Self {
+            solution: self.solution.clone(),
+            marker: PhantomData,
+        }
     }
 }
 
-impl<S> Eq for FromDefault<S> {}
+impl<S: Eq, P> Eq for FromIndividual<P, S> {}
 
-impl<S> PartialEq for FromDefault<S> {
-    fn eq(&self, _: &Self) -> bool {
-        true
+impl<S: PartialEq, P> PartialEq for FromIndividual<P, S> {
+    fn eq(&self, other: &Self) -> bool {
+        self.solution == other.solution
     }
 }
 
-impl<S> Hash for FromDefault<S> {
+impl<S: Hash, P> Hash for FromIndividual<P, S> {
     fn hash<H>(&self, state: &mut H)
     where
         H: Hasher,
     {
-        self.0.hash(state);
+        self.solution.hash(state);
     }
 }
 
-impl<P, S, E> Operator<P, S, E> for FromDefault<S>
-where
-    S: Solution + Default,
-    E: Eval<P, S::Individual>,
-{
-    type Output = ();
-
-    type Error = Infallible;
-
-    fn apply(
-        &mut self,
-        solution: &mut S,
-        _problem: &P,
-        _eval: &mut E,
-        _input: (),
-    ) -> Result<Self::Output, Self::Error> {
-        *solution = S::default();
-        Ok(())
+impl<S: Debug, P> Debug for FromPopulation<P, S> {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("FromPopulation")
+            .field("population", &self.population)
+            .finish_non_exhaustive()
     }
 }
 
-impl<P, S, E> Init<P, S, E> for FromDefault<S>
-where
-    S: Solution + Default,
-    E: Eval<P, S::Individual>,
-{
-    fn init(&mut self, _problem: &P, _eval: &mut E) -> Result<S, Self::Error> {
-        Ok(S::default())
+impl<S: Copy, P> Copy for FromPopulation<P, S> {}
+
+impl<S: Clone, P> Clone for FromPopulation<P, S> {
+    fn clone(&self) -> Self {
+        Self {
+            population: self.population.clone(),
+            marker: PhantomData,
+        }
+    }
+}
+
+impl<S: Eq, P> Eq for FromPopulation<P, S> {}
+
+impl<S: PartialEq, P> PartialEq for FromPopulation<P, S> {
+    fn eq(&self, other: &Self) -> bool {
+        self.population == other.population
+    }
+}
+
+impl<S: Hash, P> Hash for FromPopulation<P, S> {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        self.population.hash(state);
     }
 }

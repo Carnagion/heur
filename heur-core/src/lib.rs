@@ -26,57 +26,57 @@ pub mod eval;
 pub mod op;
 
 // TODO: Add `#[diagnostic::on_unimplemented]`
-pub trait Optimize<P, S, E>
-where
-    S: Solution,
-    E: Eval<P, S::Individual>,
-{
-    type Error: Error;
+pub trait Problem: Sized {
+    type Solution: Solution;
 
-    fn optimize(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error>;
+    type Eval: Eval<Self>;
 }
 
-impl<T, P, S, E> Optimize<P, S, E> for &mut T
+// TODO: Add `#[diagnostic::on_unimplemented]`
+pub trait Optimize<P: Problem> {
+    type Error: Error;
+
+    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error>;
+}
+
+impl<T, P> Optimize<P> for &mut T
 where
-    T: Optimize<P, S, E> + ?Sized,
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    T: Optimize<P> + ?Sized,
+    P: Problem,
 {
     type Error = T::Error;
 
-    fn optimize(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
-        T::optimize(self, problem, eval)
+    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+        T::optimize(self, eval, problem)
     }
 }
 
 #[cfg(feature = "alloc")]
-impl<T, P, S, E> Optimize<P, S, E> for Box<T>
+impl<T, P> Optimize<P> for Box<T>
 where
-    T: Optimize<P, S, E> + ?Sized,
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    T: Optimize<P> + ?Sized,
+    P: Problem,
 {
     type Error = T::Error;
 
-    fn optimize(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
-        T::optimize(self, problem, eval)
+    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+        T::optimize(self, eval, problem)
     }
 }
 
 #[cfg(feature = "either")]
-impl<L, R, P, S, E> Optimize<P, S, E> for either::Either<L, R>
+impl<L, R, P> Optimize<P> for either::Either<L, R>
 where
-    L: Optimize<P, S, E>,
-    R: Optimize<P, S, E, Error = L::Error>,
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    L: Optimize<P>,
+    R: Optimize<P, Error = L::Error>,
+    P: Problem,
 {
     type Error = L::Error;
 
-    fn optimize(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
+    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
         match self {
-            Self::Left(left) => left.optimize(problem, eval),
-            Self::Right(right) => right.optimize(problem, eval),
+            Self::Left(left) => left.optimize(eval, problem),
+            Self::Right(right) => right.optimize(eval, problem),
         }
     }
 }

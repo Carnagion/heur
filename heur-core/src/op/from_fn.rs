@@ -1,21 +1,29 @@
 use core::{
+    convert::Infallible,
     error::Error,
     fmt::{self, Debug, Formatter},
+    marker::PhantomData,
 };
 
-use crate::{eval::Eval, solution::Solution};
+use crate::Problem;
 
 use super::Operator;
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
-#[must_use]
-pub struct FromFn<F>(pub(super) F);
+type OperatorFn<P, In, Out, Err> =
+    fn(&mut <P as Problem>::Solution, &mut <P as Problem>::Eval, &P, In) -> Result<Out, Err>;
 
-impl<F, P, S, E, In, Out, Err> Operator<P, S, E, In> for FromFn<F>
+// TODO: Manually implement common traits
+#[must_use]
+pub struct FromFn<P, In = (), Out = (), Err = Infallible, F = OperatorFn<P, In, Out, Err>> {
+    pub(super) f: F,
+    #[allow(clippy::type_complexity)]
+    pub(super) marker: PhantomData<fn() -> (P, In, Out, Err)>,
+}
+
+impl<P, In, Out, Err, F> Operator<P, In> for FromFn<P, In, Out, Err, F>
 where
-    F: FnMut(&mut S, &P, &mut E, In) -> Result<Out, Err>,
-    S: Solution,
-    E: Eval<P, S::Individual>,
+    F: FnMut(&mut P::Solution, &mut P::Eval, &P, In) -> Result<Out, Err>,
+    P: Problem,
     Err: Error,
 {
     type Output = Out;
@@ -24,17 +32,17 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut S,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
         input: In,
     ) -> Result<Self::Output, Self::Error> {
-        (self.0)(solution, problem, eval, input)
+        (self.f)(solution, eval, problem, input)
     }
 }
 
-impl<F> Debug for FromFn<F> {
+impl<P, In, Out, Err, F> Debug for FromFn<P, In, Out, Err, F> {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
-        formatter.debug_tuple("FromFn").finish_non_exhaustive()
+        formatter.debug_struct("FromFn").finish_non_exhaustive()
     }
 }
