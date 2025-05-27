@@ -1,8 +1,14 @@
 use heur::{
     Optimize,
+    Problem,
     bits::{FlipAllBits, SteepestAscentBitClimb},
-    eval::{self, Eval},
-    op::{self, Operator, accept::NonWorsening, init, stop::Iterations},
+    eval::{self, Eval, FromFn},
+    op::{
+        self,
+        Operator,
+        cond::{accept::NonWorsening, stop::Iterations},
+        init,
+    },
     solution::Individual,
 };
 
@@ -34,18 +40,21 @@ struct Item {
     value: f64,
 }
 
-// Since this is a 0-1 knapsack problem example, will use a bitstring as a solution encoding. If an item is included in the
-// knapsack, its bit is set to `true` (1). Otherwise, its bit is set to `false` (0).
-type Solution = Vec<bool>;
+impl Problem for Knapsack {
+    // Since this is a 0-1 knapsack problem example, will use a bitstring as a solution encoding. If an item is included in the
+    // knapsack, its bit is set to `true` (1). Otherwise, its bit is set to `false` (0).
+    type Solution = Individual<Vec<bool>>;
+
+    type Eval = FromFn<Self, NotNan<f64>>;
+}
 
 // An objective function that calculates the cost, or objective value, of a given solution (`Vec<bool>`) to a knapsack problem
 // instance (`Knapsack`).
-fn cost(solution: &Solution, knapsack: &Knapsack) -> NotNan<f64> {
+fn cost(solution: &Vec<bool>, knapsack: &Knapsack) -> NotNan<f64> {
     // Calculate the total weight and value of the items in the knapsack by summing them up together. Only the items
     // that are included (i.e. whose bits in the solution are `true`) are counted.
     let (value, weight) = solution
         .iter()
-        .copied()
         .zip(&knapsack.items)
         .filter_map(|(included, item)| included.then_some(item))
         .fold((0.0, 0.0), |(value, weight), item| {
@@ -63,7 +72,7 @@ fn cost(solution: &Solution, knapsack: &Knapsack) -> NotNan<f64> {
         value
     };
 
-    NotNan::new(cost).unwrap()
+    cost.try_into().unwrap()
 }
 
 fn ils(knapsack: &Knapsack) {
@@ -73,13 +82,13 @@ fn ils(knapsack: &Knapsack) {
     // ```rs
     // struct Cost;
     //
-    // impl Eval<Knapsack, Vec<bool>> for Cost {
-    //     type Objective = f64;
+    // impl Eval<Knapsack> for Cost {
+    //     type Objective = NotNan<f64>;
     //
-    //     fn eval(&mut self, solution: &Vec<bool>, knapsack: &Knapsack) -> f64 { ... }
+    //     fn eval(&mut self, solution: &Vec<bool>, knapsack: &Knapsack) -> NotNan<f64> { ... }
     // }
     // ```
-    let mut eval = eval::from_fn(cost);
+    let mut eval: FromFn<_, _> = eval::from_fn(cost);
 
     // Define the various operators we will be using for the iterated local search metaheuristic. We initialise the solution
     // using an all-zeros bitstring (i.e. no items are included at the start).
@@ -91,9 +100,9 @@ fn ils(knapsack: &Knapsack) {
     // objective value that is no worse than the previous known value), and we stop when we get to 1000 iterations.
     let init = init::from_individual(vec![false; knapsack.items.len()]);
     let mutate = FlipAllBits::new(Bernoulli::new(0.002).unwrap(), rand::rng());
-    let local_search = SteepestAscentBitClimb::new();
-    let accept = NonWorsening::new();
-    let stop = Iterations::new(1000);
+    let local_search = SteepestAscentBitClimb;
+    let accept = NonWorsening;
+    let stop = Iterations(1000);
 
     // Construct the metaheuristic by combining the above operators. We first initialise the solution, then perform mutation
     // and local search, accepting the new solution based on our acceptance criterion above. We then ignore whether the solution
@@ -105,23 +114,23 @@ fn ils(knapsack: &Knapsack) {
     // Note that we could have also handwritten the metaheuristic like so, which is equivalent to the combinator-based version:
     //
     // ```rs
-    // let mut solution = init.init(knapsack, &mut eval).unwrap();
+    // let mut solution = init.init(&mut eval, knapsack).unwrap();
     //
-    // while !stop.stop(&solution, knapsack, &mut eval) {
-    //     let prev_solution = solution.clone();
+    // while !stop.stop(&solution, &mut eval, knapsack) {
+    //     let prev = solution.clone();
     //
-    //     mutate.mutate(&mut solution, knapsack, &mut eval)?;
-    //     local_search.search(&mut solution, knapsack, &mut eval)?;
+    //     mutate.mutate(&mut solution, &mut eval, knapsack)?;
+    //     local_search.search(&mut solution, &mut eval, knapsack)?;
     //
-    //     if !accept.accept(&solution, &prev_solution, knapsack, &mut eval) {
-    //         solution = prev_solution;
+    //     if !accept.accept(&solution, &prev, &mut eval, knapsack) {
+    //         solution = prev;
     //     }
     // }
     // ```
     //
     // Constructing metaheuristics via combinators will generally produce the same code, as the compiler is able to easily
     // inline and optimise away the various layers of wrappers.
-    let mut ils = op::hint(init).then(
+    let mut ils = init.then(
         op::hint(mutate)
             .then(local_search)
             .accept_if(accept)
@@ -138,7 +147,7 @@ fn ils(knapsack: &Knapsack) {
     // would want to handle properly.
     //
     // Since we started with an individual solution (see `init::from_individual`), we get back an individual as well.
-    let solution: Individual<Solution> = ils.optimize(knapsack, &mut eval).unwrap();
+    let solution: Individual<Vec<bool>> = ils.optimize(&mut eval, knapsack).unwrap();
 
     // Evaluate the solution. Note that since we only ran the metaheuristic for 1000 iterations (see the `stop` operator
     // above), we will likely not get an optimal objective value - but it is very likely that we get a near-optimal value
