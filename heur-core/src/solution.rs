@@ -3,6 +3,8 @@ use core::ops::{Deref, DerefMut};
 #[cfg(feature = "alloc")]
 use alloc::{boxed::Box, vec::Vec};
 
+pub mod reencode;
+
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Solution {
     type Individual;

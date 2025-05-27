@@ -1,12 +1,14 @@
-use core::{
-    marker::PhantomData,
-    ops::{Deref, DerefMut},
-};
+use core::marker::PhantomData;
 
 use crate::{
     Problem,
-    eval::Eval,
-    solution::{Individual, IterMut, Population, Solution},
+    solution::{
+        Individual,
+        IterMut,
+        Population,
+        Solution,
+        reencode::{Reencoded, Reeval},
+    },
 };
 
 use super::Operator;
@@ -19,11 +21,11 @@ pub struct ForEach<T, P> {
     marker: PhantomData<fn() -> P>,
 }
 
-impl<T, P> Operator<P> for ForEach<T, P>
+impl<T, P, S> Operator<P> for ForEach<T, P>
 where
-    T: Operator<AsIndividual<P>, Output = ()>,
-    P: Problem,
-    P::Solution: Population + for<'a> IterMut<'a, Item = <P::Solution as Solution>::Individual>,
+    T: Operator<Reencoded<P, Individual<S::Individual>>, Output = ()>,
+    P: Problem<Solution = S>,
+    S: Population + for<'a> IterMut<'a, Item = <P::Solution as Solution>::Individual>,
 {
     type Output = ();
 
@@ -36,8 +38,8 @@ where
         problem: &P,
         (): (),
     ) -> Result<Self::Output, Self::Error> {
-        let eval = AsIndividual::from_mut(eval);
-        let problem = AsIndividual::from_ref(problem);
+        let eval = Reeval::from_mut(eval);
+        let problem = Reencoded::from_ref(problem);
         population
             .iter_mut()
             .map(Individual::from_mut)
@@ -45,68 +47,14 @@ where
     }
 }
 
-pub fn for_each<T, P>(op: T) -> ForEach<T, P>
+pub fn for_each<T, P, S>(op: T) -> ForEach<T, P>
 where
-    T: Operator<AsIndividual<P>, Output = ()>,
-    P: Problem,
-    P::Solution: Population + for<'a> IterMut<'a, Item = <P::Solution as Solution>::Individual>,
+    T: Operator<Reencoded<P, Individual<S::Individual>>, Output = ()>,
+    P: Problem<Solution = S>,
+    S: Population + for<'a> IterMut<'a, Item = <P::Solution as Solution>::Individual>,
 {
     ForEach {
         op,
         marker: PhantomData,
-    }
-}
-
-#[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
-#[repr(transparent)]
-pub struct AsIndividual<T>(T);
-
-impl<T> AsIndividual<T> {
-    #[must_use]
-    pub fn from_ref(ptr: &T) -> &Self {
-        // SAFETY: `AsIndividual<T>` is `repr(transparent)` and only contains a `T`.
-        unsafe { &*(ptr as *const T as *const Self) }
-    }
-
-    #[must_use]
-    pub fn from_mut(ptr: &mut T) -> &mut Self {
-        // SAFETY: `AsIndividual<T>` is `repr(transparent)` and only contains a `T`.
-        unsafe { &mut *(ptr as *mut T as *mut Self) }
-    }
-}
-
-impl<P: Problem> Problem for AsIndividual<P> {
-    type Solution = Individual<<P::Solution as Solution>::Individual>;
-
-    type Eval = AsIndividual<P::Eval>;
-}
-
-impl<E, P> Eval<AsIndividual<P>> for AsIndividual<E>
-where
-    E: Eval<P>,
-    P: Problem,
-{
-    type Objective = E::Objective;
-
-    fn eval(
-        &mut self,
-        solution: &<<AsIndividual<P> as Problem>::Solution as Solution>::Individual,
-        problem: &AsIndividual<P>,
-    ) -> Self::Objective {
-        self.0.eval(solution, problem)
-    }
-}
-
-impl<T> Deref for AsIndividual<T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<T> DerefMut for AsIndividual<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
