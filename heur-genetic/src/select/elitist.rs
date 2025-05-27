@@ -2,7 +2,7 @@ use core::{cmp::Reverse, convert::Infallible};
 
 use alloc::vec::Vec;
 
-use heur_core::{eval::Eval, op::Operator, solution::Population};
+use heur_core::{Problem, eval::Eval, op::Operator, solution::Population};
 
 use super::Select;
 
@@ -24,10 +24,11 @@ impl ElitistSelector {
     }
 }
 
-impl<P, S, E> Operator<P, S, E> for ElitistSelector
+impl<P, S> Operator<P> for ElitistSelector
 where
+    P: Problem<Solution = S>,
     S: Population<Individual: Clone> + AsRef<[S::Individual]>,
-    E: Eval<P, S::Individual, Objective: Ord>,
+    <P::Eval as Eval<P>>::Objective: Ord,
 {
     type Output = Vec<S::Individual>;
 
@@ -36,35 +37,36 @@ where
     fn apply(
         &mut self,
         population: &mut S,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-        _input: (),
+        (): (),
     ) -> Result<Self::Output, Self::Error> {
-        self.select(population, problem, eval)
+        self.select(population, eval, problem)
     }
 }
 
-impl<P, S, E> Select<P, S, E> for ElitistSelector
+impl<P, S> Select<P> for ElitistSelector
 where
+    P: Problem<Solution = S>,
     S: Population<Individual: Clone> + AsRef<[S::Individual]>,
-    E: Eval<P, S::Individual, Objective: Ord>,
+    <P::Eval as Eval<P>>::Objective: Ord,
 {
     fn select(
         &mut self,
         population: &S,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
     ) -> Result<Vec<S::Individual>, Self::Error> {
         let mut selected = Vec::with_capacity(self.selection_size);
-        self.select_into(population, problem, eval, &mut selected)?;
+        self.select_into(population, eval, problem, &mut selected)?;
         Ok(selected)
     }
 
     fn select_into(
         &mut self,
         population: &S,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
         selected: &mut Vec<S::Individual>,
     ) -> Result<(), Self::Error> {
         let population = population.as_ref();

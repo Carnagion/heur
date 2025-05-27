@@ -1,135 +1,75 @@
-use alloc::{boxed::Box, vec::Vec};
+use alloc::boxed::Box;
 
-use heur_core::{
-    eval::Eval,
-    op::{Hint, Ignore, Operator, Unwrapped},
-    solution::Population,
-};
+use heur_core::{Problem, op::Operator, solution::Population};
+
+use super::VecPopulation;
 
 mod elitist;
 pub use elitist::ElitistInserter;
 
 // TODO: Add `#[diagnostic::on_unimplemented]`
-pub trait Insert<P, S, E>: Operator<P, S, E, Vec<S::Individual>>
+pub trait Insert<P>: Operator<P, VecPopulation<P>, Output = ()>
 where
-    S: Population,
-    E: Eval<P, S::Individual>,
+    P: Problem<Solution: Population>,
 {
     fn insert(
         &mut self,
-        population: &mut S,
+        population: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-        combined: Vec<S::Individual>,
+        combined: VecPopulation<P>,
     ) -> Result<(), Self::Error>;
 }
 
-impl<T, P, S, E> Insert<P, S, E> for &mut T
+impl<T, P> Insert<P> for &mut T
 where
-    T: Insert<P, S, E> + ?Sized,
-    S: Population,
-    E: Eval<P, S::Individual>,
+    T: Insert<P> + ?Sized,
+    P: Problem<Solution: Population>,
 {
     fn insert(
         &mut self,
-        population: &mut S,
+        population: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-        combined: Vec<S::Individual>,
+        combined: VecPopulation<P>,
     ) -> Result<(), Self::Error> {
-        T::insert(self, population, problem, eval, combined)
+        T::insert(self, population, eval, problem, combined)
     }
 }
 
-impl<T, P, S, E> Insert<P, S, E> for Box<T>
+impl<T, P> Insert<P> for Box<T>
 where
-    T: Insert<P, S, E> + ?Sized,
-    S: Population,
-    E: Eval<P, S::Individual>,
+    T: Insert<P> + ?Sized,
+    P: Problem<Solution: Population>,
 {
     fn insert(
         &mut self,
-        population: &mut S,
+        population: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-        combined: Vec<S::Individual>,
+        combined: VecPopulation<P>,
     ) -> Result<(), Self::Error> {
-        T::insert(self, population, problem, eval, combined)
+        T::insert(self, population, eval, problem, combined)
     }
 }
 
 #[cfg(feature = "either")]
-impl<L, R, P, S, E> Insert<P, S, E> for either::Either<L, R>
+impl<L, R, P> Insert<P> for either::Either<L, R>
 where
-    L: Insert<P, S, E>,
-    R: Insert<P, S, E, Output = L::Output, Error = L::Error>,
-    S: Population,
-    E: Eval<P, S::Individual>,
+    L: Insert<P>,
+    R: Insert<P, Error = L::Error>,
+    P: Problem<Solution: Population>,
 {
     fn insert(
         &mut self,
-        population: &mut S,
+        population: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-        combined: Vec<S::Individual>,
+        combined: VecPopulation<P>,
     ) -> Result<(), Self::Error> {
         match self {
-            Self::Left(left) => left.insert(population, problem, eval, combined),
-            Self::Right(right) => right.insert(population, problem, eval, combined),
+            Self::Left(left) => left.insert(population, eval, problem, combined),
+            Self::Right(right) => right.insert(population, eval, problem, combined),
         }
-    }
-}
-
-impl<T, P, S, E> Insert<P, S, E> for Ignore<T>
-where
-    T: Insert<P, S, E>,
-    S: Population,
-    E: Eval<P, S::Individual>,
-{
-    fn insert(
-        &mut self,
-        population: &mut S,
-        problem: &P,
-        eval: &mut E,
-        combined: Vec<S::Individual>,
-    ) -> Result<(), Self::Error> {
-        self.as_mut().insert(population, problem, eval, combined)
-    }
-}
-
-impl<T, P, S, E> Insert<P, S, E> for Unwrapped<T>
-where
-    T: Insert<P, S, E>,
-    S: Population,
-    E: Eval<P, S::Individual>,
-{
-    fn insert(
-        &mut self,
-        population: &mut S,
-        problem: &P,
-        eval: &mut E,
-        combined: Vec<S::Individual>,
-    ) -> Result<(), Self::Error> {
-        self.as_mut()
-            .insert(population, problem, eval, combined)
-            .unwrap();
-        Ok(())
-    }
-}
-
-impl<T, P, S, E> Insert<P, S, E> for Hint<T, P, S, E, Vec<S::Individual>>
-where
-    T: Insert<P, S, E>,
-    S: Population,
-    E: Eval<P, S::Individual>,
-{
-    fn insert(
-        &mut self,
-        population: &mut S,
-        problem: &P,
-        eval: &mut E,
-        combined: Vec<S::Individual>,
-    ) -> Result<(), Self::Error> {
-        self.as_mut().insert(population, problem, eval, combined)
     }
 }

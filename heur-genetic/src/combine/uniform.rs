@@ -5,18 +5,18 @@ use core::{
     mem,
 };
 
-use alloc::vec::Vec;
-
 use rand::{
     Rng,
     distr::{Bernoulli, Distribution},
 };
 
 use heur_core::{
-    eval::Eval,
+    Problem,
     op::Operator,
     solution::{IterMut, Population},
 };
+
+use crate::VecPopulation;
 
 use super::Combine;
 
@@ -33,44 +33,44 @@ impl<R> UniformCrossover<R> {
     }
 }
 
-impl<P, S, E, R> Operator<P, S, E, Vec<S::Individual>> for UniformCrossover<R>
+impl<P, R> Operator<P, VecPopulation<P>> for UniformCrossover<R>
 where
-    S: Population<Individual: for<'a> IterMut<'a>>,
-    E: Eval<P, S::Individual>,
+    P: Problem,
+    P::Solution: Population<Individual: for<'a> IterMut<'a>>,
     R: Rng,
 {
-    type Output = Vec<S::Individual>;
+    type Output = VecPopulation<P>;
 
     type Error = UniformCrossoverError;
 
     fn apply(
         &mut self,
-        population: &mut S,
+        population: &mut P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-        selected: Vec<S::Individual>,
+        selected: VecPopulation<P>,
     ) -> Result<Self::Output, Self::Error> {
-        self.combine(population, problem, eval, selected)
+        self.combine(population, eval, problem, selected)
     }
 }
 
-impl<P, S, E, R> Combine<P, S, E> for UniformCrossover<R>
+impl<P, R> Combine<P> for UniformCrossover<R>
 where
-    S: Population<Individual: for<'a> IterMut<'a>>,
-    E: Eval<P, S::Individual>,
+    P: Problem,
+    P::Solution: Population<Individual: for<'a> IterMut<'a>>,
     R: Rng,
 {
     fn combine(
         &mut self,
-        _population: &S,
-        _problem: &P,
-        _eval: &mut E,
-        mut selected: Vec<S::Individual>,
-    ) -> Result<Vec<S::Individual>, Self::Error> {
+        _: &P::Solution,
+        _: &mut P::Eval,
+        _: &P,
+        mut selected: VecPopulation<P>,
+    ) -> Result<VecPopulation<P>, Self::Error> {
         // Ensure that we have an even number of parents so we can crossover every pair
         let selection_size = selected.len();
         if selection_size % 2 != 0 {
-            return Err(UniformCrossoverError::InvalidSize { selection_size });
+            return Err(UniformCrossoverError::OddSize { selection_size });
         }
 
         // TODO: Use `array_chunks_mut` when it gets stabilised
@@ -93,13 +93,13 @@ where
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum UniformCrossoverError {
-    InvalidSize { selection_size: usize },
+    OddSize { selection_size: usize },
 }
 
 impl Display for UniformCrossoverError {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidSize { selection_size } => write!(
+            Self::OddSize { selection_size } => write!(
                 formatter,
                 "cannot combine {} individuals together - number of selected individuals must be \
                  a multiple of 2",

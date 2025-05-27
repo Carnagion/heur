@@ -12,9 +12,9 @@ use combine::{Combine, on_combined};
 
 use heur_core::{
     Optimize,
-    eval::Eval,
-    op::{Operator, init::Init, stop::Stop},
-    solution::Population,
+    Problem,
+    op::{Operator, cond::stop::Stop, init::Init},
+    solution::{Population, Solution, reencode::Reencoded},
 };
 
 use insert::Insert;
@@ -27,6 +27,8 @@ pub mod combine;
 
 pub mod insert;
 
+type VecPopulation<P> = Vec<<<P as Problem>::Solution as Solution>::Individual>;
+
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct GeneticAlgorithm<Ini, Sel, Com, Mut, Ins, Sto> {
     pub init: Ini,
@@ -37,21 +39,19 @@ pub struct GeneticAlgorithm<Ini, Sel, Com, Mut, Ins, Sto> {
     pub stop: Sto,
 }
 
-impl<P, S, E, Ini, Sel, Com, Mut, Ins, Sto> Optimize<P, S, E>
-    for GeneticAlgorithm<Ini, Sel, Com, Mut, Ins, Sto>
+impl<P, Ini, Sel, Com, Mut, Ins, Sto> Optimize<P> for GeneticAlgorithm<Ini, Sel, Com, Mut, Ins, Sto>
 where
-    S: Population,
-    E: Eval<P, S::Individual>,
-    Ini: Init<P, S, E, Output = ()>,
-    Sel: Select<P, S, E, Error = Ini::Error>,
-    Com: Combine<P, S, E, Error = Ini::Error>,
-    Mut: Operator<P, Vec<S::Individual>, E, Output = (), Error = Ini::Error>,
-    Ins: Insert<P, S, E, Output = (), Error = Ini::Error>,
-    Sto: Stop<P, S, E>,
+    P: Problem<Solution: Population>,
+    Ini: Init<P>,
+    Sel: Select<P, Error = Ini::Error>,
+    Com: Combine<P, Error = Ini::Error>,
+    Mut: Operator<Reencoded<P, VecPopulation<P>>, Output = (), Error = Ini::Error>,
+    Ins: Insert<P, Error = Ini::Error>,
+    Sto: Stop<P>,
 {
     type Error = Ini::Error;
 
-    fn optimize(&mut self, problem: &P, eval: &mut E) -> Result<S, Self::Error> {
+    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
         let init = self.init.by_ref();
         let select = self.select.by_ref();
         let combine = self.combine.by_ref();
@@ -66,6 +66,6 @@ where
                 .repeat_until(&mut self.stop),
         );
 
-        ga.optimize(problem, eval)
+        ga.optimize(eval, problem)
     }
 }

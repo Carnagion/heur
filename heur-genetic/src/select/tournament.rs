@@ -7,7 +7,7 @@ use alloc::vec::Vec;
 
 use rand::{Rng, seq::IndexedRandom};
 
-use heur_core::{eval::Eval, op::Operator, solution::Population};
+use heur_core::{Problem, eval::Eval, op::Operator, solution::Population};
 
 use super::Select;
 
@@ -30,11 +30,12 @@ impl<R> TournamentSelector<R> {
     }
 }
 
-impl<P, S, E, R> Operator<P, S, E> for TournamentSelector<R>
+impl<P, S, R> Operator<P> for TournamentSelector<R>
 where
+    P: Problem<Solution = S>,
     // TODO: Should we use `IteratorRandom::choose_multiple` instead to work with solutions that don't impl `AsRef<[T]>`?
     S: Population<Individual: Clone> + AsRef<[S::Individual]>,
-    E: Eval<P, S::Individual, Objective: Ord>,
+    <P::Eval as Eval<P>>::Objective: Ord,
     R: Rng,
 {
     type Output = Vec<S::Individual>;
@@ -44,36 +45,37 @@ where
     fn apply(
         &mut self,
         population: &mut S,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-        _input: (),
+        (): (),
     ) -> Result<Self::Output, Self::Error> {
-        self.select(population, problem, eval)
+        self.select(population, eval, problem)
     }
 }
 
-impl<P, S, E, R> Select<P, S, E> for TournamentSelector<R>
+impl<P, S, R> Select<P> for TournamentSelector<R>
 where
+    P: Problem<Solution = S>,
     S: Population<Individual: Clone> + AsRef<[S::Individual]>,
-    E: Eval<P, S::Individual, Objective: Ord>,
+    <P::Eval as Eval<P>>::Objective: Ord,
     R: Rng,
 {
     fn select(
         &mut self,
         population: &S,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
     ) -> Result<Vec<S::Individual>, Self::Error> {
         let mut selected = Vec::with_capacity(self.selection_size);
-        self.select_into(population, problem, eval, &mut selected)?;
+        self.select_into(population, eval, problem, &mut selected)?;
         Ok(selected)
     }
 
     fn select_into(
         &mut self,
         population: &S,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
         selected: &mut Vec<S::Individual>,
     ) -> Result<(), Self::Error> {
         let population = population.as_ref();

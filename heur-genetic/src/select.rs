@@ -1,15 +1,8 @@
-use core::marker::PhantomData;
+use alloc::boxed::Box;
 
-use alloc::{boxed::Box, vec::Vec};
+use heur_core::{Problem, op::Operator, solution::Population};
 
-use heur_core::{
-    eval::Eval,
-    op::{Hint, Operator, Unwrapped},
-    solution::Population,
-};
-
-mod on_selected;
-pub use on_selected::OnSelected;
+use super::VecPopulation;
 
 mod tournament;
 pub use tournament::{TournamentSelectError, TournamentSelector};
@@ -18,181 +11,108 @@ mod elitist;
 pub use elitist::ElitistSelector;
 
 // TODO: Add `#[diagnostic::on_unimplemented]`
-pub trait Select<P, S, E>: Operator<P, S, E, Output = Vec<S::Individual>>
+pub trait Select<P>: Operator<P, Output = VecPopulation<P>>
 where
-    S: Population,
-    E: Eval<P, S::Individual>,
+    P: Problem<Solution: Population>,
 {
     fn select(
         &mut self,
-        population: &S,
+        population: &P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-    ) -> Result<Vec<S::Individual>, Self::Error>;
+    ) -> Result<VecPopulation<P>, Self::Error>;
 
     fn select_into(
         &mut self,
-        population: &S,
+        population: &P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-        selected: &mut Vec<S::Individual>,
+        selected: &mut VecPopulation<P>,
     ) -> Result<(), Self::Error> {
-        *selected = self.select(population, problem, eval)?;
+        *selected = self.select(population, eval, problem)?;
         Ok(())
     }
 }
 
-impl<T, P, S, E> Select<P, S, E> for &mut T
+impl<T, P> Select<P> for &mut T
 where
-    T: Select<P, S, E> + ?Sized,
-    S: Population,
-    E: Eval<P, S::Individual>,
+    T: Select<P> + ?Sized,
+    P: Problem<Solution: Population>,
 {
     fn select(
         &mut self,
-        population: &S,
+        population: &P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-    ) -> Result<Vec<S::Individual>, Self::Error> {
-        T::select(self, population, problem, eval)
+    ) -> Result<VecPopulation<P>, Self::Error> {
+        T::select(self, population, eval, problem)
     }
 
     fn select_into(
         &mut self,
-        population: &S,
+        population: &P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-        selected: &mut Vec<S::Individual>,
+        selected: &mut VecPopulation<P>,
     ) -> Result<(), Self::Error> {
-        T::select_into(self, population, problem, eval, selected)
+        T::select_into(self, population, eval, problem, selected)
     }
 }
 
-impl<T, P, S, E> Select<P, S, E> for Box<T>
+impl<T, P> Select<P> for Box<T>
 where
-    T: Select<P, S, E> + ?Sized,
-    S: Population,
-    E: Eval<P, S::Individual>,
+    T: Select<P> + ?Sized,
+    P: Problem<Solution: Population>,
 {
     fn select(
         &mut self,
-        population: &S,
+        population: &P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-    ) -> Result<Vec<S::Individual>, Self::Error> {
-        T::select(self, population, problem, eval)
+    ) -> Result<VecPopulation<P>, Self::Error> {
+        T::select(self, population, eval, problem)
     }
 
     fn select_into(
         &mut self,
-        population: &S,
+        population: &P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-        selected: &mut Vec<S::Individual>,
+        selected: &mut VecPopulation<P>,
     ) -> Result<(), Self::Error> {
-        T::select_into(self, population, problem, eval, selected)
+        T::select_into(self, population, eval, problem, selected)
     }
 }
 
 #[cfg(feature = "either")]
-impl<L, R, P, S, E> Select<P, S, E> for either::Either<L, R>
+impl<L, R, P> Select<P> for either::Either<L, R>
 where
-    L: Select<P, S, E>,
-    R: Select<P, S, E, Error = L::Error>,
-    S: Population,
-    E: Eval<P, S::Individual>,
+    L: Select<P>,
+    R: Select<P, Error = L::Error>,
+    P: Problem<Solution: Population>,
 {
     fn select(
         &mut self,
-        population: &S,
+        population: &P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-    ) -> Result<Vec<S::Individual>, Self::Error> {
+    ) -> Result<VecPopulation<P>, Self::Error> {
         match self {
-            Self::Left(left) => left.select(population, problem, eval),
-            Self::Right(right) => right.select(population, problem, eval),
+            Self::Left(left) => left.select(population, eval, problem),
+            Self::Right(right) => right.select(population, eval, problem),
         }
     }
 
     fn select_into(
         &mut self,
-        population: &S,
+        population: &P::Solution,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
-        selected: &mut Vec<S::Individual>,
+        selected: &mut VecPopulation<P>,
     ) -> Result<(), Self::Error> {
         match self {
-            Self::Left(left) => left.select_into(population, problem, eval, selected),
-            Self::Right(right) => right.select_into(population, problem, eval, selected),
+            Self::Left(left) => left.select_into(population, eval, problem, selected),
+            Self::Right(right) => right.select_into(population, eval, problem, selected),
         }
-    }
-}
-
-impl<T, P, S, E> Select<P, S, E> for Unwrapped<T>
-where
-    T: Select<P, S, E>,
-    S: Population,
-    E: Eval<P, S::Individual>,
-{
-    fn select(
-        &mut self,
-        population: &S,
-        problem: &P,
-        eval: &mut E,
-    ) -> Result<Vec<S::Individual>, Self::Error> {
-        let selected = self.as_mut().select(population, problem, eval).unwrap();
-        Ok(selected)
-    }
-
-    fn select_into(
-        &mut self,
-        population: &S,
-        problem: &P,
-        eval: &mut E,
-        selected: &mut Vec<S::Individual>,
-    ) -> Result<(), Self::Error> {
-        self.as_mut()
-            .select_into(population, problem, eval, selected)
-            .unwrap();
-        Ok(())
-    }
-}
-
-impl<T, P, S, E> Select<P, S, E> for Hint<T, P, S, E>
-where
-    T: Select<P, S, E>,
-    S: Population,
-    E: Eval<P, S::Individual>,
-{
-    fn select(
-        &mut self,
-        population: &S,
-        problem: &P,
-        eval: &mut E,
-    ) -> Result<Vec<S::Individual>, Self::Error> {
-        self.as_mut().select(population, problem, eval)
-    }
-
-    fn select_into(
-        &mut self,
-        population: &S,
-        problem: &P,
-        eval: &mut E,
-        selected: &mut Vec<S::Individual>,
-    ) -> Result<(), Self::Error> {
-        self.as_mut()
-            .select_into(population, problem, eval, selected)
-    }
-}
-
-pub fn on_selected<P, S, E, T>(op: T) -> OnSelected<T, P, S, E>
-where
-    T: Operator<P, Vec<S::Individual>, E, Output = ()>,
-    S: Population,
-    E: Eval<P, S::Individual>,
-{
-    OnSelected {
-        op,
-        marker: PhantomData,
     }
 }

@@ -2,7 +2,7 @@ use core::convert::Infallible;
 
 use alloc::vec::Vec;
 
-use heur_core::{eval::Eval, op::Operator, solution::Population};
+use heur_core::{Problem, eval::Eval, op::Operator, solution::Population};
 
 use super::Insert;
 
@@ -22,10 +22,11 @@ impl ElitistInserter {
     }
 }
 
-impl<P, S, E> Operator<P, S, E, Vec<S::Individual>> for ElitistInserter
+impl<P, S> Operator<P, Vec<S::Individual>> for ElitistInserter
 where
-    S: Population<Individual: Clone> + AsMut<[S::Individual]>,
-    E: Eval<P, S::Individual, Objective: Ord>,
+    P: Problem<Solution = S>,
+    S: Population + AsMut<[S::Individual]>,
+    <P::Eval as Eval<P>>::Objective: Ord,
 {
     type Output = ();
 
@@ -34,24 +35,25 @@ where
     fn apply(
         &mut self,
         population: &mut S,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
         combined: Vec<S::Individual>,
     ) -> Result<Self::Output, Self::Error> {
-        self.insert(population, problem, eval, combined)
+        self.insert(population, eval, problem, combined)
     }
 }
 
-impl<P, S, E> Insert<P, S, E> for ElitistInserter
+impl<P, S> Insert<P> for ElitistInserter
 where
-    S: Population<Individual: Clone> + AsMut<[S::Individual]>,
-    E: Eval<P, S::Individual, Objective: Ord>,
+    P: Problem<Solution = S>,
+    S: Population + AsMut<[S::Individual]>,
+    <P::Eval as Eval<P>>::Objective: Ord,
 {
     fn insert(
         &mut self,
         population: &mut S,
+        eval: &mut P::Eval,
         problem: &P,
-        eval: &mut E,
         combined: Vec<S::Individual>,
     ) -> Result<(), Self::Error> {
         let population = population.as_mut();
