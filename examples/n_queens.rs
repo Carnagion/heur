@@ -2,21 +2,22 @@ use std::array;
 
 use heur::{
     Optimize,
-    eval::{self, Eval},
+    Problem,
+    eval::{self, Eval, FromFn},
     genetic::{
         combine::{UniformCrossover, on_combined},
         insert::ElitistInserter,
         select::ElitistSelector,
     },
-    op::{self, Operator, init, population, stop::Optimum},
-    solution::Individual,
+    op::{self, Operator, cond::stop::Optimum, init, population},
+    solution::{Individual, reencode::Reencoded},
 };
 
 use rand::{Rng, distr::Bernoulli};
 
 fn main() {
     // Create an N-queens problem instance. In this case, N = 8.
-    let problem = Problem { n_queens: 8 };
+    let problem = Nqueens { n_queens: 8 };
 
     // Solve the problem instance using a genetic algorithm.
     ga(&problem);
@@ -24,7 +25,7 @@ fn main() {
 
 // This represents the problem data we are given while solving.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-struct Problem {
+struct Nqueens {
     n_queens: usize,
 }
 
@@ -36,13 +37,18 @@ struct Pos {
     y: usize,
 }
 
-// We will use a vector of positions to encode individual solutions to the N-queens problem. Each element in the vector
-// represents the position of a different queen.
-type Solution = Vec<Pos>;
+impl Problem for Nqueens {
+    // We will use a vector of positions to encode individual solutions to the N-queens problem. Each element in the vector
+    // represents the position of a different queen. Since we are using a genetic algorithm, we need a population of multiple
+    // individual solutions - for the purposes of this example, we will use 100 individuals.
+    type Solution = [Vec<Pos>; 100];
+
+    type Eval = FromFn<Self, isize>;
+}
 
 // An objective function that calculates the cost, aka objective value, of a given solution (`Vec<Pos>`) to an N-queens problem
 // instance (`Problem`).
-fn cost(positions: &Solution, _problem: &Problem) -> isize {
+fn cost(positions: &Vec<Pos>, _: &Nqueens) -> isize {
     let collisions = positions
         .iter()
         .enumerate()
@@ -63,7 +69,7 @@ fn cost(positions: &Solution, _problem: &Problem) -> isize {
 
 // A helper function to generate a random (potentially infeasible) solution to an N-queens problem instance. This is
 // used later when creating multiple individuals for the genetic algorithm to modify.
-fn init_random<R>(problem: &Problem, rng: &mut R) -> Solution
+fn init_random<R>(problem: &Nqueens, rng: &mut R) -> Vec<Pos>
 where
     R: Rng,
 {
@@ -77,7 +83,7 @@ where
         .collect()
 }
 
-fn apply_mutation<R>(solution: &mut Individual<Solution>, problem: &Problem, rng: &mut R)
+fn apply_mutation<R>(solution: &mut Individual<Vec<Pos>>, problem: &Nqueens, rng: &mut R)
 where
     R: Rng,
 {
@@ -86,7 +92,7 @@ where
     }
 }
 
-fn ga(problem: &Problem) {
+fn ga(problem: &Nqueens) {
     // Create an objective function that can be given to the metaheuristic. This example uses `eval::from_fn` to wrap up
     // the objective function above, but you could create a custom type and impl `Eval` for it manually like so:
     //
@@ -99,7 +105,7 @@ fn ga(problem: &Problem) {
     //     fn eval(&mut self, solution: &Vec<Pos>, problem: &Problem) -> isize { ... }
     // }
     // ```
-    let mut eval = eval::from_fn(cost);
+    let mut eval: FromFn<_, _> = eval::from_fn(cost);
 
     let mut rng = rand::rng();
 
@@ -111,31 +117,33 @@ fn ga(problem: &Problem) {
     // old population with the newly combined and mutated individuals. Mutation is done by randomly modifying all x-positions
     // of each element in the individuals produced by crossover.
     //
-    // We stop the algorithm when we get to 10000 iterations.
-    let population: [Solution; 100] = array::from_fn(|_| init_random(problem, &mut rng));
+    // We stop the algorithm when we find an optimal solution (i.e. objective value of 0).
+    let population: [Vec<Pos>; 100] = array::from_fn(|_| init_random(problem, &mut rng));
     let init = init::from_population(population);
     let select = ElitistSelector::new(50);
     let combine = UniformCrossover::new(Bernoulli::new(0.5).unwrap(), rng.clone());
-    let mutate = op::from_fn(|solution, problem, _, _| {
-        apply_mutation(solution, problem, &mut rng);
-        Ok(())
-    });
+    let mutate = op::from_fn(
+        |combined: &mut Individual<_>, _, problem: &Reencoded<Reencoded<Nqueens, _>, _>, ()| {
+            apply_mutation(combined, problem, &mut rng);
+            Ok(())
+        },
+    );
     let insert = ElitistInserter::new();
     let stop = Optimum::new(0);
 
     // Note that we could have also handwritten the metaheuristic like so, which is equivalent to the combinator-based version:
     //
     // ```rs
-    // let mut solution = init.init(problem, &mut eval).unwrap();
+    // let mut solution = init.init(&mut eval, problem).unwrap();
     //
-    // while !stop.stop(&solution, problem, &mut eval) {
-    //     let selected = select.select(&solution, problem, &mut eval).unwrap();
-    //     let mut combined = combine.combine(&solution, problem, &mut eval, selected).unwrap();
+    // while !stop.stop(&solution, &mut eval, problem) {
+    //     let selected = select.select(&solution, &mut eval, problem).unwrap();
+    //     let mut combined = combine.combine(&solution, &mut eval, problem, selected).unwrap();
     //     for individual in &mut combined {
     //         let individual = Individual::from_mut(individual);
-    //         mutate.mutate(individual, problem, &mut eval).unwrap();
+    //         mutate.mutate(individual, &mut eval, problem).unwrap();
     //     }
-    //     insert.insert(&mut solution, problem, &mut eval, combined).unwrap();
+    //     insert.insert(&mut solution, &mut eval, problem, combined).unwrap();
     // }
     // ```
     //
@@ -159,7 +167,7 @@ fn ga(problem: &Problem) {
     // would want to handle properly.
     //
     // Since we started with a population of individuals (see `init::from_population`), we get back a population as well.
-    let population: [Solution; 100] = ga.optimize(problem, &mut eval).unwrap();
+    let population: [Vec<Pos>; 100] = ga.optimize(&mut eval, problem).unwrap();
 
     // Evaluate the best individual from the population. Since our stop condition is finding an optimal solution, this
     // individual will have the optimal objective value of 0.
