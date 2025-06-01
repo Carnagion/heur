@@ -12,9 +12,7 @@ struct Sphere {
     dim: usize,
 }
 
-type Solution = Vec<f64>;
-
-fn cost(solution: &Solution, _sphere: &Sphere) -> NotNan<f64> {
+fn cost(solution: &Vec<f64>, _sphere: &Sphere) -> NotNan<f64> {
     let objective = solution.iter().map(|x| x.powi(2)).sum::<f64>();
     objective.try_into().unwrap()
 }
@@ -33,19 +31,26 @@ const PC: f64 = 0.5;
 mod heur {
     use ::heur::{
         Optimize,
-        eval::{self, Eval},
+        Problem,
+        eval::{self, Eval, FromFn},
         genetic::{
             combine::{UniformCrossover, on_combined},
             insert::ElitistInserter,
             select::TournamentSelector,
         },
-        op::{self, Operator, init, population, stop::Iterations},
-        solution::{Evaluated, Individual},
+        op::{self, Operator, cond::stop::Iterations, init, population},
+        solution::Individual,
     };
 
     use super::*;
 
-    fn init_random<R>(sphere: &Sphere, rng: &mut R) -> Solution
+    impl Problem for Sphere {
+        type Solution = [Vec<f64>; N];
+
+        type Eval = FromFn<Sphere, NotNan<f64>>;
+    }
+
+    fn init_random<R>(sphere: &Sphere, rng: &mut R) -> Vec<f64>
     where
         R: Rng,
     {
@@ -54,7 +59,7 @@ mod heur {
             .collect()
     }
 
-    fn apply_mutation<R>(solution: &mut Individual<Evaluated<Solution, NotNan<f64>>>, rng: &mut R)
+    fn apply_mutation<R>(solution: &mut Individual<Vec<f64>>, rng: &mut R)
     where
         R: Rng,
     {
@@ -69,12 +74,11 @@ mod heur {
     fn ga(dim: usize) -> f64 {
         let sphere = Sphere { dim };
 
-        let mut eval = eval::from_fn(cost).cached();
+        let mut eval: FromFn<_, _> = eval::from_fn(cost);
 
         let mut rng = rand::rng();
 
-        let population: [_; N] =
-            array::from_fn(|_| init_random(&sphere, &mut rng)).map(Evaluated::new);
+        let population: [_; N] = array::from_fn(|_| init_random(&sphere, &mut rng));
         let init = init::from_population(population);
         let select = TournamentSelector::new(TOUR, N, rng.clone());
         let combine = UniformCrossover::new(Bernoulli::new(PC).unwrap(), rng.clone());
@@ -83,7 +87,7 @@ mod heur {
             Ok(())
         });
         let insert = ElitistInserter::new();
-        let stop = Iterations::new(ITERS);
+        let stop = Iterations(ITERS);
 
         let mut ga = op::hint(init).then(
             op::hint(select)
@@ -94,7 +98,7 @@ mod heur {
                 .repeat_until(stop),
         );
 
-        let population: [_; N] = ga.optimize(&sphere, &mut eval).unwrap();
+        let population: [_; N] = ga.optimize(&mut eval, &sphere).unwrap();
 
         let best_objective = population
             .iter()
@@ -121,7 +125,7 @@ mod mahf {
     use super::*;
 
     impl Problem for Sphere {
-        type Encoding = Solution;
+        type Encoding = Vec<f64>;
 
         type Objective = SingleObjective;
 
