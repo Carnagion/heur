@@ -10,7 +10,7 @@ use heur::{
         select::ElitistSelector,
     },
     op::{self, Operator, cond::stop::Optimum, init, population},
-    solution::{Individual, reencode::Reencoded},
+    solution::{Individual, Reencoded},
 };
 
 use rand::{Rng, distr::Bernoulli};
@@ -158,9 +158,9 @@ fn ga(problem: &Nqueens) {
             .repeat_until(stop),
     );
 
-    // These combined operators now impl `Solve`, so we can pass it a problem instance and an objective function (anything that
-    // impls `Eval<P, S>` where `S` is the solution type and `P` is the problem type), and we get back a solution (or an error
-    // if something went wrong during solving).
+    // These combined operators now impl `Optimize`, so we can pass it a problem instance and an objective function (anything
+    // that impls `Eval<P>` where `P` is the problem type), and we get back a solution (or an error if something went wrong
+    // during solving).
     //
     // In this case, all operators chosen above have an error type of `Infallible`, so the error type of their combination is
     // also `Infallible` and we can safely unwrap the result. For more complex operators, they may return errors, which you

@@ -3,7 +3,8 @@ use core::ops::{Deref, DerefMut};
 #[cfg(feature = "alloc")]
 use alloc::{boxed::Box, vec::Vec};
 
-pub mod reencode;
+mod reencode;
+pub use reencode::Reencoded;
 
 // TODO: Add `#[diagnostic::on_unimplemented]`
 pub trait Solution {

@@ -139,8 +139,8 @@ fn ils(knapsack: &Knapsack) {
     );
 
     // These combined operators now impl `Optimize`, so we can pass it a problem instance and an objective function (anything
-    // that impls `Eval<P, S>` where `S` is the solution type and `P` is the problem type), and we get back a solution (or an
-    // error if something went wrong during solving).
+    // that impls `Eval<P>` where `P` is the problem type), and we get back a solution (or an error if something went wrong
+    // during solving).
     //
     // In this case, all operators chosen above have an error type of `Infallible`, so the error type of their combination is
     // also `Infallible` and we can safely unwrap the result. For more complex operators, they may return errors, which you

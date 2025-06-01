@@ -5,10 +5,7 @@ use alloc::boxed::Box;
 use heur_core::{
     Problem,
     op::Operator,
-    solution::{
-        Population,
-        reencode::{Reencoded, Reeval},
-    },
+    solution::{Population, Reencoded},
 };
 
 use super::VecPopulation;
@@ -108,7 +105,7 @@ where
         problem: &P,
         mut combined: VecPopulation<P>,
     ) -> Result<Self::Output, Self::Error> {
-        let eval = Reeval::from_mut(eval);
+        let eval = Reencoded::from_mut(eval);
         let problem = Reencoded::from_ref(problem);
         self.op.apply(&mut combined, eval, problem, ())?;
         Ok(combined)

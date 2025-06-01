@@ -2,13 +2,7 @@ use core::marker::PhantomData;
 
 use crate::{
     Problem,
-    solution::{
-        Individual,
-        IterMut,
-        Population,
-        Solution,
-        reencode::{Reencoded, Reeval},
-    },
+    solution::{Individual, IterMut, Population, Reencoded, Solution},
 };
 
 use super::Operator;
@@ -38,7 +32,7 @@ where
         problem: &P,
         (): (),
     ) -> Result<Self::Output, Self::Error> {
-        let eval = Reeval::from_mut(eval);
+        let eval = Reencoded::from_mut(eval);
         let problem = Reencoded::from_ref(problem);
         population
             .iter_mut()

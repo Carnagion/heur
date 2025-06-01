@@ -14,7 +14,7 @@ use heur_core::{
     Optimize,
     Problem,
     op::{Operator, cond::stop::Stop, init::Init},
-    solution::{Population, Solution, reencode::Reencoded},
+    solution::{Population, Reencoded, Solution},
 };
 
 use insert::Insert;
