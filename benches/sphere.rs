@@ -13,7 +13,9 @@ struct Sphere {
 }
 
 fn cost(solution: &Vec<f64>, _sphere: &Sphere) -> NotNan<f64> {
-    let objective = solution.iter().map(|x| x.powi(2)).sum::<f64>();
+    // NOTE: We need to negate this since `heur` assumes all problems are maximisation problems, and 0.0 is the optimum
+    //       objective value here.
+    let objective = -solution.iter().map(|x| x.powi(2)).sum::<f64>();
     objective.try_into().unwrap()
 }
 
