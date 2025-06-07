@@ -22,7 +22,7 @@ where
         solution: &mut P::Solution,
         eval: &mut P::Eval,
         problem: &P,
-        _input: (),
+        (): (),
     ) -> Result<Self::Output, Self::Error> {
         let solution = &mut **solution;
 
@@ -68,7 +68,7 @@ where
         solution: &mut P::Solution,
         eval: &mut P::Eval,
         problem: &P,
-        _input: (),
+        (): (),
     ) -> Result<Self::Output, Self::Error> {
         let solution = &mut **solution;
 
