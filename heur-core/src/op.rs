@@ -31,6 +31,9 @@ pub use repeat::{Repeat, RepeatUntil};
 mod flatten;
 pub use flatten::{FlatMap, Flatten};
 
+mod passthrough;
+pub use passthrough::Passthrough;
+
 mod unwrapped;
 pub use unwrapped::Unwrapped;
 
@@ -87,6 +90,13 @@ pub trait Operator<P: Problem, In = ()> {
         Self: Sized,
     {
         Ignore(self)
+    }
+
+    fn passthrough(self) -> Passthrough<Self>
+    where
+        Self: Sized,
+    {
+        Passthrough(self)
     }
 
     fn map<Out, F>(self, f: F) -> Map<Self, F>
