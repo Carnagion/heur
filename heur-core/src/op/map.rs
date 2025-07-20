@@ -3,11 +3,10 @@ use core::{
     fmt::{self, Debug, Formatter},
 };
 
-use crate::Problem;
+use crate::{Problem, op::init::Init};
 
 use super::Operator;
 
-// TODO: Should this impl `Init`, `Mutate`, and/or `Search`?
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct Map<T, F> {
@@ -81,6 +80,29 @@ where
     }
 }
 
+impl<T, F, P, Err> Init<P> for MapErr<T, F>
+where
+    T: Init<P>,
+    F: FnMut(T::Error) -> Err,
+    P: Problem,
+    Err: Error,
+{
+    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+        self.op.init(eval, problem).map_err(&mut self.f)
+    }
+
+    fn init_into(
+        &mut self,
+        solution: &mut P::Solution,
+        eval: &mut P::Eval,
+        problem: &P,
+    ) -> Result<(), Self::Error> {
+        self.op
+            .init_into(solution, eval, problem)
+            .map_err(&mut self.f)
+    }
+}
+
 impl<T, F> Debug for MapErr<T, F>
 where
     T: Debug,
@@ -93,7 +115,6 @@ where
     }
 }
 
-// TODO: Should this impl `Init`, `Mutate`, and/or `Search`?
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct TryMap<T, F> {

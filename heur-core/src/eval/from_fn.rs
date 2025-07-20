@@ -1,5 +1,6 @@
 use core::{
     fmt::{self, Debug, Formatter},
+    hash::{Hash, Hasher},
     marker::PhantomData,
 };
 
@@ -9,7 +10,6 @@ use super::Eval;
 
 type EvalFn<P, O> = fn(&<<P as Problem>::Solution as Solution>::Individual, &P) -> O;
 
-// TODO: Manually impl common traits
 #[must_use]
 pub struct FromFn<P, O, F = EvalFn<P, O>> {
     pub(super) f: F,
@@ -46,7 +46,21 @@ impl<P, O, F: Clone> Clone for FromFn<P, O, F> {
     fn clone(&self) -> Self {
         Self {
             f: self.f.clone(),
-            marker: PhantomData,
+            marker: self.marker,
         }
+    }
+}
+
+impl<P, O, F: Eq> Eq for FromFn<P, O, F> {}
+
+impl<P, O, F: PartialEq> PartialEq for FromFn<P, O, F> {
+    fn eq(&self, other: &Self) -> bool {
+        self.f.eq(&other.f)
+    }
+}
+
+impl<P, O, F: Hash> Hash for FromFn<P, O, F> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.f.hash(state);
     }
 }

@@ -1,4 +1,6 @@
 use core::{
+    fmt::{self, Debug, Formatter},
+    hash::{Hash, Hasher},
     marker::PhantomData,
     ops::{Deref, DerefMut},
 };
@@ -7,21 +9,10 @@ use crate::{Problem, eval::Eval};
 
 use super::Solution;
 
-// TODO: Manually implement common traits
 #[repr(transparent)]
 pub struct Reencoded<T, U> {
     inner: T,
     marker: PhantomData<fn() -> U>,
-}
-
-impl<P, S> Problem for Reencoded<P, S>
-where
-    P: Problem,
-    S: Solution<Individual = <P::Solution as Solution>::Individual>,
-{
-    type Solution = S;
-
-    type Eval = Reencoded<P::Eval, S>;
 }
 
 impl<T, U> Reencoded<T, U> {
@@ -35,6 +26,63 @@ impl<T, U> Reencoded<T, U> {
     pub fn from_mut(ptr: &mut T) -> &mut Self {
         // SAFETY: `Reencoded<T, U>` is `repr(transparent)` and only contains a `T`.
         unsafe { &mut *(ptr as *mut T as *mut Self) }
+    }
+}
+
+impl<P, S> Problem for Reencoded<P, S>
+where
+    P: Problem,
+    S: Solution<Individual = <P::Solution as Solution>::Individual>,
+{
+    type Solution = S;
+
+    type Eval = Reencoded<P::Eval, S>;
+}
+
+impl<P, S, E> Eval<Reencoded<P, S>> for Reencoded<E, S>
+where
+    P: Problem<Eval = E>,
+    S: Solution<Individual = <P::Solution as Solution>::Individual>,
+    E: Eval<P>,
+{
+    type Objective = E::Objective;
+
+    fn eval(&mut self, solution: &S::Individual, problem: &Reencoded<P, S>) -> Self::Objective {
+        self.inner.eval(solution, problem)
+    }
+}
+
+impl<T: Debug, U> Debug for Reencoded<T, U> {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("Reencoded")
+            .field("inner", &self.inner)
+            .finish_non_exhaustive()
+    }
+}
+
+impl<T: Copy, U> Copy for Reencoded<T, U> {}
+
+impl<T: Clone, U> Clone for Reencoded<T, U> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+            marker: self.marker,
+        }
+    }
+}
+
+impl<T: Eq, U> Eq for Reencoded<T, U> {}
+
+impl<T: PartialEq, U> PartialEq for Reencoded<T, U> {
+    fn eq(&self, other: &Self) -> bool {
+        self.inner.eq(&other.inner)
+    }
+}
+
+impl<T: Hash, U> Hash for Reencoded<T, U> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.inner.hash(state);
     }
 }
 
@@ -82,18 +130,5 @@ impl<'a, T, U> From<&'a T> for &'a Reencoded<T, U> {
 impl<'a, T, U> From<&'a mut T> for &'a mut Reencoded<T, U> {
     fn from(ptr: &'a mut T) -> Self {
         Reencoded::from_mut(ptr)
-    }
-}
-
-impl<P, S, E> Eval<Reencoded<P, S>> for Reencoded<E, S>
-where
-    P: Problem<Eval = E>,
-    S: Solution<Individual = <P::Solution as Solution>::Individual>,
-    E: Eval<P>,
-{
-    type Objective = E::Objective;
-
-    fn eval(&mut self, solution: &S::Individual, problem: &Reencoded<P, S>) -> Self::Objective {
-        self.inner.eval(solution, problem)
     }
 }

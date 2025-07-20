@@ -1,10 +1,15 @@
-use core::{convert::Infallible, error::Error, marker::PhantomData};
+use core::{
+    convert::Infallible,
+    error::Error,
+    fmt::{self, Debug, Formatter},
+    hash::{Hash, Hasher},
+    marker::PhantomData,
+};
 
 use crate::Problem;
 
 use super::{Operator, init::Init};
 
-// TODO: Manually implement common traits
 #[must_use]
 pub struct Hint<T, P, In = (), Out = (), Err = Infallible> {
     pub(super) op: T,
@@ -50,5 +55,39 @@ where
         problem: &P,
     ) -> Result<(), Self::Error> {
         self.op.init_into(solution, eval, problem)
+    }
+}
+
+impl<T: Debug, P, In, Out, Err> Debug for Hint<T, P, In, Out, Err> {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("Hint")
+            .field("op", &self.op)
+            .finish_non_exhaustive()
+    }
+}
+
+impl<T: Copy, P, In, Out, Err> Copy for Hint<T, P, In, Out, Err> {}
+
+impl<T: Clone, P, In, Out, Err> Clone for Hint<T, P, In, Out, Err> {
+    fn clone(&self) -> Self {
+        Self {
+            op: self.op.clone(),
+            marker: self.marker,
+        }
+    }
+}
+
+impl<T: Eq, P, In, Out, Err> Eq for Hint<T, P, In, Out, Err> {}
+
+impl<T: PartialEq, P, In, Out, Err> PartialEq for Hint<T, P, In, Out, Err> {
+    fn eq(&self, other: &Self) -> bool {
+        self.op.eq(&other.op)
+    }
+}
+
+impl<T: Hash, P, In, Out, Err> Hash for Hint<T, P, In, Out, Err> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.op.hash(state);
     }
 }
