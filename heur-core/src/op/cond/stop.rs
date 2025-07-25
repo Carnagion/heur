@@ -9,41 +9,12 @@ use crate::{
     solution::{Individual, Iter, Population},
 };
 
-use super::{And, Not, Or};
+use super::{And, Condition, Not, Or};
 
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
-pub trait Stop<P: Problem> {
+pub trait Stop<P: Problem>: Condition {
     #[must_use]
     fn stop(&mut self, solution: &P::Solution, eval: &mut P::Eval, problem: &P) -> bool;
-
-    fn and<U>(self, cond: U) -> And<Self, U>
-    where
-        Self: Sized,
-        U: Stop<P>,
-    {
-        And {
-            first: self,
-            second: cond,
-        }
-    }
-
-    fn or<U>(self, cond: U) -> Or<Self, U>
-    where
-        Self: Sized,
-        U: Stop<P>,
-    {
-        Or {
-            first: self,
-            second: cond,
-        }
-    }
-
-    fn not(self) -> Not<Self>
-    where
-        Self: Sized,
-    {
-        Not(self)
-    }
 }
 
 impl<T, P> Stop<P> for &mut T
@@ -86,6 +57,8 @@ where
 #[must_use]
 pub struct Iterations(pub usize);
 
+impl Condition for Iterations {}
+
 impl<P: Problem> Stop<P> for Iterations {
     fn stop(&mut self, _: &P::Solution, _: &mut P::Eval, _: &P) -> bool {
         let remaining = self.0.saturating_sub(1);
@@ -109,6 +82,8 @@ impl<O, S> Optimum<O, S> {
         }
     }
 }
+
+impl<O, S> Condition for Optimum<O, S> {}
 
 impl<P, S, O> Stop<P> for Optimum<O, Individual<S>>
 where

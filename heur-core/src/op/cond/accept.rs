@@ -3,10 +3,10 @@ use alloc::boxed::Box;
 
 use crate::{Problem, eval::Eval, solution::Individual};
 
-use super::{And, Not, Or};
+use super::{And, Condition, Not, Or};
 
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
-pub trait Accept<P: Problem> {
+pub trait Accept<P: Problem>: Condition {
     #[must_use]
     fn accept(
         &mut self,
@@ -15,35 +15,6 @@ pub trait Accept<P: Problem> {
         eval: &mut P::Eval,
         problem: &P,
     ) -> bool;
-
-    fn and<U>(self, cond: U) -> And<Self, U>
-    where
-        Self: Sized,
-        U: Accept<P>,
-    {
-        And {
-            first: self,
-            second: cond,
-        }
-    }
-
-    fn or<U>(self, cond: U) -> Or<Self, U>
-    where
-        Self: Sized,
-        U: Accept<P>,
-    {
-        Or {
-            first: self,
-            second: cond,
-        }
-    }
-
-    fn not(self) -> Not<Self>
-    where
-        Self: Sized,
-    {
-        Not(self)
-    }
 }
 
 impl<T, P> Accept<P> for &mut T
@@ -104,6 +75,8 @@ where
 #[must_use]
 pub struct Improving;
 
+impl Condition for Improving {}
+
 impl<P, S> Accept<P> for Improving
 where
     P: Problem<Solution = Individual<S>>,
@@ -122,6 +95,8 @@ where
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct NonWorsening;
+
+impl Condition for NonWorsening {}
 
 impl<P, S> Accept<P> for NonWorsening
 where
