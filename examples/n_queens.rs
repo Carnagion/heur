@@ -141,7 +141,7 @@ fn ga(problem: &Nqueens) {
     //     let mut combined = combine.combine(&solution, &mut eval, problem, selected).unwrap();
     //     for individual in &mut combined {
     //         let individual = Individual::from_mut(individual);
-    //         mutate.mutate(individual, &mut eval, problem).unwrap();
+    //         mutate.apply(individual, &mut eval, problem, ()).unwrap();
     //     }
     //     insert.insert(&mut solution, &mut eval, problem, combined).unwrap();
     // }
@@ -163,18 +163,19 @@ fn ga(problem: &Nqueens) {
     // during solving).
     //
     // In this case, all operators chosen above have an error type of `Infallible`, so the error type of their combination is
-    // also `Infallible` and we can safely unwrap the result. For more complex operators, they may return errors, which you
+    // also `Infallible` and we can safely obtain the solution. For more complex operators, they may return errors, which you
     // would want to handle properly.
     //
     // Since we started with a population of individuals (see `init::from_population`), we get back a population as well.
-    let population: [Vec<Pos>; 100] = ga.optimize(&mut eval, problem).unwrap();
+    let Ok(population) = ga.optimize(&mut eval, problem);
 
     // Evaluate the best individual from the population. Since our stop condition is finding an optimal solution, this
     // individual will have the optimal objective value of 0.
     let best_objective = population
         .iter()
-        .map(|solution| eval.eval(solution, problem))
+        .map(|solution| cost(solution, problem))
         .max()
         .unwrap();
     println!("found solution with objective value of {}", best_objective);
+    assert_eq!(best_objective, 0);
 }

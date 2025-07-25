@@ -119,8 +119,8 @@ fn ils(knapsack: &Knapsack) {
     // while !stop.stop(&solution, &mut eval, knapsack) {
     //     let prev = solution.clone();
     //
-    //     mutate.mutate(&mut solution, &mut eval, knapsack)?;
-    //     local_search.search(&mut solution, &mut eval, knapsack)?;
+    //     mutate.apply(&mut solution, &mut eval, knapsack, ())?;
+    //     local_search.apply(&mut solution, &mut eval, knapsack, ())?;
     //
     //     if !accept.accept(&solution, &prev, &mut eval, knapsack) {
     //         solution = prev;
@@ -143,16 +143,16 @@ fn ils(knapsack: &Knapsack) {
     // during solving).
     //
     // In this case, all operators chosen above have an error type of `Infallible`, so the error type of their combination is
-    // also `Infallible` and we can safely unwrap the result. For more complex operators, they may return errors, which you
+    // also `Infallible` and we can simply obtain the solution. For more complex operators, they may return errors, which you
     // would want to handle properly.
     //
     // Since we started with an individual solution (see `init::from_individual`), we get back an individual as well.
-    let solution: Individual<Vec<bool>> = ils.optimize(&mut eval, knapsack).unwrap();
+    let Ok(solution) = ils.optimize(&mut eval, knapsack);
 
     // Evaluate the solution. Note that since we only ran the metaheuristic for 1000 iterations (see the `stop` operator
     // above), we will likely not get an optimal objective value - but it is very likely that we get a near-optimal value
     // around ~1% away from the global optimum.
-    let objective = eval.eval(&solution, knapsack);
+    let objective = cost(&solution, knapsack);
     println!("found solution with objective value of {}", objective);
 }
 
