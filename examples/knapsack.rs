@@ -1,8 +1,10 @@
+#![allow(clippy::uninlined_format_args)] // TODO: Remove if this lint is pushed back into pedantic
+
 use heur::{
     Optimize,
     Problem,
     bits::{FlipAllBits, SteepestAscentBitClimb},
-    eval::{self, Eval, FromFn},
+    eval::{self, FromFn},
     op::{
         self,
         Operator,
@@ -50,6 +52,7 @@ impl Problem for Knapsack {
 
 // An objective function that calculates the cost, or objective value, of a given solution (`Vec<bool>`) to a knapsack problem
 // instance (`Knapsack`).
+#[allow(clippy::ptr_arg)]
 fn cost(solution: &Vec<bool>, knapsack: &Knapsack) -> NotNan<f64> {
     // Calculate the total weight and value of the items in the knapsack by summing them up together. Only the items
     // that are included (i.e. whose bits in the solution are `true`) are counted.

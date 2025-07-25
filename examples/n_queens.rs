@@ -1,9 +1,11 @@
+#![allow(clippy::uninlined_format_args)] // TODO: Remove if this lint is pushed back into pedantic
+
 use std::array;
 
 use heur::{
     Optimize,
     Problem,
-    eval::{self, Eval, FromFn},
+    eval::{self, FromFn},
     genetic::{
         combine::{UniformCrossover, on_combined},
         insert::ElitistInserter,
@@ -48,6 +50,7 @@ impl Problem for Nqueens {
 
 // An objective function that calculates the cost, aka objective value, of a given solution (`Vec<Pos>`) to an N-queens problem
 // instance (`Problem`).
+#[allow(clippy::ptr_arg)]
 fn cost(positions: &Vec<Pos>, _: &Nqueens) -> isize {
     let collisions = positions
         .iter()

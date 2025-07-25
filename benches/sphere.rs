@@ -12,6 +12,7 @@ struct Sphere {
     dim: usize,
 }
 
+#[allow(clippy::ptr_arg)]
 fn cost(solution: &Vec<f64>, _sphere: &Sphere) -> NotNan<f64> {
     // NOTE: We need to negate this since `heur` assumes all problems are maximisation problems, and 0.0 is the optimum
     //       objective value here.
@@ -100,7 +101,7 @@ mod heur {
                 .repeat_until(stop),
         );
 
-        let population: [_; N] = ga.optimize(&mut eval, &sphere).unwrap();
+        let Ok(population) = ga.optimize(&mut eval, &sphere);
 
         let best_objective = population
             .iter()
