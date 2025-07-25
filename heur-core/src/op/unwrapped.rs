@@ -1,6 +1,6 @@
 use core::convert::Infallible;
 
-use crate::Problem;
+use crate::{Optimize, Problem};
 
 use super::{Operator, init::Init};
 
@@ -47,5 +47,18 @@ where
     ) -> Result<(), Self::Error> {
         self.0.init_into(solution, eval, problem).unwrap();
         Ok(())
+    }
+}
+
+impl<T, P> Optimize<P> for Unwrapped<T>
+where
+    T: Optimize<P>,
+    P: Problem,
+{
+    type Error = Infallible;
+
+    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+        let solution = self.0.optimize(eval, problem).unwrap();
+        Ok(solution)
     }
 }

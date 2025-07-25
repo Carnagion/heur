@@ -1,4 +1,5 @@
 use crate::{
+    Optimize,
     Problem,
     op::{Operator, init::Init},
 };
@@ -44,5 +45,17 @@ where
         problem: &P,
     ) -> Result<(), Self::Error> {
         self.0.init_into(solution, eval, problem)
+    }
+}
+
+impl<T, P> Optimize<P> for Passthrough<T>
+where
+    T: Optimize<P>,
+    P: Problem,
+{
+    type Error = T::Error;
+
+    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+        self.0.optimize(eval, problem)
     }
 }

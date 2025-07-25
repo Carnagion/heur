@@ -1,12 +1,11 @@
 use core::{
     convert::Infallible,
-    error::Error,
     fmt::{self, Debug, Formatter},
     hash::{Hash, Hasher},
     marker::PhantomData,
 };
 
-use crate::Problem;
+use crate::{Optimize, Problem};
 
 use super::{Operator, init::Init};
 
@@ -17,15 +16,14 @@ pub struct Hint<T, P, In = (), Out = (), Err = Infallible> {
     pub(super) marker: PhantomData<fn() -> (P, In, Out, Err)>,
 }
 
-impl<T, P, In, Out, Err> Operator<P, In> for Hint<T, P, In, Out, Err>
+impl<T, P, In> Operator<P, In> for Hint<T, P, In, T::Output, T::Error>
 where
-    T: Operator<P, In, Output = Out, Error = Err>,
+    T: Operator<P, In>,
     P: Problem,
-    Err: Error,
 {
-    type Output = Out;
+    type Output = T::Output;
 
-    type Error = Err;
+    type Error = T::Error;
 
     fn apply(
         &mut self,
@@ -38,11 +36,10 @@ where
     }
 }
 
-impl<T, P, Err> Init<P> for Hint<T, P, (), (), Err>
+impl<T, P> Init<P> for Hint<T, P, (), (), T::Error>
 where
-    T: Init<P, Error = Err>,
+    T: Init<P>,
     P: Problem,
-    Err: Error,
 {
     fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
         self.op.init(eval, problem)
@@ -55,6 +52,18 @@ where
         problem: &P,
     ) -> Result<(), Self::Error> {
         self.op.init_into(solution, eval, problem)
+    }
+}
+
+impl<T, P> Optimize<P> for Hint<T, P, (), (), T::Error>
+where
+    T: Optimize<P>,
+    P: Problem,
+{
+    type Error = T::Error;
+
+    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+        self.op.optimize(eval, problem)
     }
 }
 
