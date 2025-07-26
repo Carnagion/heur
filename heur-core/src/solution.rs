@@ -111,10 +111,10 @@ impl<T, const N: usize> Solution for Box<[T; N]> {
 #[cfg(feature = "alloc")]
 impl<T, const N: usize> Population for Box<[T; N]> {}
 
-// NOTE: We need these traits due to a possible bug in `rustc` where trying to prove that `Evaluated<S, O>` impls
-//       `IntoIterator` puts the trait solver into a loop and leads to an overflow. Conceptually, `T: for<'a> Iter<'a>`
-//       is exactly the same as `for<'a> &'a T: IntoIterator<Item = &'a U>`, but the latter leads to E0275 ("overflow
-//       evaluating the requirement ...") while the former works perfectly.
+// NOTE: We need these traits due to a possible bug in `rustc` where trying to prove that a type impls `IntoIterator`
+//       puts the trait solver into a loop and leads to an overflow. Conceptually, `T: for<'a> Iter<'a>` is exactly
+//       the same as `for<'a> &'a T: IntoIterator<Item = &'a U>`, but the latter leads to E0275 ("overflow evaluating
+//       the requirement ...") while the former works perfectly.
 pub trait Iter<'a> {
     type Item: 'a;
 
