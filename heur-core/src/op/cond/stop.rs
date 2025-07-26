@@ -1,4 +1,9 @@
-use core::{marker::PhantomData, mem};
+use core::{
+    fmt::{self, Debug, Formatter},
+    hash::{Hash, Hasher},
+    marker::PhantomData,
+    mem,
+};
 
 #[cfg(feature = "alloc")]
 use alloc::boxed::Box;
@@ -67,7 +72,6 @@ impl<P: Problem> Stop<P> for Iterations {
     }
 }
 
-// TODO: Manually implement common traits
 #[must_use]
 pub struct Optimum<O, S> {
     optimum: O,
@@ -107,6 +111,40 @@ where
         population
             .iter()
             .any(|solution| eval.eval(solution, problem) >= self.optimum)
+    }
+}
+
+impl<O: Debug, S> Debug for Optimum<O, S> {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("Optimum")
+            .field("optimum", &self.optimum)
+            .finish_non_exhaustive()
+    }
+}
+
+impl<O: Copy, S> Copy for Optimum<O, S> {}
+
+impl<O: Clone, S> Clone for Optimum<O, S> {
+    fn clone(&self) -> Self {
+        Self {
+            optimum: self.optimum.clone(),
+            marker: self.marker,
+        }
+    }
+}
+
+impl<O: Eq, S> Eq for Optimum<O, S> {}
+
+impl<O: PartialEq, S> PartialEq for Optimum<O, S> {
+    fn eq(&self, other: &Self) -> bool {
+        self.optimum.eq(&other.optimum)
+    }
+}
+
+impl<O: Hash, S> Hash for Optimum<O, S> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.optimum.hash(state);
     }
 }
 
