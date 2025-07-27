@@ -11,9 +11,11 @@ rustdoc-args = ["--generate-link-to-definition", "--cfg", "docsrs"]
 [dependencies]
 rand = { version = "0.9.1", default-features = false }
 heur-core = { version = "0.1.0", path = "../heur-core", default-features = false }
+arrayvec = { version = "0.7.6", optional = true, default-features = false }
 
 [features]
 default = ["std"]
-std = ["alloc", "heur-core/std", "rand/std"]
+std = ["alloc", "heur-core/std", "rand/std", "arrayvec?/std"]
 alloc = ["heur-core/alloc", "rand/alloc"]
 either = ["heur-core/either"]
+arrayvec = ["dep:arrayvec"]

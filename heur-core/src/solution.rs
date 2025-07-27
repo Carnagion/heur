@@ -77,7 +77,7 @@ impl<T> DerefMut for Individual<T> {
     }
 }
 
-// TODO: 1. Impl `Population` for types from `smallvec`, `arrayvec`, `tinyvec`, `heapless`, and/or `im`
+// TODO: 1. Do we need to impl `Population` for types from `smallvec`, `tinyvec`, `heapless`, and `im`?
 //       2. Add `#[diagnostic::on_unimplemented]`
 pub trait Population: Solution {}
 
@@ -110,6 +110,14 @@ impl<T, const N: usize> Solution for Box<[T; N]> {
 
 #[cfg(feature = "alloc")]
 impl<T, const N: usize> Population for Box<[T; N]> {}
+
+#[cfg(feature = "arrayvec")]
+impl<T, const N: usize> Solution for arrayvec::ArrayVec<T, N> {
+    type Individual = T;
+}
+
+#[cfg(feature = "arrayvec")]
+impl<T, const N: usize> Population for arrayvec::ArrayVec<T, N> {}
 
 // NOTE: We need these traits due to a possible bug in `rustc` where trying to prove that a type impls `IntoIterator`
 //       puts the trait solver into a loop and leads to an overflow. Conceptually, `T: for<'a> Iter<'a>` is exactly

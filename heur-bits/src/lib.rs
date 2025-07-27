@@ -19,7 +19,7 @@ mod climb;
 pub use climb::{FirstAscentBitClimb, SteepestAscentBitClimb};
 
 // TODO: 1. Add `#[diagnostic::on_unimplemented]`
-//       2. Impl `Bits` for types from `smallvec`, `arrayvec`, `tinyvec`, `heapless`, `im`, and/or `bitvec`
+//       2. Impl `Bits` for types from `smallvec`, `tinyvec`, `heapless`, `im`, and `bitvec`
 pub trait Bits {
     #[must_use]
     fn len(&self) -> usize;
@@ -81,6 +81,21 @@ impl Bits for Box<[bool]> {
 
 #[cfg(feature = "alloc")]
 impl<const N: usize> Bits for Box<[bool; N]> {
+    fn len(&self) -> usize {
+        self.as_ref().len()
+    }
+
+    fn get(&self, index: usize) -> Option<bool> {
+        self.as_ref().get(index)
+    }
+
+    fn set(&mut self, index: usize, bit: bool) -> Option<bool> {
+        self.as_mut().set(index, bit)
+    }
+}
+
+#[cfg(feature = "arrayvec")]
+impl<const N: usize> Bits for arrayvec::ArrayVec<bool, N> {
     fn len(&self) -> usize {
         self.as_ref().len()
     }

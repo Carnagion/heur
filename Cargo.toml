@@ -18,6 +18,7 @@ default = ["std"]
 std = ["alloc", "heur-core/std", "heur-bits?/std"]
 alloc = ["heur-core/alloc", "heur-bits?/alloc"]
 either = ["heur-core/either", "heur-bits?/either", "heur-genetic?/either"]
+arrayvec = ["heur-core/arrayvec"]
 bits = ["dep:heur-bits"]
 genetic = ["dep:heur-genetic"]
 
