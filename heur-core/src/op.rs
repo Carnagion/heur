@@ -98,6 +98,29 @@ where
         input: In,
     ) -> Result<Self::Output, Self::Error>;
 
+    /// Apply one operator after another.
+    ///
+    /// Both operators must take no input and produce no output, i.e. `In` = `()` and [`Output`](Operator::Output) = `()`.
+    /// Additionally, both operators must have the same [`Error`](Operator::Error) type. In other words, applying `a.then(b)`
+    /// to a solution is equivalent to applying `a` and then applying `b` like so:
+    /// ```
+    /// # use heur_core::{op::Operator, solution::Solution, Problem};
+    /// #
+    /// # fn test<T, U, P, S>(mut a: T, mut b: U, solution: &mut S, eval: &mut P::Eval, problem: &P) -> Result<(), T::Error>
+    /// # where
+    /// #     T: Operator<P, S, Output = ()>,
+    /// #     U: Operator<P, S, Output = (), Error = T::Error>,
+    /// #     P: Problem,
+    /// #     S: Solution<Individual = P::Individual>,
+    /// # {
+    /// a.apply(solution, eval, problem, ())?;
+    /// b.apply(solution, eval, problem, ())?;
+    /// Ok(())
+    /// # }
+    /// ```
+    ///
+    /// See [`pipe`](Operator::pipe) for a version of this combinator where the first operator's output is passed to the
+    /// second operator as its input.
     fn then<U>(self, op: U) -> Then<Self, U>
     where
         Self: Operator<P, S, Output = ()> + Sized,
@@ -109,6 +132,34 @@ where
         }
     }
 
+    /// Apply one operator after another, using the first operator's output as the input to the second.
+    ///
+    /// Both operators must have the same [`Error`](Operator::Error) type. Put simply, applying `a.pipe(b)` to a solution
+    /// is equivalent to applying `a` and then applying `b`, passing the output of `a` to `b`:
+    /// ```
+    /// # use heur_core::{op::Operator, solution::Solution, Problem};
+    /// #
+    /// # fn test<T, U, P, S, In>(
+    /// #     mut a: T,
+    /// #     mut b: U,
+    /// #     solution: &mut S,
+    /// #     eval: &mut P::Eval,
+    /// #     problem: &P,
+    /// #     input: In,
+    /// # ) -> Result<U::Output, T::Error>
+    /// # where
+    /// #     T: Operator<P, S, In>,
+    /// #     U: Operator<P, S, T::Output, Error = T::Error>,
+    /// #     P: Problem,
+    /// #     S: Solution<Individual = P::Individual>,
+    /// # {
+    /// let intermediate = a.apply(solution, eval, problem, input)?;
+    /// let output = b.apply(solution, eval, problem, intermediate)?;
+    /// Ok(output)
+    /// # }
+    /// ```
+    ///
+    /// See [`then`](Operator::then) for a version of this combinator where both operators take no input and produce no output.
     fn pipe<U>(self, op: U) -> Pipe<Self, U>
     where
         Self: Sized,
@@ -117,6 +168,10 @@ where
         Pipe { from: self, to: op }
     }
 
+    /// Ignore the output produced by an operator, producing `()` instead.
+    ///
+    /// This is primarily useful to ignore the outputs of combinators such as [`accept_if`](Operator::accept_if) or
+    /// [`once`](Operator::once), which may produce output types carrying no useful information, like `Option<()>`.
     fn ignore(self) -> Ignore<Self>
     where
         Self: Sized,
