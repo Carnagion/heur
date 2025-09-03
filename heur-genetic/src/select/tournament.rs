@@ -30,11 +30,11 @@ impl<R> TournamentSelector<R> {
     }
 }
 
-impl<P, S, R> Operator<P> for TournamentSelector<R>
+impl<P, S, R> Operator<P, S> for TournamentSelector<R>
 where
-    P: Problem<Solution = S>,
+    P: Problem<Individual: Clone>,
     // TODO: Should we use `IteratorRandom::choose_multiple` instead to work with solutions that don't impl `AsRef<[T]>`?
-    S: Population<Individual: Clone> + AsRef<[S::Individual]>,
+    S: Population<Individual = P::Individual> + AsRef<[P::Individual]>,
     <P::Eval as Eval<P>>::Objective: Ord,
     R: Rng,
 {
@@ -53,10 +53,10 @@ where
     }
 }
 
-impl<P, S, R> Select<P> for TournamentSelector<R>
+impl<P, S, R> Select<P, S> for TournamentSelector<R>
 where
-    P: Problem<Solution = S>,
-    S: Population<Individual: Clone> + AsRef<[S::Individual]>,
+    P: Problem<Individual: Clone>,
+    S: Population<Individual = P::Individual> + AsRef<[P::Individual]>,
     <P::Eval as Eval<P>>::Objective: Ord,
     R: Rng,
 {

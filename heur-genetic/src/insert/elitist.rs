@@ -22,10 +22,10 @@ impl ElitistInserter {
     }
 }
 
-impl<P, S> Operator<P, Vec<S::Individual>> for ElitistInserter
+impl<P, S> Operator<P, S, Vec<S::Individual>> for ElitistInserter
 where
-    P: Problem<Solution = S>,
-    S: Population + AsMut<[S::Individual]>,
+    P: Problem,
+    S: Population<Individual = P::Individual> + AsMut<[S::Individual]>,
     <P::Eval as Eval<P>>::Objective: Ord,
 {
     type Output = ();
@@ -43,10 +43,10 @@ where
     }
 }
 
-impl<P, S> Insert<P> for ElitistInserter
+impl<P, S> Insert<P, S> for ElitistInserter
 where
-    P: Problem<Solution = S>,
-    S: Population + AsMut<[S::Individual]>,
+    P: Problem,
+    S: Population<Individual = P::Individual> + AsMut<[S::Individual]>,
     <P::Eval as Eval<P>>::Objective: Ord,
 {
     fn insert(

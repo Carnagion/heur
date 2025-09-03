@@ -15,7 +15,7 @@ use heur_core::{
     Optimize,
     Problem,
     op::{Operator, cond::stop::Stop, init::Init},
-    solution::{Population, Reencoded, Solution},
+    solution::Population,
 };
 
 use insert::Insert;
@@ -28,8 +28,6 @@ pub mod combine;
 
 pub mod insert;
 
-type VecPopulation<P> = Vec<<<P as Problem>::Solution as Solution>::Individual>;
-
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct GeneticAlgorithm<Ini, Sel, Com, Mut, Ins, Sto> {
     pub init: Ini,
@@ -40,19 +38,21 @@ pub struct GeneticAlgorithm<Ini, Sel, Com, Mut, Ins, Sto> {
     pub stop: Sto,
 }
 
-impl<P, Ini, Sel, Com, Mut, Ins, Sto> Optimize<P> for GeneticAlgorithm<Ini, Sel, Com, Mut, Ins, Sto>
+impl<P, S, Ini, Sel, Com, Mut, Ins, Sto> Optimize<P, S>
+    for GeneticAlgorithm<Ini, Sel, Com, Mut, Ins, Sto>
 where
-    P: Problem<Solution: Population>,
-    Ini: Init<P>,
-    Sel: Select<P, Error = Ini::Error>,
-    Com: Combine<P, Error = Ini::Error>,
-    Mut: Operator<Reencoded<P, VecPopulation<P>>, Output = (), Error = Ini::Error>,
-    Ins: Insert<P, Error = Ini::Error>,
-    Sto: Stop<P>,
+    P: Problem,
+    S: Population<Individual = P::Individual>,
+    Ini: Init<P, S>,
+    Sel: Select<P, S, Error = Ini::Error>,
+    Com: Combine<P, S, Error = Ini::Error>,
+    Mut: Operator<P, Vec<P::Individual>, Output = (), Error = Ini::Error>,
+    Ins: Insert<P, S, Error = Ini::Error>,
+    Sto: Stop<P, S>,
 {
     type Error = Ini::Error;
 
-    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<S, Self::Error> {
         let init = self.init.by_ref();
         let select = self.select.by_ref();
         let combine = self.combine.by_ref();

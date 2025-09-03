@@ -24,10 +24,10 @@ impl ElitistSelector {
     }
 }
 
-impl<P, S> Operator<P> for ElitistSelector
+impl<P, S> Operator<P, S> for ElitistSelector
 where
-    P: Problem<Solution = S>,
-    S: Population<Individual: Clone> + AsRef<[S::Individual]>,
+    P: Problem<Individual: Clone>,
+    S: Population<Individual = P::Individual> + AsRef<[P::Individual]>,
     <P::Eval as Eval<P>>::Objective: Ord,
 {
     type Output = Vec<S::Individual>;
@@ -45,10 +45,10 @@ where
     }
 }
 
-impl<P, S> Select<P> for ElitistSelector
+impl<P, S> Select<P, S> for ElitistSelector
 where
-    P: Problem<Solution = S>,
-    S: Population<Individual: Clone> + AsRef<[S::Individual]>,
+    P: Problem<Individual: Clone>,
+    S: Population<Individual = P::Individual> + AsRef<[P::Individual]>,
     <P::Eval as Eval<P>>::Objective: Ord,
 {
     fn select(

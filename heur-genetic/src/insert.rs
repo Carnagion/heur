@@ -1,71 +1,73 @@
-use alloc::boxed::Box;
+use alloc::{boxed::Box, vec::Vec};
 
 use heur_core::{Problem, op::Operator, solution::Population};
-
-use super::VecPopulation;
 
 mod elitist;
 pub use elitist::ElitistInserter;
 
 // TODO: Add `#[diagnostic::on_unimplemented]`
-pub trait Insert<P>: Operator<P, VecPopulation<P>, Output = ()>
+pub trait Insert<P, S>: Operator<P, S, Vec<P::Individual>, Output = ()>
 where
-    P: Problem<Solution: Population>,
+    P: Problem,
+    S: Population<Individual = P::Individual>,
 {
     fn insert(
         &mut self,
-        population: &mut P::Solution,
+        population: &mut S,
         eval: &mut P::Eval,
         problem: &P,
-        combined: VecPopulation<P>,
+        combined: Vec<P::Individual>,
     ) -> Result<(), Self::Error>;
 }
 
-impl<T, P> Insert<P> for &mut T
+impl<T, P, S> Insert<P, S> for &mut T
 where
-    T: Insert<P> + ?Sized,
-    P: Problem<Solution: Population>,
+    T: Insert<P, S> + ?Sized,
+    P: Problem,
+    S: Population<Individual = P::Individual>,
 {
     fn insert(
         &mut self,
-        population: &mut P::Solution,
+        population: &mut S,
         eval: &mut P::Eval,
         problem: &P,
-        combined: VecPopulation<P>,
+        combined: Vec<P::Individual>,
     ) -> Result<(), Self::Error> {
         T::insert(self, population, eval, problem, combined)
     }
 }
 
-impl<T, P> Insert<P> for Box<T>
+impl<T, P, S> Insert<P, S> for Box<T>
 where
-    T: Insert<P> + ?Sized,
-    P: Problem<Solution: Population>,
+    T: Insert<P, S> + ?Sized,
+    P: Problem,
+    S: Population<Individual = P::Individual>,
 {
     fn insert(
         &mut self,
-        population: &mut P::Solution,
+        population: &mut S,
         eval: &mut P::Eval,
         problem: &P,
-        combined: VecPopulation<P>,
+        combined: Vec<P::Individual>,
     ) -> Result<(), Self::Error> {
         T::insert(self, population, eval, problem, combined)
     }
 }
 
 #[cfg(feature = "either")]
-impl<L, R, P> Insert<P> for either::Either<L, R>
+impl<L, R, P, S> Insert<P, S> for either::Either<L, R>
 where
-    L: Insert<P>,
-    R: Insert<P, Error = L::Error>,
-    P: Problem<Solution: Population>,
+    L: Insert<P, S>,
+    R: Insert<P, S, Error = L::Error>,
+    P: Problem,
+    S: Population<Individual = P::Individual>,
 {
     fn insert(
         &mut self,
-        population: &mut P::Solution,
+        population: &mut S,
         eval: &mut P::Eval,
         problem: &P,
-        combined: VecPopulation<P>,
+        combined: Vec<P::Individual>,
     ) -> Result<(), Self::Error> {
         match self {
             Self::Left(left) => left.insert(population, eval, problem, combined),

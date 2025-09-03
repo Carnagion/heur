@@ -5,6 +5,8 @@ use core::{
     mem,
 };
 
+use alloc::vec::Vec;
+
 use rand::{
     Rng,
     distr::{Bernoulli, Distribution},
@@ -15,8 +17,6 @@ use heur_core::{
     op::Operator,
     solution::{IterMut, Population},
 };
-
-use crate::VecPopulation;
 
 use super::Combine;
 
@@ -33,40 +33,40 @@ impl<R> UniformCrossover<R> {
     }
 }
 
-impl<P, R> Operator<P, VecPopulation<P>> for UniformCrossover<R>
+impl<P, S, R> Operator<P, S, Vec<P::Individual>> for UniformCrossover<R>
 where
-    P: Problem,
-    P::Solution: Population<Individual: for<'a> IterMut<'a>>,
+    P: Problem<Individual: for<'a> IterMut<'a>>,
+    S: Population<Individual = P::Individual>,
     R: Rng,
 {
-    type Output = VecPopulation<P>;
+    type Output = Vec<P::Individual>;
 
     type Error = UniformCrossoverError;
 
     fn apply(
         &mut self,
-        population: &mut P::Solution,
+        population: &mut S,
         eval: &mut P::Eval,
         problem: &P,
-        selected: VecPopulation<P>,
+        selected: Vec<P::Individual>,
     ) -> Result<Self::Output, Self::Error> {
         self.combine(population, eval, problem, selected)
     }
 }
 
-impl<P, R> Combine<P> for UniformCrossover<R>
+impl<P, S, R> Combine<P, S> for UniformCrossover<R>
 where
-    P: Problem,
-    P::Solution: Population<Individual: for<'a> IterMut<'a>>,
+    P: Problem<Individual: for<'a> IterMut<'a>>,
+    S: Population<Individual = P::Individual>,
     R: Rng,
 {
     fn combine(
         &mut self,
-        _: &P::Solution,
+        _: &S,
         _: &mut P::Eval,
         _: &P,
-        mut selected: VecPopulation<P>,
-    ) -> Result<VecPopulation<P>, Self::Error> {
+        mut selected: Vec<P::Individual>,
+    ) -> Result<Vec<P::Individual>, Self::Error> {
         // Ensure that we have an even number of parents so we can crossover every pair
         let selection_size = selected.len();
         if selection_size % 2 != 0 {

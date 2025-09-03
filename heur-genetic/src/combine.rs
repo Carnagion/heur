@@ -1,80 +1,78 @@
 use core::marker::PhantomData;
 
-use alloc::boxed::Box;
+use alloc::{boxed::Box, vec::Vec};
 
-use heur_core::{
-    Problem,
-    op::Operator,
-    solution::{Population, Reencoded},
-};
-
-use super::VecPopulation;
+use heur_core::{Problem, op::Operator, solution::Population};
 
 mod uniform;
 pub use uniform::{UniformCrossover, UniformCrossoverError};
 
 // TODO: Add `#[diagnostic::on_unimplemented]`
 #[doc(alias = "Crossover")]
-pub trait Combine<P>: Operator<P, VecPopulation<P>, Output = VecPopulation<P>>
+pub trait Combine<P, S>: Operator<P, S, Vec<P::Individual>, Output = Vec<P::Individual>>
 where
-    P: Problem<Solution: Population>,
+    P: Problem,
+    S: Population<Individual = P::Individual>,
 {
     #[doc(alias = "crossover")]
     fn combine(
         &mut self,
-        population: &P::Solution,
+        population: &S,
         eval: &mut P::Eval,
         problem: &P,
-        selected: VecPopulation<P>,
-    ) -> Result<VecPopulation<P>, Self::Error>;
+        selected: Vec<P::Individual>,
+    ) -> Result<Vec<P::Individual>, Self::Error>;
 }
 
-impl<T, P> Combine<P> for &mut T
+impl<T, P, S> Combine<P, S> for &mut T
 where
-    T: Combine<P> + ?Sized,
-    P: Problem<Solution: Population>,
+    T: Combine<P, S> + ?Sized,
+    P: Problem,
+    S: Population<Individual = P::Individual>,
 {
     fn combine(
         &mut self,
-        population: &P::Solution,
+        population: &S,
         eval: &mut P::Eval,
         problem: &P,
-        selected: VecPopulation<P>,
-    ) -> Result<VecPopulation<P>, Self::Error> {
+        selected: Vec<P::Individual>,
+    ) -> Result<Vec<P::Individual>, Self::Error> {
         T::combine(self, population, eval, problem, selected)
     }
 }
 
-impl<T, P> Combine<P> for Box<T>
+impl<T, P, S> Combine<P, S> for Box<T>
 where
-    T: Combine<P> + ?Sized,
-    P: Problem<Solution: Population>,
+    T: Combine<P, S> + ?Sized,
+    P: Problem,
+    S: Population<Individual = P::Individual>,
 {
     fn combine(
         &mut self,
-        population: &P::Solution,
+        population: &S,
         eval: &mut P::Eval,
         problem: &P,
-        selected: VecPopulation<P>,
-    ) -> Result<VecPopulation<P>, Self::Error> {
+        selected: Vec<P::Individual>,
+    ) -> Result<Vec<P::Individual>, Self::Error> {
         T::combine(self, population, eval, problem, selected)
     }
 }
 
 #[cfg(feature = "either")]
-impl<L, R, P> Combine<P> for either::Either<L, R>
+impl<L, R, P, S> Combine<P, S> for either::Either<L, R>
 where
-    L: Combine<P>,
-    R: Combine<P, Error = L::Error>,
-    P: Problem<Solution: Population>,
+    L: Combine<P, S>,
+    R: Combine<P, S, Error = L::Error>,
+    P: Problem,
+    S: Population<Individual = P::Individual>,
 {
     fn combine(
         &mut self,
-        population: &P::Solution,
+        population: &S,
         eval: &mut P::Eval,
         problem: &P,
-        selected: VecPopulation<P>,
-    ) -> Result<VecPopulation<P>, Self::Error> {
+        selected: Vec<P::Individual>,
+    ) -> Result<Vec<P::Individual>, Self::Error> {
         match self {
             Self::Left(left) => left.combine(population, eval, problem, selected),
             Self::Right(right) => right.combine(population, eval, problem, selected),
@@ -84,38 +82,38 @@ where
 
 // TODO: Manually implement common traits
 #[must_use]
-pub struct OnCombined<T, P> {
+pub struct OnCombined<T, P, S> {
     op: T,
-    marker: PhantomData<fn() -> P>,
+    marker: PhantomData<fn() -> (P, S)>,
 }
 
-impl<T, P> Operator<P, VecPopulation<P>> for OnCombined<T, P>
+impl<T, P, S> Operator<P, S, Vec<P::Individual>> for OnCombined<T, P, S>
 where
-    T: Operator<Reencoded<P, VecPopulation<P>>, Output = ()>,
-    P: Problem<Solution: Population>,
+    T: Operator<P, Vec<P::Individual>, Output = ()>,
+    P: Problem,
+    S: Population<Individual = P::Individual>,
 {
-    type Output = VecPopulation<P>;
+    type Output = Vec<P::Individual>;
 
     type Error = T::Error;
 
     fn apply(
         &mut self,
-        _: &mut P::Solution,
+        _: &mut S,
         eval: &mut P::Eval,
         problem: &P,
-        mut combined: VecPopulation<P>,
+        mut combined: Vec<P::Individual>,
     ) -> Result<Self::Output, Self::Error> {
-        let eval = Reencoded::from_mut(eval);
-        let problem = Reencoded::from_ref(problem);
         self.op.apply(&mut combined, eval, problem, ())?;
         Ok(combined)
     }
 }
 
-pub fn on_combined<T, P>(op: T) -> OnCombined<T, P>
+pub fn on_combined<T, P, S>(op: T) -> OnCombined<T, P, S>
 where
-    T: Operator<Reencoded<P, VecPopulation<P>>, Output = ()>,
-    P: Problem<Solution: Population>,
+    T: Operator<P, Vec<P::Individual>, Output = ()>,
+    P: Problem,
+    S: Population<Individual = P::Individual>,
 {
     OnCombined {
         op,
