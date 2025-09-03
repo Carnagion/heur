@@ -48,7 +48,7 @@ mod heur {
     use super::*;
 
     impl Problem for Sphere {
-        type Solution = [Vec<f64>; N];
+        type Individual = Vec<f64>;
 
         type Eval = FromFn<Sphere, NotNan<f64>>;
     }
