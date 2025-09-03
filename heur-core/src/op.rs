@@ -1,3 +1,5 @@
+//! Composable heuristic operators.
+
 use core::{convert::Infallible, error::Error, marker::PhantomData};
 
 #[cfg(feature = "alloc")]
@@ -53,6 +55,32 @@ pub mod population;
 pub mod cond;
 
 // TODO: Add #[diagnostic::on_unimplemented]
+/// The core trait implemented by heuristic operators.
+///
+/// Operators for a given [problem](Problem) `P` can be applied to a solution `S` of [individuals](Problem::Individual)
+/// along with an [evaluation function](Problem::Eval) and some input of type `In`. Applying an operator typically mutates
+/// the solution, and produces either an [`Output`](Operator::Output) or an [`Error`](Operator::Error).
+///
+/// When chaining operators together (such as via [`then`](Operator::then), [`pipe`](Operator::pipe), [`repeat`](Operator::repeat),
+/// or one of the many other available combinators), the output of one operator is passed as input to the next. If an operator does
+/// not specify what input type it accepts, `In` defaults to `()`, i.e. no input.
+///
+/// # Composition
+///
+/// Much like Rust's [iterators](Iterator), operators can be composed or modified via various adapters (a.k.a. combinators) to
+/// create operators capable of more complex behaviour. [`Operator`]'s full definition includes a number of combinators built
+/// upon [`apply`](Operator::apply), and so you get them for free.
+///
+/// Common use cases of combinators include chaining two operators together ([`then`](Operator::then) or [`pipe`](Operator::pipe)),
+/// applying an operator multiple times ([`repeat`](Operator::repeat) and [`repeat_until`](Operator::repeat_until)), changing the
+/// output or error type of an operator ([`map`](Operator::map) or [`map_err`](Operator::map_err)), undoing changes to a solution
+/// upon failure ([`accept_if`](Operator::accept_if)), and more. Refer to their documentation for more details.
+///
+/// # Laziness
+///
+/// Like [iterators](Iterator), operators are also *lazy* --- they do nothing until you call [`apply`](Operator::apply).
+/// This means that, for example, chaining two operators with [`then`](Operator::then) does not actually apply both operators on the
+/// spot, but creates a *new* operator that applies them both when its own implementation of [`apply`](Operator::apply) is called.
 pub trait Operator<P, S, In = ()>
 where
     P: Problem,
