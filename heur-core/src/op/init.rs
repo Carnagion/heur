@@ -78,10 +78,10 @@ where
 }
 
 #[cfg(feature = "either")]
-impl<L, R, P> Init<P, S> for either::Either<L, R>
+impl<L, R, P, S> Init<P, S> for either::Either<L, R>
 where
     L: Init<P, S>,
-    R: Init<P, Error = L::Error>,
+    R: Init<P, S, Error = L::Error>,
     P: Problem,
     S: Solution<Individual = P::Individual>,
 {
