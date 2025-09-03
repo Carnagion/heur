@@ -186,6 +186,35 @@ where
         Passthrough(self)
     }
 
+    /// Transforms the output of the operator to another value via a function.
+    ///
+    /// The [`Output`](Operator::Output) type of the resulting combinator will be the return type of the mapping function
+    /// `f`; i.e. applying `a.map(f)` is equivalent to applying the operator `a` and then calling `f` on its output:
+    /// ```
+    /// # use heur_core::{op::Operator, solution::Solution, Problem};
+    /// #
+    /// # fn test<T, F, P, S, In, Out>(
+    /// #     mut a: T,
+    /// #     mut f: F,
+    /// #     solution: &mut S,
+    /// #     eval: &mut P::Eval,
+    /// #     problem: &P,
+    /// #     input: In,
+    /// # ) -> Result<Out, T::Error>
+    /// # where
+    /// #     T: Operator<P, S, In>,
+    /// #     F: FnMut(T::Output) -> Out,
+    /// #     P: Problem,
+    /// #     S: Solution<Individual = P::Individual>,
+    /// # {
+    /// let output = a.apply(solution, eval, problem, input)?;
+    /// let mapped = f(output);
+    /// Ok(mapped)
+    /// # }
+    /// ```
+    ///
+    /// See [`map_err`](Operator::map_err) for a version of this combinator that maps operator errors instead of outputs, and
+    /// [`try_map`](Operator::try_map) for a version that supports a fallible mapping function.
     fn map<Out, F>(self, f: F) -> Map<Self, F>
     where
         Self: Sized,
@@ -194,6 +223,39 @@ where
         Map { op: self, f }
     }
 
+    /// Transforms any errors produced by the operator to error type via a function.
+    ///
+    /// The [`Error`](Operator::Error) type of the resulting combinator will be the return type of the mapping function
+    /// `f`; i.e. applying `a.map_err(f)` is equivalent to applying the operator `a`, calling `f` on any error produced:
+    /// ```
+    /// # use core::error::Error;
+    /// #
+    /// # use heur_core::{op::Operator, solution::Solution, Problem};
+    /// #
+    /// # fn test<T, F, P, S, In, Err>(
+    /// #     mut a: T,
+    /// #     mut f: F,
+    /// #     solution: &mut S,
+    /// #     eval: &mut P::Eval,
+    /// #     problem: &P,
+    /// #     input: In,
+    /// # ) -> Result<T::Output, Err>
+    /// # where
+    /// #     T: Operator<P, S, In>,
+    /// #     F: FnMut(T::Error) -> Err,
+    /// #     P: Problem,
+    /// #     S: Solution<Individual = P::Individual>,
+    /// #     Err: Error,
+    /// # {
+    /// match a.apply(solution, eval, problem, input) {
+    ///     Ok(output) => Ok(output),
+    ///     Err(err) => Err(f(err)),
+    /// }
+    /// # }
+    /// ```
+    ///
+    /// See [`map`](Operator::map) for a version of this combinator that maps operator outputs instead of errors, and
+    /// [`try_map`](Operator::try_map) for a version that supports a fallible output mapping function.
     fn map_err<Err, F>(self, f: F) -> MapErr<Self, F>
     where
         Self: Sized,
@@ -203,6 +265,39 @@ where
         MapErr { op: self, f }
     }
 
+    /// Transforms the output of the operator to another value via a fallible function.
+    ///
+    /// Like [`map`](Operator::map), the [`Output`](Operator::Output) type of the resulting combinator is decided by
+    /// the mapping function `f`. However, here `f` is fallible --- it returns a [`Result`], where the value in [`Ok`]
+    /// becomes the operator's new output, and any [`Err`] causes an early return.
+    ///
+    /// That is, applying `a.try_map(f)` is equivalent to applying the operator `a` and then calling `f` on its output
+    /// like so:
+    /// ```
+    /// # use heur_core::{op::Operator, solution::Solution, Problem};
+    /// #
+    /// # fn test<T, F, P, S, In, Out>(
+    /// #     mut a: T,
+    /// #     mut f: F,
+    /// #     solution: &mut S,
+    /// #     eval: &mut P::Eval,
+    /// #     problem: &P,
+    /// #     input: In,
+    /// # ) -> Result<Out, T::Error>
+    /// # where
+    /// #     T: Operator<P, S, In>,
+    /// #     F: FnMut(T::Output) -> Result<Out, T::Error>,
+    /// #     P: Problem,
+    /// #     S: Solution<Individual = P::Individual>,
+    /// # {
+    /// let output = a.apply(solution, eval, problem, input)?;
+    /// let mapped = f(output)?;
+    /// Ok(mapped)
+    /// # }
+    /// ```
+    ///
+    /// See [`map`](Operator::map) for a version of this combinator that takes an infallible mapping function, and
+    /// [`map_err`](Operator::map_err) for a version that maps operator errors instead of outputs.
     fn try_map<Out, F>(self, f: F) -> TryMap<Self, F>
     where
         Self: Sized,
