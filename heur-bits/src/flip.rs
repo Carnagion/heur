@@ -21,9 +21,9 @@ impl<R> FlipBit<R> {
     }
 }
 
-impl<P, S, R> Operator<P> for FlipBit<R>
+impl<P, S, R> Operator<P, Individual<S>> for FlipBit<R>
 where
-    P: Problem<Solution = Individual<S>>,
+    P: Problem<Individual = S>,
     S: Bits,
     R: Rng,
 {
@@ -33,7 +33,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut Individual<S>,
         _: &mut P::Eval,
         _: &P,
         (): (),
@@ -61,9 +61,9 @@ impl<R> FlipAllBits<R> {
     }
 }
 
-impl<P, S, R> Operator<P> for FlipAllBits<R>
+impl<P, S, R> Operator<P, Individual<S>> for FlipAllBits<R>
 where
-    P: Problem<Solution = Individual<S>>,
+    P: Problem<Individual = S>,
     S: Bits,
     R: Rng,
 {
@@ -73,7 +73,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut Individual<S>,
         _: &mut P::Eval,
         _: &P,
         (): (),

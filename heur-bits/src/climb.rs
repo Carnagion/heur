@@ -8,9 +8,9 @@ use crate::Bits;
 #[must_use]
 pub struct FirstAscentBitClimb;
 
-impl<P, S> Operator<P> for FirstAscentBitClimb
+impl<P, S> Operator<P, Individual<S>> for FirstAscentBitClimb
 where
-    P: Problem<Solution = Individual<S>>,
+    P: Problem<Individual = S>,
     S: Bits,
 {
     type Output = ();
@@ -19,7 +19,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut Individual<S>,
         eval: &mut P::Eval,
         problem: &P,
         (): (),
@@ -53,9 +53,9 @@ where
 #[must_use]
 pub struct SteepestAscentBitClimb;
 
-impl<P, S> Operator<P> for SteepestAscentBitClimb
+impl<P, S> Operator<P, Individual<S>> for SteepestAscentBitClimb
 where
-    P: Problem<Solution = Individual<S>>,
+    P: Problem<Individual = S>,
     S: Bits,
     P::Eval: Eval<P, Objective: Ord>,
 {
@@ -65,7 +65,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut Individual<S>,
         eval: &mut P::Eval,
         problem: &P,
         (): (),
