@@ -12,7 +12,7 @@ use heur::{
         select::ElitistSelector,
     },
     op::{self, Operator, cond::stop::Optimum, init, population},
-    solution::{Individual, Reencoded},
+    solution::Individual,
 };
 
 use rand::{Rng, distr::Bernoulli};
@@ -41,9 +41,8 @@ struct Pos {
 
 impl Problem for Nqueens {
     // We will use a vector of positions to encode individual solutions to the N-queens problem. Each element in the vector
-    // represents the position of a different queen. Since we are using a genetic algorithm, we need a population of multiple
-    // individual solutions - for the purposes of this example, we will use 100 individuals.
-    type Solution = [Vec<Pos>; 100];
+    // represents the position of a different queen.
+    type Individual = Vec<Pos>;
 
     type Eval = FromFn<Self, isize>;
 }
@@ -112,8 +111,9 @@ fn ga(problem: &Nqueens) {
 
     let mut rng = rand::rng();
 
-    // Define the various operators we will be using for the genetic algorithm. We initialise a population of 100 solutions,
-    // with each individual being initialised randomly by `init_random`.
+    // Define the various operators we will be using for the genetic algorithm. Since we are using a genetic algorithm, we need
+    // a population of multiple individual solutions - for the purposes of this example, we will use 100 individuals, with each
+    // individual being initialised randomly by `init_random`.
     //
     // We use elitist selection with a selection size of 50, uniform crossover with a 0.5 (50%) probability of swapping each
     // element (position) between pairs of selected individuals, and elitist insertion to replace the worst individuals in the
@@ -125,12 +125,10 @@ fn ga(problem: &Nqueens) {
     let init = init::from_population(population);
     let select = ElitistSelector::new(50);
     let combine = UniformCrossover::new(Bernoulli::new(0.5).unwrap(), rng.clone());
-    let mutate = op::from_fn(
-        |combined: &mut Individual<_>, _, problem: &Reencoded<Reencoded<Nqueens, _>, _>, ()| {
-            apply_mutation(combined, problem, &mut rng);
-            Ok(())
-        },
-    );
+    let mutate = op::from_fn(|combined, _, problem, ()| {
+        apply_mutation(combined, problem, &mut rng);
+        Ok(())
+    });
     let insert = ElitistInserter::new();
     let stop = Optimum::new(0);
 

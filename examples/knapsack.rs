@@ -11,7 +11,6 @@ use heur::{
         cond::{accept::NonWorsening, stop::Iterations},
         init,
     },
-    solution::Individual,
 };
 
 use ordered_float::NotNan;
@@ -45,7 +44,7 @@ struct Item {
 impl Problem for Knapsack {
     // Since this is a 0-1 knapsack problem example, will use a bitstring as a solution encoding. If an item is included in the
     // knapsack, its bit is set to `true` (1). Otherwise, its bit is set to `false` (0).
-    type Solution = Individual<Vec<bool>>;
+    type Individual = Vec<bool>;
 
     type Eval = FromFn<Self, NotNan<f64>>;
 }
