@@ -5,7 +5,7 @@ use alloc::boxed::Box;
 
 use cond::{accept::Accept, stop::Stop};
 
-use crate::Problem;
+use crate::{Problem, solution::Solution};
 
 mod then;
 pub use then::Then;
@@ -53,14 +53,18 @@ pub mod population;
 pub mod cond;
 
 // TODO: Add #[diagnostic::on_unimplemented]
-pub trait Operator<P: Problem, In = ()> {
+pub trait Operator<P, S, In = ()>
+where
+    P: Problem,
+    S: Solution<Individual = P::Individual>,
+{
     type Output;
 
     type Error: Error;
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         input: In,
@@ -68,8 +72,8 @@ pub trait Operator<P: Problem, In = ()> {
 
     fn then<U>(self, op: U) -> Then<Self, U>
     where
-        Self: Operator<P, Output = ()> + Sized,
-        U: Operator<P, Output = (), Error = <Self as Operator<P>>::Error>,
+        Self: Operator<P, S, Output = ()> + Sized,
+        U: Operator<P, S, Output = (), Error = <Self as Operator<P, S>>::Error>,
     {
         Then {
             first: self,
@@ -80,7 +84,7 @@ pub trait Operator<P: Problem, In = ()> {
     fn pipe<U>(self, op: U) -> Pipe<Self, U>
     where
         Self: Sized,
-        U: Operator<P, Self::Output, Error = Self::Error>,
+        U: Operator<P, S, Self::Output, Error = Self::Error>,
     {
         Pipe { from: self, to: op }
     }
@@ -134,23 +138,23 @@ pub trait Operator<P: Problem, In = ()> {
     fn accept_if<F>(self, cond: F) -> AcceptIf<Self, F>
     where
         Self: Sized,
-        F: Accept<P>,
-        P::Solution: Clone,
+        F: Accept<P, S>,
+        S: Clone,
     {
         AcceptIf { op: self, cond }
     }
 
     fn repeat(self, times: usize) -> Repeat<Self>
     where
-        Self: Operator<P, In, Output = In> + Sized,
+        Self: Operator<P, S, In, Output = In> + Sized,
     {
         Repeat { op: self, times }
     }
 
     fn repeat_until<F>(self, cond: F) -> RepeatUntil<Self, F>
     where
-        Self: Operator<P, In, Output = In> + Sized,
-        F: Stop<P>,
+        Self: Operator<P, S, In, Output = In> + Sized,
+        F: Stop<P, S>,
     {
         RepeatUntil { op: self, cond }
     }
@@ -158,7 +162,7 @@ pub trait Operator<P: Problem, In = ()> {
     fn flatten(self) -> Flatten<Self>
     where
         Self: Sized,
-        Self::Output: Operator<P, Error = Self::Error>,
+        Self::Output: Operator<P, S, Error = Self::Error>,
     {
         Flatten(self)
     }
@@ -167,7 +171,7 @@ pub trait Operator<P: Problem, In = ()> {
     where
         Self: Sized,
         F: FnMut(Self::Output) -> U,
-        U: Operator<P, Error = Self::Error>,
+        U: Operator<P, S, Error = Self::Error>,
     {
         FlatMap { op: self, f }
     }
@@ -189,7 +193,9 @@ pub trait Operator<P: Problem, In = ()> {
 
     #[cfg(feature = "alloc")]
     #[must_use]
-    fn boxed<'a>(self) -> Box<dyn Operator<P, In, Output = Self::Output, Error = Self::Error> + 'a>
+    fn boxed<'a>(
+        self,
+    ) -> Box<dyn Operator<P, S, In, Output = Self::Output, Error = Self::Error> + 'a>
     where
         Self: Sized + 'a,
     {
@@ -197,10 +203,11 @@ pub trait Operator<P: Problem, In = ()> {
     }
 }
 
-impl<T, P, In> Operator<P, In> for &mut T
+impl<T, P, S, In> Operator<P, S, In> for &mut T
 where
-    T: Operator<P, In> + ?Sized,
+    T: Operator<P, S, In> + ?Sized,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Output = T::Output;
 
@@ -208,7 +215,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         input: In,
@@ -218,10 +225,11 @@ where
 }
 
 #[cfg(feature = "alloc")]
-impl<T, P, In> Operator<P, In> for Box<T>
+impl<T, P, S, In> Operator<P, S, In> for Box<T>
 where
-    T: Operator<P, In> + ?Sized,
+    T: Operator<P, S, In> + ?Sized,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Output = T::Output;
 
@@ -229,7 +237,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         input: In,
@@ -239,11 +247,12 @@ where
 }
 
 #[cfg(feature = "either")]
-impl<L, R, P, In> Operator<P, In> for either::Either<L, R>
+impl<L, R, P, S, In> Operator<P, S, In> for either::Either<L, R>
 where
-    L: Operator<P, In>,
-    R: Operator<P, In, Output = L::Output, Error = L::Error>,
+    L: Operator<P, S, In>,
+    R: Operator<P, S, In, Output = L::Output, Error = L::Error>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Output = L::Output;
 
@@ -251,7 +260,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         input: In,
@@ -263,9 +272,10 @@ where
     }
 }
 
-impl<P> Operator<P> for ()
+impl<P, S> Operator<P, S> for ()
 where
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Output = ();
 
@@ -273,7 +283,7 @@ where
 
     fn apply(
         &mut self,
-        _: &mut P::Solution,
+        _: &mut S,
         _: &mut P::Eval,
         _: &P,
         (): (),
@@ -282,10 +292,11 @@ where
     }
 }
 
-impl<T, P, In> Operator<P, In> for Option<T>
+impl<T, P, S, In> Operator<P, S, In> for Option<T>
 where
-    T: Operator<P, In>,
+    T: Operator<P, S, In>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Output = Option<T::Output>;
 
@@ -293,7 +304,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         input: In,
@@ -304,10 +315,11 @@ where
     }
 }
 
-pub fn from_fn<P, In, Out, Err, F>(f: F) -> FromFn<P, In, Out, Err, F>
+pub fn from_fn<P, S, In, Out, Err, F>(f: F) -> FromFn<P, S, In, Out, Err, F>
 where
-    F: FnMut(&mut P::Solution, &mut P::Eval, &P, In) -> Result<Out, Err>,
+    F: FnMut(&mut S, &mut P::Eval, &P, In) -> Result<Out, Err>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
     Err: Error,
 {
     FromFn {
@@ -316,10 +328,11 @@ where
     }
 }
 
-pub fn hint<T, P, In, Out, Err>(op: T) -> Hint<T, P, In, Out, Err>
+pub fn hint<T, P, S, In, Out, Err>(op: T) -> Hint<T, P, S, In, Out, Err>
 where
-    T: Operator<P, In, Output = Out, Error = Err>,
+    T: Operator<P, S, In, Output = Out, Error = Err>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
     Err: Error,
 {
     Hint {
@@ -328,9 +341,10 @@ where
     }
 }
 
-pub fn todo<P, In, Out, Err>() -> Todo<P, In, Out, Err>
+pub fn todo<P, S, In, Out, Err>() -> Todo<P, S, In, Out, Err>
 where
     P: Problem,
+    S: Solution<Individual = P::Individual>,
     Err: Error,
 {
     Todo(PhantomData)

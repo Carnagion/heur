@@ -4,20 +4,21 @@ use core::{
     marker::PhantomData,
 };
 
-use crate::{Optimize, Problem, op::Operator};
+use crate::{Optimize, Problem, op::Operator, solution::Solution};
 
 use super::Init;
 
 #[must_use]
-pub struct FromSolver<P, T> {
+pub struct FromSolver<P, S, T> {
     pub(super) solver: T,
-    pub(super) marker: PhantomData<fn() -> P>,
+    pub(super) marker: PhantomData<fn() -> (P, S)>,
 }
 
-impl<P, T> Operator<P> for FromSolver<P, T>
+impl<P, S, T> Operator<P, S> for FromSolver<P, S, T>
 where
-    T: Optimize<P>,
+    T: Optimize<P, S>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Output = ();
 
@@ -25,7 +26,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         (): (),
@@ -34,17 +35,18 @@ where
     }
 }
 
-impl<P, T> Init<P> for FromSolver<P, T>
+impl<P, S, T> Init<P, S> for FromSolver<P, S, T>
 where
-    T: Optimize<P>,
+    T: Optimize<P, S>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<S, Self::Error> {
         self.solver.optimize(eval, problem)
     }
 }
 
-impl<T: Debug, P> Debug for FromSolver<P, T> {
+impl<T: Debug, P, S> Debug for FromSolver<P, S, T> {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("FromSolver")
@@ -53,9 +55,9 @@ impl<T: Debug, P> Debug for FromSolver<P, T> {
     }
 }
 
-impl<T: Copy, P> Copy for FromSolver<P, T> {}
+impl<T: Copy, P, S> Copy for FromSolver<P, S, T> {}
 
-impl<T: Clone, P> Clone for FromSolver<P, T> {
+impl<T: Clone, P, S> Clone for FromSolver<P, S, T> {
     fn clone(&self) -> Self {
         Self {
             solver: self.solver.clone(),
@@ -64,15 +66,15 @@ impl<T: Clone, P> Clone for FromSolver<P, T> {
     }
 }
 
-impl<T: Eq, P> Eq for FromSolver<P, T> {}
+impl<T: Eq, P, S> Eq for FromSolver<P, S, T> {}
 
-impl<T: PartialEq, P> PartialEq for FromSolver<P, T> {
+impl<T: PartialEq, P, S> PartialEq for FromSolver<P, S, T> {
     fn eq(&self, other: &Self) -> bool {
         self.solver == other.solver
     }
 }
 
-impl<T: Hash, P> Hash for FromSolver<P, T> {
+impl<T: Hash, P, S> Hash for FromSolver<P, S, T> {
     fn hash<H>(&self, state: &mut H)
     where
         H: Hasher,

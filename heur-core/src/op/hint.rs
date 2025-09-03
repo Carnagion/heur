@@ -5,21 +5,22 @@ use core::{
     marker::PhantomData,
 };
 
-use crate::{Optimize, Problem};
+use crate::{Optimize, Problem, solution::Solution};
 
 use super::{Operator, init::Init};
 
 #[must_use]
-pub struct Hint<T, P, In = (), Out = (), Err = Infallible> {
+pub struct Hint<T, P, S, In = (), Out = (), Err = Infallible> {
     pub(super) op: T,
     #[allow(clippy::type_complexity)]
-    pub(super) marker: PhantomData<fn() -> (P, In, Out, Err)>,
+    pub(super) marker: PhantomData<fn() -> (P, S, In, Out, Err)>,
 }
 
-impl<T, P, In> Operator<P, In> for Hint<T, P, In, T::Output, T::Error>
+impl<T, P, S, In> Operator<P, S, In> for Hint<T, P, S, In, T::Output, T::Error>
 where
-    T: Operator<P, In>,
+    T: Operator<P, S, In>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Output = T::Output;
 
@@ -27,7 +28,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut <P as Problem>::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         input: In,
@@ -36,18 +37,19 @@ where
     }
 }
 
-impl<T, P> Init<P> for Hint<T, P, (), (), T::Error>
+impl<T, P, S> Init<P, S> for Hint<T, P, S, (), (), T::Error>
 where
-    T: Init<P>,
+    T: Init<P, S>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<S, Self::Error> {
         self.op.init(eval, problem)
     }
 
     fn init_into(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
     ) -> Result<(), Self::Error> {
@@ -55,19 +57,20 @@ where
     }
 }
 
-impl<T, P> Optimize<P> for Hint<T, P, (), (), T::Error>
+impl<T, P, S> Optimize<P, S> for Hint<T, P, S, (), (), T::Error>
 where
-    T: Optimize<P>,
+    T: Optimize<P, S>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Error = T::Error;
 
-    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<S, Self::Error> {
         self.op.optimize(eval, problem)
     }
 }
 
-impl<T: Debug, P, In, Out, Err> Debug for Hint<T, P, In, Out, Err> {
+impl<T: Debug, P, S, In, Out, Err> Debug for Hint<T, P, S, In, Out, Err> {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("Hint")
@@ -76,9 +79,9 @@ impl<T: Debug, P, In, Out, Err> Debug for Hint<T, P, In, Out, Err> {
     }
 }
 
-impl<T: Copy, P, In, Out, Err> Copy for Hint<T, P, In, Out, Err> {}
+impl<T: Copy, P, S, In, Out, Err> Copy for Hint<T, P, S, In, Out, Err> {}
 
-impl<T: Clone, P, In, Out, Err> Clone for Hint<T, P, In, Out, Err> {
+impl<T: Clone, P, S, In, Out, Err> Clone for Hint<T, P, S, In, Out, Err> {
     fn clone(&self) -> Self {
         Self {
             op: self.op.clone(),
@@ -87,15 +90,15 @@ impl<T: Clone, P, In, Out, Err> Clone for Hint<T, P, In, Out, Err> {
     }
 }
 
-impl<T: Eq, P, In, Out, Err> Eq for Hint<T, P, In, Out, Err> {}
+impl<T: Eq, P, S, In, Out, Err> Eq for Hint<T, P, S, In, Out, Err> {}
 
-impl<T: PartialEq, P, In, Out, Err> PartialEq for Hint<T, P, In, Out, Err> {
+impl<T: PartialEq, P, S, In, Out, Err> PartialEq for Hint<T, P, S, In, Out, Err> {
     fn eq(&self, other: &Self) -> bool {
         self.op.eq(&other.op)
     }
 }
 
-impl<T: Hash, P, In, Out, Err> Hash for Hint<T, P, In, Out, Err> {
+impl<T: Hash, P, S, In, Out, Err> Hash for Hint<T, P, S, In, Out, Err> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.op.hash(state);
     }

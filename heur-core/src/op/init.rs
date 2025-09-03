@@ -6,7 +6,7 @@ use alloc::boxed::Box;
 use crate::{
     Optimize,
     Problem,
-    solution::{Individual, Population},
+    solution::{Individual, Population, Solution},
 };
 
 use super::Operator;
@@ -18,12 +18,16 @@ mod from_solver;
 pub use from_solver::FromSolver;
 
 // TODO: Add `#[diagnostic::on_unimplemented]`
-pub trait Init<P: Problem>: Operator<P, Output = ()> {
-    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error>;
+pub trait Init<P, S>: Operator<P, S, Output = ()>
+where
+    P: Problem,
+    S: Solution<Individual = P::Individual>,
+{
+    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<S, Self::Error>;
 
     fn init_into(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
     ) -> Result<(), Self::Error> {
@@ -32,18 +36,19 @@ pub trait Init<P: Problem>: Operator<P, Output = ()> {
     }
 }
 
-impl<T, P> Init<P> for &mut T
+impl<T, P, S> Init<P, S> for &mut T
 where
-    T: Init<P> + ?Sized,
+    T: Init<P, S> + ?Sized,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<S, Self::Error> {
         T::init(self, eval, problem)
     }
 
     fn init_into(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
     ) -> Result<(), Self::Error> {
@@ -52,18 +57,19 @@ where
 }
 
 #[cfg(feature = "alloc")]
-impl<T, P> Init<P> for Box<T>
+impl<T, P, S> Init<P, S> for Box<T>
 where
-    T: Init<P> + ?Sized,
+    T: Init<P, S> + ?Sized,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<S, Self::Error> {
         T::init(self, eval, problem)
     }
 
     fn init_into(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
     ) -> Result<(), Self::Error> {
@@ -72,13 +78,14 @@ where
 }
 
 #[cfg(feature = "either")]
-impl<L, R, P> Init<P> for either::Either<L, R>
+impl<L, R, P> Init<P, S> for either::Either<L, R>
 where
-    L: Init<P>,
+    L: Init<P, S>,
     R: Init<P, Error = L::Error>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<S, Self::Error> {
         match self {
             Self::Left(left) => left.init(eval, problem),
             Self::Right(right) => right.init(eval, problem),
@@ -87,7 +94,7 @@ where
 
     fn init_into(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
     ) -> Result<(), Self::Error> {
@@ -100,19 +107,19 @@ where
 
 pub fn from_individual<P, S>(solution: S) -> FromIndividual<P, S>
 where
-    P: Problem<Solution = Individual<S>>,
+    P: Problem<Individual = S>,
     S: Clone,
 {
     FromIndividual {
-        solution,
+        solution: Individual(solution),
         marker: PhantomData,
     }
 }
 
 pub fn from_population<P, S>(population: S) -> FromPopulation<P, S>
 where
-    P: Problem<Solution = S>,
-    S: Population + Clone,
+    P: Problem,
+    S: Population<Individual = P::Individual> + Clone,
 {
     FromPopulation {
         population,
@@ -120,10 +127,11 @@ where
     }
 }
 
-pub fn from_solver<P, T>(solver: T) -> FromSolver<P, T>
+pub fn from_solver<P, S, T>(solver: T) -> FromSolver<P, S, T>
 where
-    T: Optimize<P>,
+    T: Optimize<P, S>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     FromSolver {
         solver,

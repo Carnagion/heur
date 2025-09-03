@@ -15,13 +15,13 @@ use super::Init;
 
 #[must_use]
 pub struct FromIndividual<P, S> {
-    pub(super) solution: S,
+    pub(super) solution: Individual<S>,
     pub(super) marker: PhantomData<fn() -> P>,
 }
 
-impl<P, S> Operator<P> for FromIndividual<P, S>
+impl<P, S> Operator<P, Individual<S>> for FromIndividual<P, S>
 where
-    P: Problem<Solution = Individual<S>>,
+    P: Problem<Individual = S>,
     S: Clone,
 {
     type Output = ();
@@ -39,13 +39,13 @@ where
     }
 }
 
-impl<P, S> Init<P> for FromIndividual<P, S>
+impl<P, S> Init<P, Individual<S>> for FromIndividual<P, S>
 where
-    P: Problem<Solution = Individual<S>>,
+    P: Problem<Individual = S>,
     S: Clone,
 {
     fn init(&mut self, _: &mut P::Eval, _: &P) -> Result<Individual<S>, Self::Error> {
-        Ok(Individual(self.solution.clone()))
+        Ok(self.solution.clone())
     }
 
     fn init_into(
@@ -54,7 +54,7 @@ where
         _: &mut P::Eval,
         _: &P,
     ) -> Result<(), Self::Error> {
-        solution.clone_from(Individual::from_ref(&self.solution));
+        solution.clone_from(&self.solution);
         Ok(())
     }
 }
@@ -65,10 +65,10 @@ pub struct FromPopulation<P, S> {
     pub(super) marker: PhantomData<fn() -> P>,
 }
 
-impl<P, S> Operator<P> for FromPopulation<P, S>
+impl<P, S> Operator<P, S> for FromPopulation<P, S>
 where
-    P: Problem<Solution = S>,
-    S: Population + Clone,
+    P: Problem,
+    S: Population<Individual = P::Individual> + Clone,
 {
     type Output = ();
 
@@ -85,10 +85,10 @@ where
     }
 }
 
-impl<P, S> Init<P> for FromPopulation<P, S>
+impl<P, S> Init<P, S> for FromPopulation<P, S>
 where
-    P: Problem<Solution = S>,
-    S: Population + Clone,
+    P: Problem,
+    S: Population<Individual = P::Individual> + Clone,
 {
     fn init(&mut self, _: &mut P::Eval, _: &P) -> Result<S, Self::Error> {
         Ok(self.population.clone())

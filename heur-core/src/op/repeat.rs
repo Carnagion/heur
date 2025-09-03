@@ -1,4 +1,4 @@
-use crate::Problem;
+use crate::{Problem, solution::Solution};
 
 use super::{Operator, cond::stop::Stop};
 
@@ -9,10 +9,11 @@ pub struct Repeat<T> {
     pub(super) times: usize,
 }
 
-impl<T, P, In> Operator<P, In> for Repeat<T>
+impl<T, P, S, In> Operator<P, S, In> for Repeat<T>
 where
-    T: Operator<P, In, Output = In>,
+    T: Operator<P, S, In, Output = In>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Output = In;
 
@@ -20,7 +21,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         mut input: In,
@@ -39,11 +40,12 @@ pub struct RepeatUntil<T, F> {
     pub(super) cond: F,
 }
 
-impl<T, F, P, In> Operator<P, In> for RepeatUntil<T, F>
+impl<T, F, P, S, In> Operator<P, S, In> for RepeatUntil<T, F>
 where
-    T: Operator<P, In, Output = In>,
-    F: Stop<P>,
+    T: Operator<P, S, In, Output = In>,
+    F: Stop<P, S>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Output = In;
 
@@ -51,7 +53,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         mut input: In,

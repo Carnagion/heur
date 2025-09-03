@@ -1,6 +1,6 @@
 use core::convert::Infallible;
 
-use crate::{Optimize, Problem};
+use crate::{Optimize, Problem, solution::Solution};
 
 use super::{Operator, init::Init};
 
@@ -8,10 +8,11 @@ use super::{Operator, init::Init};
 #[must_use]
 pub struct Unwrapped<T>(pub(super) T);
 
-impl<T, P, In> Operator<P, In> for Unwrapped<T>
+impl<T, P, S, In> Operator<P, S, In> for Unwrapped<T>
 where
-    T: Operator<P, In>,
+    T: Operator<P, S, In>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Output = T::Output;
 
@@ -19,7 +20,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut <P as Problem>::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         input: In,
@@ -29,19 +30,20 @@ where
     }
 }
 
-impl<T, P> Init<P> for Unwrapped<T>
+impl<T, P, S> Init<P, S> for Unwrapped<T>
 where
-    T: Init<P>,
+    T: Init<P, S>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<S, Self::Error> {
         let solution = self.0.init(eval, problem).unwrap();
         Ok(solution)
     }
 
     fn init_into(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
     ) -> Result<(), Self::Error> {
@@ -50,14 +52,15 @@ where
     }
 }
 
-impl<T, P> Optimize<P> for Unwrapped<T>
+impl<T, P, S> Optimize<P, S> for Unwrapped<T>
 where
-    T: Optimize<P>,
+    T: Optimize<P, S>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Error = Infallible;
 
-    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<S, Self::Error> {
         let solution = self.0.optimize(eval, problem).unwrap();
         Ok(solution)
     }

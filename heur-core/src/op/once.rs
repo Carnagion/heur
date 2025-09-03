@@ -1,4 +1,4 @@
-use crate::Problem;
+use crate::{Problem, solution::Solution};
 
 use super::Operator;
 
@@ -6,10 +6,11 @@ use super::Operator;
 #[must_use]
 pub struct Once<T>(pub(super) Option<T>);
 
-impl<T, P, In> Operator<P, In> for Once<T>
+impl<T, P, S, In> Operator<P, S, In> for Once<T>
 where
-    T: Operator<P, In>,
+    T: Operator<P, S, In>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Output = Option<T::Output>;
 
@@ -17,7 +18,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut <P as Problem>::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         input: In,

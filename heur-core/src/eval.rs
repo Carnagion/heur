@@ -3,7 +3,7 @@ use core::marker::PhantomData;
 #[cfg(feature = "alloc")]
 use alloc::boxed::Box;
 
-use crate::{Problem, solution::Solution};
+use crate::Problem;
 
 mod from_fn;
 pub use from_fn::FromFn;
@@ -13,11 +13,7 @@ pub trait Eval<P: Problem> {
     type Objective: PartialOrd;
 
     #[must_use]
-    fn eval(
-        &mut self,
-        solution: &<P::Solution as Solution>::Individual,
-        problem: &P,
-    ) -> Self::Objective;
+    fn eval(&mut self, solution: &P::Individual, problem: &P) -> Self::Objective;
 }
 
 impl<T, P> Eval<P> for &mut T
@@ -27,11 +23,7 @@ where
 {
     type Objective = T::Objective;
 
-    fn eval(
-        &mut self,
-        solution: &<P::Solution as Solution>::Individual,
-        problem: &P,
-    ) -> Self::Objective {
+    fn eval(&mut self, solution: &P::Individual, problem: &P) -> Self::Objective {
         T::eval(self, solution, problem)
     }
 }
@@ -44,11 +36,7 @@ where
 {
     type Objective = T::Objective;
 
-    fn eval(
-        &mut self,
-        solution: &<P::Solution as Solution>::Individual,
-        problem: &P,
-    ) -> Self::Objective {
+    fn eval(&mut self, solution: &P::Individual, problem: &P) -> Self::Objective {
         T::eval(self, solution, problem)
     }
 }
@@ -62,11 +50,7 @@ where
 {
     type Objective = L::Objective;
 
-    fn eval(
-        &mut self,
-        solution: &<P::Solution as Solution>::Individual,
-        problem: &P,
-    ) -> Self::Objective {
+    fn eval(&mut self, solution: &P::Individual, problem: &P) -> Self::Objective {
         match self {
             Self::Left(left) => left.eval(solution, problem),
             Self::Right(right) => right.eval(solution, problem),
@@ -76,7 +60,7 @@ where
 
 pub fn from_fn<P, O, F>(f: F) -> FromFn<P, O, F>
 where
-    F: FnMut(&<P::Solution as Solution>::Individual, &P) -> O,
+    F: FnMut(&P::Individual, &P) -> O,
     P: Problem,
     O: PartialOrd,
 {

@@ -11,46 +11,53 @@ use alloc::boxed::Box;
 use crate::{
     Problem,
     eval::Eval,
-    solution::{Individual, Iter, Population},
+    solution::{Individual, Iter, Population, Solution},
 };
 
 use super::{And, Condition, Not, Or};
 
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
-pub trait Stop<P: Problem>: Condition {
+pub trait Stop<P, S>: Condition
+where
+    P: Problem,
+    S: Solution<Individual = P::Individual>,
+{
     #[must_use]
-    fn stop(&mut self, solution: &P::Solution, eval: &mut P::Eval, problem: &P) -> bool;
+    fn stop(&mut self, solution: &S, eval: &mut P::Eval, problem: &P) -> bool;
 }
 
-impl<T, P> Stop<P> for &mut T
+impl<T, P, S> Stop<P, S> for &mut T
 where
-    T: Stop<P> + ?Sized,
+    T: Stop<P, S> + ?Sized,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    fn stop(&mut self, solution: &P::Solution, eval: &mut P::Eval, problem: &P) -> bool {
+    fn stop(&mut self, solution: &S, eval: &mut P::Eval, problem: &P) -> bool {
         T::stop(self, solution, eval, problem)
     }
 }
 
 #[cfg(feature = "alloc")]
-impl<T, P> Stop<P> for Box<T>
+impl<T, P, S> Stop<P, S> for Box<T>
 where
-    T: Stop<P> + ?Sized,
+    T: Stop<P, S> + ?Sized,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    fn stop(&mut self, solution: &P::Solution, eval: &mut P::Eval, problem: &P) -> bool {
+    fn stop(&mut self, solution: &S, eval: &mut P::Eval, problem: &P) -> bool {
         T::stop(self, solution, eval, problem)
     }
 }
 
 #[cfg(feature = "either")]
-impl<L, R, P> Stop<P> for either::Either<L, R>
+impl<L, R, P, S> Stop<P, S> for either::Either<L, R>
 where
-    L: Stop<P>,
-    R: Stop<P>,
+    L: Stop<P, S>,
+    R: Stop<P, S>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    fn stop(&mut self, solution: &P::Solution, eval: &mut P::Eval, problem: &P) -> bool {
+    fn stop(&mut self, solution: &S, eval: &mut P::Eval, problem: &P) -> bool {
         match self {
             Self::Left(left) => left.stop(solution, eval, problem),
             Self::Right(right) => right.stop(solution, eval, problem),
@@ -64,8 +71,12 @@ pub struct Iterations(pub usize);
 
 impl Condition for Iterations {}
 
-impl<P: Problem> Stop<P> for Iterations {
-    fn stop(&mut self, _: &P::Solution, _: &mut P::Eval, _: &P) -> bool {
+impl<P, S> Stop<P, S> for Iterations
+where
+    P: Problem,
+    S: Solution<Individual = P::Individual>,
+{
+    fn stop(&mut self, _: &S, _: &mut P::Eval, _: &P) -> bool {
         let remaining = self.0.saturating_sub(1);
         let iters = mem::replace(&mut self.0, remaining);
         iters == 0
@@ -89,25 +100,25 @@ impl<O, S> Optimum<O, S> {
 
 impl<O, S> Condition for Optimum<O, S> {}
 
-impl<P, S, O> Stop<P> for Optimum<O, Individual<S>>
+impl<P, S, O> Stop<P, Individual<S>> for Optimum<O, Individual<S>>
 where
-    P: Problem<Solution = Individual<S>>,
+    P: Problem<Individual = S>,
     P::Eval: Eval<P, Objective = O>,
     O: PartialOrd,
 {
-    fn stop(&mut self, solution: &P::Solution, eval: &mut P::Eval, problem: &P) -> bool {
+    fn stop(&mut self, solution: &Individual<S>, eval: &mut P::Eval, problem: &P) -> bool {
         eval.eval(solution, problem) >= self.optimum
     }
 }
 
-impl<P, S, O> Stop<P> for Optimum<O, S>
+impl<P, S, O> Stop<P, S> for Optimum<O, S>
 where
-    P: Problem<Solution = S>,
-    S: Population + for<'a> Iter<'a, Item = S::Individual>,
+    P: Problem,
+    S: Population<Individual = P::Individual> + for<'a> Iter<'a, Item = S::Individual>,
     P::Eval: Eval<P, Objective = O>,
     O: PartialOrd,
 {
-    fn stop(&mut self, population: &P::Solution, eval: &mut P::Eval, problem: &P) -> bool {
+    fn stop(&mut self, population: &S, eval: &mut P::Eval, problem: &P) -> bool {
         population
             .iter()
             .any(|solution| eval.eval(solution, problem) >= self.optimum)
@@ -148,34 +159,37 @@ impl<O: Hash, S> Hash for Optimum<O, S> {
     }
 }
 
-impl<T, U, P> Stop<P> for And<T, U>
+impl<T, U, P, S> Stop<P, S> for And<T, U>
 where
-    T: Stop<P>,
-    U: Stop<P>,
+    T: Stop<P, S>,
+    U: Stop<P, S>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    fn stop(&mut self, solution: &P::Solution, eval: &mut P::Eval, problem: &P) -> bool {
+    fn stop(&mut self, solution: &S, eval: &mut P::Eval, problem: &P) -> bool {
         self.first.stop(solution, eval, problem) && self.second.stop(solution, eval, problem)
     }
 }
 
-impl<T, U, P> Stop<P> for Or<T, U>
+impl<T, U, P, S> Stop<P, S> for Or<T, U>
 where
-    T: Stop<P>,
-    U: Stop<P>,
+    T: Stop<P, S>,
+    U: Stop<P, S>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    fn stop(&mut self, solution: &P::Solution, eval: &mut P::Eval, problem: &P) -> bool {
+    fn stop(&mut self, solution: &S, eval: &mut P::Eval, problem: &P) -> bool {
         self.first.stop(solution, eval, problem) || self.second.stop(solution, eval, problem)
     }
 }
 
-impl<T, P> Stop<P> for Not<T>
+impl<T, P, S> Stop<P, S> for Not<T>
 where
-    T: Stop<P>,
+    T: Stop<P, S>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    fn stop(&mut self, solution: &P::Solution, eval: &mut P::Eval, problem: &P) -> bool {
+    fn stop(&mut self, solution: &S, eval: &mut P::Eval, problem: &P) -> bool {
         !self.0.stop(solution, eval, problem)
     }
 }

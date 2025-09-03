@@ -1,4 +1,4 @@
-use crate::Problem;
+use crate::{Problem, solution::Solution};
 
 use super::{Operator, cond::accept::Accept};
 
@@ -9,11 +9,12 @@ pub struct AcceptIf<T, F> {
     pub(super) cond: F,
 }
 
-impl<T, F, P, In> Operator<P, In> for AcceptIf<T, F>
+impl<T, F, P, S, In> Operator<P, S, In> for AcceptIf<T, F>
 where
-    T: Operator<P, In>,
-    F: Accept<P>,
-    P: Problem<Solution: Clone>,
+    T: Operator<P, S, In>,
+    F: Accept<P, S>,
+    P: Problem,
+    S: Solution<Individual = P::Individual> + Clone,
 {
     type Output = Option<T::Output>;
 
@@ -21,7 +22,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         input: In,

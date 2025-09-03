@@ -2,24 +2,23 @@ use core::marker::PhantomData;
 
 use crate::{
     Problem,
-    solution::{Individual, IterMut, Population, Reencoded, Solution},
+    solution::{Individual, IterMut, Population},
 };
 
 use super::Operator;
 
-// TODO: 1. Manually implement common traits
-//       2. Do we really need this combinator?
+// TODO: Manually implement common traits
 #[must_use]
-pub struct ForEach<T, P> {
+pub struct ForEach<T, P, S> {
     op: T,
-    marker: PhantomData<fn() -> P>,
+    marker: PhantomData<fn() -> (P, S)>,
 }
 
-impl<T, P, S> Operator<P> for ForEach<T, P>
+impl<T, P, S> Operator<P, S> for ForEach<T, P, S>
 where
-    T: Operator<Reencoded<P, Individual<S::Individual>>, Output = ()>,
-    P: Problem<Solution = S>,
-    S: Population + for<'a> IterMut<'a, Item = <P::Solution as Solution>::Individual>,
+    T: Operator<P, Individual<P::Individual>, Output = ()>,
+    P: Problem,
+    S: Population<Individual = P::Individual> + for<'a> IterMut<'a, Item = P::Individual>,
 {
     type Output = ();
 
@@ -27,13 +26,11 @@ where
 
     fn apply(
         &mut self,
-        population: &mut P::Solution,
+        population: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         (): (),
     ) -> Result<Self::Output, Self::Error> {
-        let eval = Reencoded::from_mut(eval);
-        let problem = Reencoded::from_ref(problem);
         population
             .iter_mut()
             .map(Individual::from_mut)
@@ -41,11 +38,11 @@ where
     }
 }
 
-pub fn for_each<T, P, S>(op: T) -> ForEach<T, P>
+pub fn for_each<T, P, S>(op: T) -> ForEach<T, P, S>
 where
-    T: Operator<Reencoded<P, Individual<S::Individual>>, Output = ()>,
-    P: Problem<Solution = S>,
-    S: Population + for<'a> IterMut<'a, Item = <P::Solution as Solution>::Individual>,
+    T: Operator<P, Individual<P::Individual>, Output = ()>,
+    P: Problem,
+    S: Population<Individual = P::Individual> + for<'a> IterMut<'a, Item = P::Individual>,
 {
     ForEach {
         op,

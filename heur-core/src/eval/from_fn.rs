@@ -4,11 +4,11 @@ use core::{
     marker::PhantomData,
 };
 
-use crate::{Problem, solution::Solution};
+use crate::Problem;
 
 use super::Eval;
 
-type EvalFn<P, O> = fn(&<<P as Problem>::Solution as Solution>::Individual, &P) -> O;
+type EvalFn<P, O> = fn(&<P as Problem>::Individual, &P) -> O;
 
 #[must_use]
 pub struct FromFn<P, O, F = EvalFn<P, O>> {
@@ -19,17 +19,13 @@ pub struct FromFn<P, O, F = EvalFn<P, O>> {
 
 impl<P, O, F> Eval<P> for FromFn<P, O, F>
 where
-    F: FnMut(&<P::Solution as Solution>::Individual, &P) -> O,
+    F: FnMut(&P::Individual, &P) -> O,
     P: Problem,
     O: PartialOrd,
 {
     type Objective = O;
 
-    fn eval(
-        &mut self,
-        solution: &<P::Solution as Solution>::Individual,
-        problem: &P,
-    ) -> Self::Objective {
+    fn eval(&mut self, solution: &P::Individual, problem: &P) -> Self::Objective {
         (self.f)(solution, problem)
     }
 }

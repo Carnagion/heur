@@ -1,6 +1,6 @@
 use core::fmt::{self, Debug, Formatter};
 
-use crate::Problem;
+use crate::{Problem, solution::Solution};
 
 use super::Operator;
 
@@ -8,18 +8,19 @@ use super::Operator;
 #[must_use]
 pub struct Flatten<T>(pub(crate) T);
 
-impl<T, P, In> Operator<P, In> for Flatten<T>
+impl<T, P, S, In> Operator<P, S, In> for Flatten<T>
 where
-    T: Operator<P, In, Output: Operator<P, Error = T::Error>>,
+    T: Operator<P, S, In, Output: Operator<P, S, Error = T::Error>>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    type Output = <T::Output as Operator<P>>::Output;
+    type Output = <T::Output as Operator<P, S>>::Output;
 
     type Error = T::Error;
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         input: In,
@@ -37,12 +38,13 @@ pub struct FlatMap<T, F> {
     pub(crate) f: F,
 }
 
-impl<T, U, F, P, In> Operator<P, In> for FlatMap<T, F>
+impl<T, U, F, P, S, In> Operator<P, S, In> for FlatMap<T, F>
 where
-    T: Operator<P, In>,
-    U: Operator<P, Error = T::Error>,
+    T: Operator<P, S, In>,
+    U: Operator<P, S, Error = T::Error>,
     F: FnMut(T::Output) -> U,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Output = U::Output;
 
@@ -50,7 +52,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         input: In,

@@ -6,24 +6,25 @@ use core::{
     marker::PhantomData,
 };
 
-use crate::Problem;
+use crate::{Problem, solution::Solution};
 
 use super::Operator;
 
-type OperatorFn<P, In, Out, Err> =
-    fn(&mut <P as Problem>::Solution, &mut <P as Problem>::Eval, &P, In) -> Result<Out, Err>;
+type OperatorFn<P, S, In, Out, Err> =
+    fn(&mut S, &mut <P as Problem>::Eval, &P, In) -> Result<Out, Err>;
 
 #[must_use]
-pub struct FromFn<P, In = (), Out = (), Err = Infallible, F = OperatorFn<P, In, Out, Err>> {
+pub struct FromFn<P, S, In = (), Out = (), Err = Infallible, F = OperatorFn<P, S, In, Out, Err>> {
     pub(super) f: F,
     #[allow(clippy::type_complexity)]
-    pub(super) marker: PhantomData<fn() -> (P, In, Out, Err)>,
+    pub(super) marker: PhantomData<fn() -> (P, S, In, Out, Err)>,
 }
 
-impl<P, In, Out, Err, F> Operator<P, In> for FromFn<P, In, Out, Err, F>
+impl<P, S, In, Out, Err, F> Operator<P, S, In> for FromFn<P, S, In, Out, Err, F>
 where
-    F: FnMut(&mut P::Solution, &mut P::Eval, &P, In) -> Result<Out, Err>,
+    F: FnMut(&mut S, &mut P::Eval, &P, In) -> Result<Out, Err>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
     Err: Error,
 {
     type Output = Out;
@@ -32,7 +33,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         input: In,
@@ -41,15 +42,15 @@ where
     }
 }
 
-impl<P, In, Out, Err, F> Debug for FromFn<P, In, Out, Err, F> {
+impl<P, S, In, Out, Err, F> Debug for FromFn<P, S, In, Out, Err, F> {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         formatter.debug_struct("FromFn").finish_non_exhaustive()
     }
 }
 
-impl<P, In, Out, Err, F: Copy> Copy for FromFn<P, In, Out, Err, F> {}
+impl<P, S, In, Out, Err, F: Copy> Copy for FromFn<P, S, In, Out, Err, F> {}
 
-impl<P, In, Out, Err, F: Clone> Clone for FromFn<P, In, Out, Err, F> {
+impl<P, S, In, Out, Err, F: Clone> Clone for FromFn<P, S, In, Out, Err, F> {
     fn clone(&self) -> Self {
         Self {
             f: self.f.clone(),
@@ -58,15 +59,15 @@ impl<P, In, Out, Err, F: Clone> Clone for FromFn<P, In, Out, Err, F> {
     }
 }
 
-impl<P, In, Out, Err, F: Eq> Eq for FromFn<P, In, Out, Err, F> {}
+impl<P, S, In, Out, Err, F: Eq> Eq for FromFn<P, S, In, Out, Err, F> {}
 
-impl<P, In, Out, Err, F: PartialEq> PartialEq for FromFn<P, In, Out, Err, F> {
+impl<P, S, In, Out, Err, F: PartialEq> PartialEq for FromFn<P, S, In, Out, Err, F> {
     fn eq(&self, other: &Self) -> bool {
         self.f.eq(&other.f)
     }
 }
 
-impl<P, In, Out, Err, F: Hash> Hash for FromFn<P, In, Out, Err, F> {
+impl<P, S, In, Out, Err, F: Hash> Hash for FromFn<P, S, In, Out, Err, F> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.f.hash(state);
     }

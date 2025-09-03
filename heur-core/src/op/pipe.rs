@@ -1,4 +1,4 @@
-use crate::{Optimize, Problem};
+use crate::{Optimize, Problem, solution::Solution};
 
 use super::{Operator, init::Init};
 
@@ -9,11 +9,12 @@ pub struct Pipe<T, U> {
     pub(super) to: U,
 }
 
-impl<T, U, P, In> Operator<P, In> for Pipe<T, U>
+impl<T, U, P, S, In> Operator<P, S, In> for Pipe<T, U>
 where
-    T: Operator<P, In>,
-    U: Operator<P, T::Output, Error = T::Error>,
+    T: Operator<P, S, In>,
+    U: Operator<P, S, T::Output, Error = T::Error>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
     type Output = U::Output;
 
@@ -21,7 +22,7 @@ where
 
     fn apply(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
         input: In,
@@ -32,19 +33,20 @@ where
     }
 }
 
-impl<T, U, P> Init<P> for Pipe<T, U>
+impl<T, U, P, S> Init<P, S> for Pipe<T, U>
 where
-    T: Init<P>,
-    U: Operator<P, Output = (), Error = T::Error>,
+    T: Init<P, S>,
+    U: Operator<P, S, Output = (), Error = T::Error>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<P::Solution, Self::Error> {
+    fn init(&mut self, eval: &mut P::Eval, problem: &P) -> Result<S, Self::Error> {
         self.from.by_ref().then(&mut self.to).init(eval, problem)
     }
 
     fn init_into(
         &mut self,
-        solution: &mut P::Solution,
+        solution: &mut S,
         eval: &mut P::Eval,
         problem: &P,
     ) -> Result<(), Self::Error> {
@@ -55,19 +57,16 @@ where
     }
 }
 
-impl<T, U, P> Optimize<P> for Pipe<T, U>
+impl<T, U, P, S> Optimize<P, S> for Pipe<T, U>
 where
-    T: Init<P>,
-    U: Operator<P, Output = (), Error = T::Error>,
+    T: Init<P, S>,
+    U: Operator<P, S, Output = (), Error = T::Error>,
     P: Problem,
+    S: Solution<Individual = P::Individual>,
 {
-    type Error = <Self as Operator<P>>::Error;
+    type Error = <Self as Operator<P, S>>::Error;
 
-    fn optimize(
-        &mut self,
-        eval: &mut P::Eval,
-        problem: &P,
-    ) -> Result<<P as Problem>::Solution, Self::Error> {
+    fn optimize(&mut self, eval: &mut P::Eval, problem: &P) -> Result<S, Self::Error> {
         self.init(eval, problem)
     }
 }
