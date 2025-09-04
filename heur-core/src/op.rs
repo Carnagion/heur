@@ -448,6 +448,18 @@ where
         self
     }
 
+    /// Box and type-erase the operator, yielding an operator that is dynamically dispatched.
+    ///
+    /// The use cases for dynamically dispatched operators include, but are not limited to:
+    /// - Dynamically building up complex operators at runtime
+    /// - Reducing compilation times (operator combinators can produce exceptionally long types, which can cause Rust
+    ///   to struggle)
+    /// - Improving compiler error messages and diagnostics (long type names can make errors difficult to read)
+    /// - Being able to name operator types, which may be tedious or impossible with certain operators
+    ///
+    /// Everything about the operator remains unchanged except for its type; i.e. it still accepts problems of type `P`,
+    /// solutions of type `S`, and inputs of type `In`, it produces outputs of type [`Output`](Operator::Output) and errors
+    /// of type [`Error`](Operator::Error), and [`apply`](Operator::apply) retains its behaviour.
     #[cfg(feature = "alloc")]
     #[must_use]
     fn boxed<'a>(
