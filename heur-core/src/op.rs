@@ -322,6 +322,37 @@ where
         AcceptIf { op: self, cond }
     }
 
+    /// Repeatedly apply an operator for a given number of times.
+    ///
+    /// Each iteration's output is passed to the next iteration as its input, which requires that the operator's
+    /// input and output types are the same (i.e. `In` = [`Output`](Operator::Output)). In other words, applying
+    /// the operator `a.repeat(n)` is equivalent to applying `a` in a loop like so:
+    /// ```
+    /// # use heur_core::{op::Operator, solution::Solution, Problem};
+    /// #
+    /// # fn test<T, P, S, In>(
+    /// #     mut a: T,
+    /// #     n: usize,
+    /// #     solution: &mut S,
+    /// #     eval: &mut P::Eval,
+    /// #     problem: &P,
+    /// #     input: In,
+    /// # ) -> Result<T::Output, T::Error>
+    /// # where
+    /// #     T: Operator<P, S, In, Output = In>,
+    /// #     P: Problem,
+    /// #     S: Solution<Individual = P::Individual>,
+    /// # {
+    /// let mut state = input;
+    /// for _ in 0..n {
+    ///     state = a.apply(solution, eval, problem, state)?;
+    /// }
+    /// Ok(state)
+    /// # }
+    /// ```
+    ///
+    /// See [`repeat_until`](Operator::repeat_until) for a version of this combinator that supports arbitrary
+    /// stopping conditions other than the number of iterations.
     fn repeat(self, times: usize) -> Repeat<Self>
     where
         Self: Operator<P, S, In, Output = In> + Sized,
@@ -329,6 +360,38 @@ where
         Repeat { op: self, times }
     }
 
+    /// Repeatedly apply an operator until a stopping condition is fulfilled.
+    ///
+    /// Each iteration's output is passed to the next iteration as its input, which requires that the operator's
+    /// input and output types are the same (i.e. `In` = [`Output`](Operator::Output)). In other words, applying
+    /// `a.repeat_until(f)` is equivalent to applying `a` in a loop like so:
+    /// ```
+    /// # use heur_core::{op::{cond::stop::Stop, Operator}, solution::Solution, Problem};
+    /// #
+    /// # fn test<T, F, P, S, In>(
+    /// #     mut a: T,
+    /// #     mut f: F,
+    /// #     solution: &mut S,
+    /// #     eval: &mut P::Eval,
+    /// #     problem: &P,
+    /// #     input: In,
+    /// # ) -> Result<T::Output, T::Error>
+    /// # where
+    /// #     T: Operator<P, S, In, Output = In>,
+    /// #     F: Stop<P, S>,
+    /// #     P: Problem,
+    /// #     S: Solution<Individual = P::Individual>,
+    /// # {
+    /// let mut state = input;
+    /// while !f.stop(solution, eval, problem) {
+    ///     state = a.apply(solution, eval, problem, state)?;
+    /// }
+    /// Ok(state)
+    /// # }
+    /// ```
+    ///
+    /// See [`repeat`](Operator::repeat) for a simpler version of this combinator that only supports an exact
+    /// number of iterations as a stopping condition.
     fn repeat_until<F>(self, cond: F) -> RepeatUntil<Self, F>
     where
         Self: Operator<P, S, In, Output = In> + Sized,
