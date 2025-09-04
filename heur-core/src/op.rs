@@ -440,6 +440,13 @@ where
         Unwrapped(self)
     }
 
+    /// Creates a by-reference operator without taking ownership of the original operator.
+    ///
+    /// This is useful for calling operator combinators --- most of which take `self` by value --- without giving up
+    /// ownership of the original operator(s), which allows their continued use afterwards.
+    ///
+    /// You may have noticed that this method simply returns `&mut self`, which is an operator by itself thanks to the
+    /// [blanket impl of `Operator` for `&mut T`](#impl-Operator<P,+S,+In>-for-%26mut+T).
     #[must_use]
     fn by_ref(&mut self) -> &mut Self
     where
