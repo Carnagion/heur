@@ -86,10 +86,21 @@ where
     P: Problem,
     S: Solution<Individual = P::Individual>,
 {
+    /// The type of output produced by applying the operator.
     type Output;
 
+    /// The type of error produced upon failure.
     type Error: Error;
 
+    /// Apply the operator to a solution along with an [evaluation function](crate::eval::Eval), some problem data, and some
+    /// input, producing some output on success, or an error otherwise.
+    ///
+    /// # Note to Implementors
+    ///
+    /// Avoid having panics inside your implementation of [`apply`](Operator::apply) --- panicking versions of operators can
+    /// always be created using [`unwrapped`](Operator::unwrapped) if needed. Operators should always return errors instead
+    /// of panicking. For infallible operators (i.e. operators that never produce errors), use [`Infallible`] as the error
+    /// type.
     fn apply(
         &mut self,
         solution: &mut S,
@@ -417,6 +428,11 @@ where
         FlatMap { op: self, f }
     }
 
+    /// Convert a fallible operator into an "infallible" one by unwrapping the result of [`apply`](Operator::apply).
+    ///
+    /// The error type of the new operator is [`Infallible`]. Note that this does not actually make an operator *truly*
+    /// infallible --- it only makes the operator panic instead of producing an error in [`apply`](Operator::apply). Avoid
+    /// using this combinator except when debugging or when absolutely certain that any panics will be unreachable.
     fn unwrapped(self) -> Unwrapped<Self>
     where
         Self: Sized,
