@@ -28,6 +28,9 @@ pub use accept_if::AcceptIf;
 mod repeat;
 pub use repeat::{Repeat, RepeatUntil};
 
+mod inspect;
+pub use inspect::{Inspect, InspectErr};
+
 mod flatten;
 pub use flatten::{FlatMap, Flatten};
 
@@ -157,6 +160,22 @@ where
         F: Stop<P, S>,
     {
         RepeatUntil { op: self, cond }
+    }
+
+    fn inspect<F>(self, f: F) -> Inspect<Self, F>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Output),
+    {
+        Inspect { op: self, f }
+    }
+
+    fn inspect_err<F>(self, f: F) -> InspectErr<Self, F>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Error),
+    {
+        InspectErr { op: self, f }
     }
 
     fn flatten(self) -> Flatten<Self>
