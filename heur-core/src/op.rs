@@ -702,6 +702,14 @@ where
     }
 }
 
+/// Creates an operator that uses the provided closure as its implementation of [`apply`](Operator::apply).
+///
+/// The closure must have the function signature `(&mut S, &mut E, &P, In) -> Result<Out, Err>` where the types `P`, `S`,
+/// `E`, `In`, `Out`, and `Err` can be freely chosen as long as they satisfy the required trait bounds.
+///
+/// This function exists mainly for convenience. Consider defining a custom type and manually implementing [`Operator`] for
+/// it instead where possible, as doing so is less prone to type inference failures and allows you to name the operator
+/// type (`from_fn` can result in unnameable types when capturing closures are involved).
 pub fn from_fn<P, S, In, Out, Err, F>(f: F) -> FromFn<P, S, In, Out, Err, F>
 where
     F: FnMut(&mut S, &mut P::Eval, &P, In) -> Result<Out, Err>,

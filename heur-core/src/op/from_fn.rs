@@ -13,6 +13,9 @@ use super::Operator;
 type OperatorFn<P, S, In, Out, Err> =
     fn(&mut S, &mut <P as Problem>::Eval, &P, In) -> Result<Out, Err>;
 
+/// An operator that uses the provided closure as its implementation of [`apply`](Operator::apply).
+///
+/// This type is created by [`op::from_fn`](crate::op::from_fn). See its documentation for more details.
 #[must_use]
 pub struct FromFn<P, S, In = (), Out = (), Err = Infallible, F = OperatorFn<P, S, In, Out, Err>> {
     pub(super) f: F,
