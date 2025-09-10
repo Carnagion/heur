@@ -707,6 +707,8 @@ where
 /// The closure must have the function signature `(&mut S, &mut E, &P, In) -> Result<Out, Err>` where the types `P`, `S`,
 /// `E`, `In`, `Out`, and `Err` can be freely chosen as long as they satisfy the required trait bounds.
 ///
+/// # Intended Usage
+///
 /// This function exists mainly for convenience. Consider defining a custom type and manually implementing [`Operator`] for
 /// it instead where possible, as doing so is less prone to type inference failures and allows you to name the operator
 /// type (`from_fn` can result in unnameable types when capturing closures are involved).
@@ -723,6 +725,31 @@ where
     }
 }
 
+/// Hints to the compiler the type of the operator, as well as its problem, solution, input, output, and error type.
+///
+/// The resulting operator simply delegates all functionality to the original (inner) operator without any changes whatsoever.
+/// As a result, the use of this operator carries no extra runtime cost and only improves type inference.
+///
+/// # Intended Usage
+///
+/// When constructing long operator combinator expressions, Rust can often have trouble inferring which implementation of
+/// [`Operator`] is being used --- particularly if types that blanket-impl [`Operator`] are involved. In such cases, wrapping
+/// operators in this function can aid in type inference, or produce better compiler errors on continued failure.
+///
+/// For example, it is common to wrap the first operator of any chain in this function, like so:
+/// ```ignore
+/// let op = op::hint(a) // ◄──╮
+///     .then( //              ├── start of a chain
+///         op::hint(b) // ◄───╯
+///             .pipe(c) // ◄──────────╮
+///             .repeat_until(f) //    │
+///             .then(d) // ◄──────────┼── not the start of a chain, so `hint` not needed
+///     ) //                           │
+///     .then(e) // ◄──────────────────╯
+/// ```
+///
+/// This ensures that the compiler is able to infer the generic parameters, and consequently, the exact implementation of
+/// [`Operator`] being referred to when invoking the combinators following the first operator in each chain.
 pub fn hint<T, P, S, In, Out, Err>(op: T) -> Hint<T, P, S, In, Out, Err>
 where
     T: Operator<P, S, In, Output = Out, Error = Err>,
@@ -736,16 +763,16 @@ where
     }
 }
 
-/// A placeholder operator that can be used in place of any other operator.
+/// Creates a placeholder operator that can be used in place of any other operator.
 ///
 /// This is similar to the [`todo!`] macro, but instead of panicking immediately, it panics when [`apply`](Operator::apply)
 /// is called.
 ///
+/// # Intended Usage
+///
 /// The primary use case for this function is to serve as a placeholder operator that works with any problem, solution, input,
 /// output, and error type, allowing you to use it during development or debugging instead of implementing all functionality
-/// immediately.
-///
-/// Avoid using this operator outside of in-development or debugging scenarios, as it unconditionally panics when
+/// immediately. Avoid using this operator outside of in-development or debugging scenarios, as it unconditionally panics when
 /// [`apply`](Operator::apply) is called.
 pub fn todo<P, S, In, Out, Err>() -> Todo<P, S, In, Out, Err>
 where

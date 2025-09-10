@@ -9,6 +9,10 @@ use crate::{Optimize, Problem, solution::Solution};
 
 use super::{Operator, init::Init};
 
+/// An operator that hints to the compiler the type of its inner operator, as well as its problem, solution, input,
+/// output, and error types.
+///
+/// This type is created by [`op::hint`](crate::op::hint). See its documentation for more details.
 #[must_use]
 pub struct Hint<T, P, S, In = (), Out = (), Err = Infallible> {
     pub(super) op: T,
