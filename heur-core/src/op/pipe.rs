@@ -2,6 +2,9 @@ use crate::{Optimize, Problem, solution::Solution};
 
 use super::{Operator, init::Init};
 
+/// An operator that applies its two inner operators successively, passing the output of the first as input to the second.
+///
+/// This type is created by [`Operator::pipe`]. See its documentation for more details.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct Pipe<T, U> {
