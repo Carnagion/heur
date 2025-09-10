@@ -324,6 +324,44 @@ where
         Once(Some(self))
     }
 
+    /// Accept or undo changes made to a solution depending on some acceptance criteria.
+    ///
+    /// The [`Output`](Operator::Output) of the resulting operator is an [`Option`] containing the inner operator's output
+    /// in `Some` if the acceptance criterion is met (i.e. returns `true`). Otherwise, the output is `None`, and the previous
+    /// solution is restored.
+    ///
+    /// Note that the previous solution is only restored if evaluating the acceptance criteria returns `false`, and not in
+    /// cases such as the inner operator panicking or returning an error in [`apply`](Operator::apply).
+    ///
+    /// Applying `a.accept_if(f)` is therefore equivalent to the following:
+    /// ```
+    /// # use heur_core::{op::{cond::accept::Accept, Operator}, solution::Solution, Problem};
+    /// #
+    /// # fn test<T, F, P, S, In>(
+    /// #     mut a: T,
+    /// #     mut f: F,
+    /// #     solution: &mut S,
+    /// #     eval: &mut P::Eval,
+    /// #     problem: &P,
+    /// #     input: In,
+    /// # ) -> Result<Option<T::Output>, T::Error>
+    /// # where
+    /// #     T: Operator<P, S, In>,
+    /// #     F: Accept<P, S>,
+    /// #     P: Problem,
+    /// #     S: Solution<Individual = P::Individual> + Clone,
+    /// # {
+    /// let backup = solution.clone();
+    ///
+    /// let output = a.apply(solution, eval, problem, input)?;
+    /// if f.accept(solution, &backup, eval, problem) {
+    ///     Ok(Some(output))
+    /// } else {
+    ///     *solution = backup;
+    ///     Ok(None)
+    /// }
+    /// # }
+    /// ```
     fn accept_if<F>(self, cond: F) -> AcceptIf<Self, F>
     where
         Self: Sized,
