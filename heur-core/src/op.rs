@@ -461,6 +461,13 @@ where
         RepeatUntil { op: self, cond }
     }
 
+    /// Call a function on the output of applying an operator.
+    ///
+    /// This is primarily useful for debugging or logging the progress of an operator. The output of the operator is passed
+    /// to the function by reference, preventing it from being modified (barring the presence of interior mutability).
+    ///
+    /// See [`inspect_err`](Operator::inspect_err) for a version of this combinator that calls a function on errors rather than
+    /// the output.
     fn inspect<F>(self, f: F) -> Inspect<Self, F>
     where
         Self: Sized,
@@ -469,6 +476,13 @@ where
         Inspect { op: self, f }
     }
 
+    /// Call a function on any errors produced when applying an operator.
+    ///
+    /// This is primarily useful for debugging or logging the progress of an operator. The errors are passed to the function
+    /// by reference, preventing them from being modified (barring the presence of interior mutability).
+    ///
+    /// See [`inspect`](Operator::inspect) for a version of this combinator that calls a function on the output produced by
+    /// [`apply`](Operator::apply) rather than the error.
     fn inspect_err<F>(self, f: F) -> InspectErr<Self, F>
     where
         Self: Sized,

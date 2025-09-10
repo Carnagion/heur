@@ -6,6 +6,9 @@ use crate::{
     solution::Solution,
 };
 
+/// An operator that calls a function on the output produced by its inner operator.
+///
+/// This type is created by [`Operator::inspect`]. See its documentation for more details.
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct Inspect<T, F> {
@@ -49,6 +52,9 @@ where
     }
 }
 
+/// An operator that calls a function on any errors produced by its inner operator.
+///
+/// This type is created by [`Operator::inspect_err`]. See its documentation for more details.
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct InspectErr<T, F> {
