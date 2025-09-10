@@ -10,6 +10,9 @@ use crate::{Problem, solution::Solution};
 
 use super::Operator;
 
+/// An operator that can be used in place of any other operator and panics in its implementation of [`apply`](Operator::apply).
+///
+/// This type is created by [`op::todo`](crate::op::todo). See its documentation for more details.
 #[must_use]
 pub struct Todo<P, S, In = (), Out = (), Err = Infallible>(
     #[allow(clippy::type_complexity)] pub(super) PhantomData<fn() -> (P, S, In, Out, Err)>,

@@ -736,6 +736,17 @@ where
     }
 }
 
+/// A placeholder operator that can be used in place of any other operator.
+///
+/// This is similar to the [`todo!`] macro, but instead of panicking immediately, it panics when [`apply`](Operator::apply)
+/// is called.
+///
+/// The primary use case for this function is to serve as a placeholder operator that works with any problem, solution, input,
+/// output, and error type, allowing you to use it during development or debugging instead of implementing all functionality
+/// immediately.
+///
+/// Avoid using this operator outside of in-development or debugging scenarios, as it unconditionally panics when
+/// [`apply`](Operator::apply) is called.
 pub fn todo<P, S, In, Out, Err>() -> Todo<P, S, In, Out, Err>
 where
     P: Problem,
