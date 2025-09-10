@@ -711,7 +711,7 @@ where
 ///
 /// This function exists mainly for convenience. Consider defining a custom type and manually implementing [`Operator`] for
 /// it instead where possible, as doing so is less prone to type inference failures and allows you to name the operator
-/// type (`from_fn` can result in unnameable types when capturing closures are involved).
+/// type ([`from_fn`](from_fn()) can result in unnameable types when capturing closures are involved).
 pub fn from_fn<P, S, In, Out, Err, F>(f: F) -> FromFn<P, S, In, Out, Err, F>
 where
     F: FnMut(&mut S, &mut P::Eval, &P, In) -> Result<Out, Err>,
