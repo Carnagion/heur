@@ -190,6 +190,11 @@ where
         Ignore(self)
     }
 
+    /// Converts an operator taking no input and producing no output into an operator that takes any input and returns
+    /// the same input as its output.
+    ///
+    /// The original operator must take no input and produce no output, i.e. `In` = `()` and [`Output`](Operator::Output) = `()`.
+    /// Any input passed to the resulting operator will be returned as the output after applying the inner operator.
     fn passthrough(self) -> Passthrough<Self>
     where
         Self: Sized,
@@ -234,7 +239,7 @@ where
         Map { op: self, f }
     }
 
-    /// Transforms any errors produced by the operator to error type via a function.
+    /// Transforms any errors produced by the operator to another error type via a function.
     ///
     /// The [`Error`](Operator::Error) type of the resulting combinator will be the return type of the mapping function
     /// `f`; i.e. applying `a.map_err(f)` is equivalent to applying the operator `a`, calling `f` on any error produced:
