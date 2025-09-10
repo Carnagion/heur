@@ -317,6 +317,10 @@ where
         TryMap { op: self, f }
     }
 
+    /// Create an operator that can only be applied once.
+    ///
+    /// Calling [`apply`](Operator::apply) on this operator will "consume" its single use and return its output as
+    /// an [`Option`]. Successive calls to [`apply`](Operator::apply) will perform no side effects and yield `None`.
     fn once(self) -> Once<Self>
     where
         Self: Sized,
