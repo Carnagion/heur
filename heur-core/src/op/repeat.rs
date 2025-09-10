@@ -2,6 +2,9 @@ use crate::{Problem, solution::Solution};
 
 use super::{Operator, cond::stop::Stop};
 
+/// An operator that repeatedly applies its inner operator a given number of times.
+///
+/// This type is created by [`Operator::repeat`]. See its documentation for more details.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct Repeat<T> {
@@ -33,6 +36,9 @@ where
     }
 }
 
+/// An operator that repeatedly applies its inner operator until a stopping condition is met.
+///
+/// This type is created by [`Operator::repeat_until`]. See its documentation for more details.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct RepeatUntil<T, F> {

@@ -4,6 +4,10 @@ use crate::{Optimize, Problem, solution::Solution};
 
 use super::{Operator, init::Init};
 
+/// An operator that unwraps the result of applying its inner operator, turning it into an "infallible" operator
+/// with an error type of [`Infallible`].
+///
+/// This type is created by [`Operator::unwrapped`]. See its documentation for more details.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct Unwrapped<T>(pub(super) T);

@@ -4,6 +4,9 @@ use crate::{Problem, solution::Solution};
 
 use super::Operator;
 
+/// An operator that flattens one level of nesting in its inner operator, whose output is itself an operator.
+///
+/// This type is created by [`Operator::flatten`]. See its documentation for more details.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct Flatten<T>(pub(crate) T);
@@ -31,6 +34,10 @@ where
     }
 }
 
+/// An operator that maps its inner operator's output to another operator, and yields the mapped operator's output as
+/// its own output.
+///
+/// This type is created by [`Operator::flat_map`]. See its documentation for more details.
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct FlatMap<T, F> {

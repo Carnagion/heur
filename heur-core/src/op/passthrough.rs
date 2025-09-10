@@ -5,6 +5,10 @@ use crate::{
     solution::Solution,
 };
 
+/// An operator that converts a no-input, no-output operator into an operator that takes any input and returns the same input as
+/// its output.
+///
+/// This type is created by [`Operator::passthrough`]. See its documentation for more details.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct Passthrough<T>(pub(super) T);

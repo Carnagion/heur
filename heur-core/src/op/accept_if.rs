@@ -2,6 +2,9 @@ use crate::{Problem, solution::Solution};
 
 use super::{Operator, cond::accept::Accept};
 
+/// An operator that accepts or undoes changes made by its inner operator depending on some acceptance criteria.
+///
+/// This type is created by [`Operator::accept_if`]. See its documentation for more details.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct AcceptIf<T, F> {

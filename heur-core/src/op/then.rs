@@ -2,6 +2,9 @@ use crate::{Optimize, Problem, solution::Solution};
 
 use super::{Operator, init::Init};
 
+/// An operator that applies its two inner operators successively, taking no input and producing no output.
+///
+/// This type is created by [`Operator::then`]. See its documentation for more details.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct Then<T, U> {

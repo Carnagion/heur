@@ -2,6 +2,9 @@ use crate::{Problem, solution::Solution};
 
 use super::Operator;
 
+/// An operator that enforces single-use application for its inner operator.
+///
+/// This type is created by [`Operator::once`]. See its documentation for more details.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct Once<T>(pub(super) Option<T>);

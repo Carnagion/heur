@@ -7,6 +7,9 @@ use crate::{Problem, op::init::Init, solution::Solution};
 
 use super::Operator;
 
+/// An operator that maps the output produced by its inner operator to another value via a function.
+///
+/// This type is created by [`Operator::map`]. See its documentation for more details.
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct Map<T, F> {
@@ -50,6 +53,9 @@ where
     }
 }
 
+/// An operator that maps errors produced by its inner operator to another error type via a function.
+///
+/// This type is created by [`Operator::map_err`]. See its documentation for more details.
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct MapErr<T, F> {
@@ -118,6 +124,9 @@ where
     }
 }
 
+/// An operator that maps the output produced by its inner operator to another value via a fallible function.
+///
+/// This type is created by [`Operator::try_map`]. See its documentation for more details.
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct TryMap<T, F> {

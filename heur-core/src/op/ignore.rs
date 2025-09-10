@@ -2,6 +2,9 @@ use crate::{Optimize, Problem, solution::Solution};
 
 use super::{Operator, init::Init};
 
+/// An operator that ignores the output produced by its inner operator, producing `()` instead.
+///
+/// This type is created by [`Operator::ignore`]. See its documentation for more details.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct Ignore<T>(pub(super) T);
