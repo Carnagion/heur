@@ -449,6 +449,32 @@ where
         RepeatUntil { op: self, cond }
     }
 
+    /// "Flatten" an operator whose output is itself an operator, yielding a single operator that applies both successively.
+    ///
+    /// Both operators must have the same [`Output`](Operator::Output) and [`Error`](Operator::Error) types. Additionally, the
+    /// second operator (i.e. the output of the first) must take no input, i.e. `In` = `()`. In short, applying `a.flatten()`
+    /// is equivalent to applying `a` and then applying its output:
+    /// ```
+    /// # use heur_core::{op::Operator, solution::Solution, Problem};
+    /// #
+    /// # fn test<T, U, P, S, In>(
+    /// #     mut a: T,
+    /// #     solution: &mut S,
+    /// #     eval: &mut P::Eval,
+    /// #     problem: &P,
+    /// #     input: In,
+    /// # ) -> Result<U::Output, T::Error>
+    /// # where
+    /// #     T: Operator<P, S, In, Output = U>,
+    /// #     U: Operator<P, S, (), Error = T::Error>,
+    /// #     P: Problem,
+    /// #     S: Solution<Individual = P::Individual>,
+    /// # {
+    /// let mut b = a.apply(solution, eval, problem, input)?;
+    /// let output = b.apply(solution, eval, problem, ())?;
+    /// Ok(output)
+    /// # }
+    /// ```
     fn flatten(self) -> Flatten<Self>
     where
         Self: Sized,
@@ -457,6 +483,11 @@ where
         Flatten(self)
     }
 
+    /// Transforms the output of applying the operator into another operator via a function, then applies that operator too.
+    ///
+    /// Much like [`flat_map` for iterators](Iterator::flat_map), this is semantically equivalent to transforming the operator's
+    /// output with [`map`](Operator::map) and then calling [`flatten`](Operator::flatten) on the resulting operator; i.e.
+    /// `a.flat_map(f) == a.map(f).flatten()`.
     fn flat_map<U, F>(self, f: F) -> FlatMap<Self, F>
     where
         Self: Sized,
