@@ -13,6 +13,9 @@ use crate::{
 
 use super::Init;
 
+/// An operator that initialises individual (a.k.a. single-point) solutions by cloning a provided solution.
+///
+/// This type is created by [`init::from_individual`](super::from_individual). See its documentation for more details.
 #[must_use]
 pub struct FromIndividual<P, S> {
     pub(super) solution: Individual<S>,
@@ -59,6 +62,9 @@ where
     }
 }
 
+/// An operator that initialises population-based (a.k.a. multipoint) solutions by cloning a provided solution.
+///
+/// This type is created by [`init::from_population`](super::from_population). See its documentation for more details.
 #[must_use]
 pub struct FromPopulation<P, S> {
     pub(super) population: S,

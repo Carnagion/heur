@@ -1,3 +1,5 @@
+//! Operators for initialising solutions.
+
 use core::marker::PhantomData;
 
 #[cfg(feature = "alloc")]
@@ -71,9 +73,10 @@ pub use from_solver::FromSolver;
 /// A combinator-based metaheuristic must begin with an operator that implements [`Init`] in order to act as a solver. See the
 /// documentation of [`Optimize`] for more details.
 ///
-/// Heur provides a number of basic initialiser operators, namely [`from_individual`], [`from_population`], and
-/// [`from_solver`](from_solver()), which produce initial solutions by cloning an individual (a.k.a single-point) solution, by
-/// cloning a population of solutions (a.k.a. multipoint), and by running an existing solver for the problem, respectively.
+/// Heur provides a number of basic initialiser operators, namely [`init::from_individual`](from_individual()),
+/// [`init::from_population`](from_population()), and [`init::from_solver`](from_solver()), which produce initial solutions
+/// by cloning an individual (a.k.a. single-point) solution, by cloning a population of solutions (a.k.a. multipoint), and by
+/// running an existing solver for the problem, respectively.
 ///
 /// Certain operator combinators also implement this trait --- for example, [`then`](Operator::then) and [`pipe`](Operator::pipe)
 /// both implement [`Init`] if the first of their inner operators do. Other notable examples include [`hint`](crate::op::hint()),
@@ -188,6 +191,10 @@ where
     }
 }
 
+/// Creates an operator that initialises individual (a.k.a. single-point) solutions by cloning a provided solution.
+///
+/// See [`from_population`] for a version of this operator that initialises population-based (a.k.a. multipoint) solutions
+/// instead.
 pub fn from_individual<P, S>(solution: S) -> FromIndividual<P, S>
 where
     P: Problem<Individual = S>,
@@ -199,6 +206,12 @@ where
     }
 }
 
+/// Creates an operator that initialises population-based (a.k.a. multipoint) solutions by cloning a provided solution.
+///
+/// Any type implementing [`Population`] is supported, which includes arrays, vecs, boxed slices, and more.
+///
+/// See [`from_individual`] for a version of this operator that initialises individual (a.k.a. single-point) solutions
+/// instead.
 pub fn from_population<P, S>(population: S) -> FromPopulation<P, S>
 where
     P: Problem,
@@ -210,6 +223,10 @@ where
     }
 }
 
+/// Creates an operator that initialises solutions by running a solver that implements [`Optimize`].
+///
+/// The solution output by the solver is used as the initial solution. Note that the solution is not cached, so successive
+/// calls to the [`init`](Init::init) or [`apply`](Operator::apply) implementations of this operator will re-run the solver.
 pub fn from_solver<P, S, T>(solver: T) -> FromSolver<P, S, T>
 where
     T: Optimize<P, S>,

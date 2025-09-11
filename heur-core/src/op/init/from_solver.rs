@@ -8,6 +8,9 @@ use crate::{Optimize, Problem, op::Operator, solution::Solution};
 
 use super::Init;
 
+/// An operator that initialises solutions by running a solver that implements [`Optimize`].
+///
+/// This type is created by [`init::from_solver`](super::from_solver()). See its documentation for more details.
 #[must_use]
 pub struct FromSolver<P, S, T> {
     pub(super) solver: T,
