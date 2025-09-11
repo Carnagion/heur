@@ -7,16 +7,43 @@ use crate::{
     solution::{Individual, Solution},
 };
 
-use super::{And, Condition, Not, Or};
+use super::{And, Not, Or};
 
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
-pub trait Accept<P, S>: Condition
+pub trait Accept<P, S>
 where
     P: Problem,
     S: Solution<Individual = P::Individual>,
 {
     #[must_use]
     fn accept(&mut self, solution: &S, prev: &S, eval: &mut P::Eval, problem: &P) -> bool;
+
+    fn and<U>(self, other: U) -> And<Self, U>
+    where
+        Self: Sized,
+    {
+        And {
+            first: self,
+            second: other,
+        }
+    }
+
+    fn or<U>(self, other: U) -> Or<Self, U>
+    where
+        Self: Sized,
+    {
+        Or {
+            first: self,
+            second: other,
+        }
+    }
+
+    fn not(self) -> Not<Self>
+    where
+        Self: Sized,
+    {
+        Not(self)
+    }
 }
 
 impl<T, P, S> Accept<P, S> for &mut T
@@ -62,8 +89,6 @@ where
 #[must_use]
 pub struct Improving;
 
-impl Condition for Improving {}
-
 impl<P, S> Accept<P, Individual<S>> for Improving
 where
     P: Problem<Individual = S>,
@@ -82,8 +107,6 @@ where
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 #[must_use]
 pub struct NonWorsening;
-
-impl Condition for NonWorsening {}
 
 impl<P, S> Accept<P, Individual<S>> for NonWorsening
 where

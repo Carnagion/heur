@@ -14,16 +14,43 @@ use crate::{
     solution::{Individual, Iter, Population, Solution},
 };
 
-use super::{And, Condition, Not, Or};
+use super::{And, Not, Or};
 
 // TODO: Add `#[diagnostic::on_unimplemented]` and more combinators
-pub trait Stop<P, S>: Condition
+pub trait Stop<P, S>
 where
     P: Problem,
     S: Solution<Individual = P::Individual>,
 {
     #[must_use]
     fn stop(&mut self, solution: &S, eval: &mut P::Eval, problem: &P) -> bool;
+
+    fn and<U>(self, other: U) -> And<Self, U>
+    where
+        Self: Sized,
+    {
+        And {
+            first: self,
+            second: other,
+        }
+    }
+
+    fn or<U>(self, other: U) -> Or<Self, U>
+    where
+        Self: Sized,
+    {
+        Or {
+            first: self,
+            second: other,
+        }
+    }
+
+    fn not(self) -> Not<Self>
+    where
+        Self: Sized,
+    {
+        Not(self)
+    }
 }
 
 impl<T, P, S> Stop<P, S> for &mut T
@@ -69,8 +96,6 @@ where
 #[must_use]
 pub struct Iterations(pub usize);
 
-impl Condition for Iterations {}
-
 impl<P, S> Stop<P, S> for Iterations
 where
     P: Problem,
@@ -97,8 +122,6 @@ impl<O, S> Optimum<O, S> {
         }
     }
 }
-
-impl<O, S> Condition for Optimum<O, S> {}
 
 impl<P, S, O> Stop<P, Individual<S>> for Optimum<O, Individual<S>>
 where
